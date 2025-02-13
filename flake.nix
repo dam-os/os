@@ -15,6 +15,7 @@
 
         packages = with pkgs; [
            coreboot-toolchain.riscv
+           clang-tools_19 
         ];
         shellHook = "";
       };
