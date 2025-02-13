@@ -10,7 +10,12 @@
   in {
     devShells.x86_64-linux = {
       default = self.outputs.devShells.x86_64-linux.os;
-      os = pkgs.mkShell {};
+      os = pkgs.mkShellNoCC {
+        ENVIRONMENT_VARIABLE = "value";
+
+        packages = [];
+        shellHook = "";
+      };
     };
 
     packages.x86_64-linux.default = pkgs.hello;
