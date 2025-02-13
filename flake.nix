@@ -13,11 +13,21 @@
       os = pkgs.mkShellNoCC {
         ENVIRONMENT_VARIABLE = "value";
 
-        packages = [];
+        packages = with pkgs; [
+           coreboot-toolchain.riscv
+        ];
         shellHook = "";
       };
     };
 
-    packages.x86_64-linux.default = pkgs.hello;
+    packages.x86_64-linux = {
+      default = pkgs.callPackage ./nix/package.nix { src = ./.; };
+      vm = pkgs.writeShellApplication {
+        name = "damos-vm";
+        text = ''
+          ${pkgs.qemu}/bin/qemu-system-riscv64 -machine virt -bios none -kernel ${self.packages.x86_64-linux.default}/kernel.elf -serial mon:stdio
+        '';
+      };
+    };
   };
 }
