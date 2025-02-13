@@ -1,4 +1,4 @@
-{ src, stdenvNoCC, lib, coreboot-toolchain }: stdenvNoCC.mkDerivation (finalAttrs: {
+{ pkg-config, src, stdenvNoCC, lib, coreboot-toolchain }: stdenvNoCC.mkDerivation (finalAttrs: {
   inherit src;
 
   pname = "damos";
@@ -9,6 +9,7 @@
   # ];
   buildInputs = [
     coreboot-toolchain.riscv
+    pkg-config
   ];
 
   installPhase = ''
