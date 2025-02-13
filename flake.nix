@@ -17,7 +17,7 @@
            coreboot-toolchain.riscv
            clang-tools_19 
         ];
-        shellHook = "";
+        shellHook = "echo 'Happy hacking'";
       };
     };
 
