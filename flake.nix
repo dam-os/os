@@ -25,7 +25,7 @@
       vm = pkgs.writeShellApplication {
         name = "damos-vm";
         text = ''
-          ${pkgs.qemu}/bin/qemu-system-riscv64 -machine virt -bios none -kernel ${self.packages.x86_64-linux.default}/kernel.elf -serial mon:stdio
+          ${pkgs.qemu}/bin/qemu-system-riscv64 -machine virt -bios none -kernel ${self.packages.x86_64-linux.default}/src/kernel.elf -serial mon:stdio
         '';
       };
     };
