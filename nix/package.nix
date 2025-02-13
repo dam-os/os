@@ -1,4 +1,4 @@
-{ src, stdenvNoCC, lib }: stdenvNoCC.mkDerivation (finalAttrs: {
+{ src, stdenvNoCC, lib, coreboot-toolchain }: stdenvNoCC.mkDerivation (finalAttrs: {
   inherit src;
 
   pname = "damos";
@@ -7,9 +7,14 @@
   # nativeBuildInputs = [
   #
   # ];
-  # buildInputs = [
-  #
-  # ];
+  buildInputs = [
+    coreboot-toolchain.riscv
+  ];
+
+  installPhase = ''
+    mkdir -p $out
+    cp kernel.elf $out/kernel.elf
+  '';
 
   meta = {
     description = "";
