@@ -40,7 +40,7 @@ void kmain(void) {
     // Read a single character from the UART
     char c = getchar();
     putchar(c); // Echo back to the terminal
-    if (c == 'a') {
+    if (c == '\r') {
       poweroff();
     }
   }
