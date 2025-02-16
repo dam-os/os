@@ -1,6 +1,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+
+#include "./lib/device_tree.h"
+
 #define SYSCON_ADDR 0x100000
 
 #define UART_BASE 0x10000000
@@ -39,6 +42,10 @@ void kmain(void) {
   int cmdMax = 200;
   char cmd[cmdMax]; 
   char* p = cmd; 
+  uintptr_t dtb_address;
+  __asm__ volatile ("mv %0, a1" : "=r" (dtb_address));
+
+  read_fdt(dtb_address);
   while (1) {
     // Read a single character from the UART
     char c = getchar();
