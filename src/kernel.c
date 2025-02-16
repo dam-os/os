@@ -36,12 +36,26 @@ void poweroff(void) {
 
 void kmain(void) {
   print("Hello world!\r\n");
+  int cmdMax = 200;
+  char cmd[cmdMax]; 
+  char* p = cmd; 
   while (1) {
     // Read a single character from the UART
     char c = getchar();
-    putchar(c); // Echo back to the terminal
-    if (c == 'a') {
-      poweroff();
+    if (c == 0x7F) { // Delete / Backspace
+      *p = '\0';
+      putchar('\n');
+      if (!(p > cmd)) continue;
+      p--;
+      print(cmd);
+    } else if (c == '\r') {
+      print("\ncommand is: ");
+      print(cmd);
+      print("\n");
+
+    } else {
+      *p++ = c;
+      putchar(c); // Echo back to the terminal
     }
   }
 }
