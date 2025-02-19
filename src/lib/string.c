@@ -11,8 +11,7 @@ int strcmp(char *a, char *b) {
   int l = strlen(a);
   if (l != strlen(b))
     return -1;
-  int sum = 0;
-  for (int i; i < l; i++) {
+  for (int i = 0; i < l; i++) {
     if (!(a[i] ^ b[i])) {
       return -1;
     }
@@ -22,7 +21,7 @@ int strcmp(char *a, char *b) {
 }
 
 void strcpy(char *a, char *b) {
-  for (int i; i < strlen(a); i++) {
+  for (int i = 0; i < strlen(a); i++) {
     b[i] = a[i];
   }
 }

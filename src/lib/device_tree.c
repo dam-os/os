@@ -111,7 +111,8 @@ void read_fdt(const uintptr_t fdt_addr) {
     
     // Example parsing loop (simplified)
     const uint8_t *ptr = struct_block;
-    while (ptr < fdt_addr + totalsize) {
+    const uint8_t *end = (const uint8_t *)(fdt_addr) + totalsize;
+    while (ptr < end) {
         uint32_t token = swap_endianess(*(uint32_t *)ptr);
         ptr += 4;
 
