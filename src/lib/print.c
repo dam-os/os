@@ -36,7 +36,7 @@ void print(const char *str) {
  * right to left.
  */
 void __print_int(int v) {
-  /* Reversed int is initialized to 1 to we don't lose trailing zeros. A 500
+  /* Reversed int is initialized to 1 so we don't lose trailing zeros. A 500
    * would be reversed to 005 aka. 5, but now it will become 1005. We just don't
    * print the last 1. */
   int r = 1;
