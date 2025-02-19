@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "device_tree.h"
+#include "string.h"
 #include <stdint.h>
 
 // Magic header
@@ -24,56 +25,11 @@ struct fdt_header {
     uint32_t size_dt_struct;
 };
 
-void print_num(int num) {
-    char buffer[12]; // Buffer to hold the number as a string, enough for a 32-bit integer
-    int i = 0;
+void print_char_hex(char c) {
+    char hex_chars[] = "0123456789ABCDEF";
     
-    // Handle the case where num is 0
-    if (num == 0) {
-        putchar('0');
-        return;
-    }
-
-    // Handle negative numbers
-    if (num < 0) {
-        putchar('-');
-        num = -num; // Make num positive for further processing
-    }
-
-    // Convert the number to a string in reverse order
-    while (num > 0) {
-        buffer[i++] = (num % 10) + '0'; // Store the digit as a character
-        num /= 10;
-    }
-
-    // Print the number in the correct order
-    for (int j = i - 1; j >= 0; j--) {
-        putchar(buffer[j]);
-    }
-}
-
-void print_hex(uintptr_t ptr) {
-    const char hex_digits[] = "0123456789ABCDEF";
-    char buffer[16];  // Buffer for the hexadecimal representation
-
-    // Print the "0x" prefix
-    putchar('0');
-    putchar('x');
-
-    // Convert the pointer value to hexadecimal
-    for (int j = 15; j >= 0; j--) {
-        buffer[j] = hex_digits[ptr & 0xF];  // Get the least significant nibble
-        ptr >>= 4;  // Shift the pointer to the next nibble
-    }
-
-    // Print the hexadecimal address, skipping leading zeros
-    int leading_zero = 1;
-    for (int j = 0; j < 16; j++) {
-        if (buffer[j] != '0' || !leading_zero) {
-            putchar(buffer[j]);
-            leading_zero = 0;
-        }
-    }
+    putchar(hex_chars[(c >> 4) & 0xF]);  // Print upper 4 bits
+    putchar(hex_chars[c & 0xF]);         // Print lower 4 bits
 }
 
 uint32_t swap_endianess(uint32_t val) {
@@ -82,7 +38,6 @@ uint32_t swap_endianess(uint32_t val) {
            ((val << 8) & 0xff0000) |
            ((val << 24) & 0xff000000);
 }
-
 
 void read_fdt(const uintptr_t fdt_addr) {
 
@@ -105,11 +60,9 @@ void read_fdt(const uintptr_t fdt_addr) {
     print("\nStrings Block Offset: ");
     print_num(strings_offset);
 
-    // Point to the Structure Block and Strings Block
     const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
     const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
     
-    // Example parsing loop (simplified)
     const uint8_t *ptr = struct_block;
     const uint8_t *end = (const uint8_t *)(fdt_addr) + totalsize;
     while (ptr < end) {
@@ -123,10 +76,7 @@ void read_fdt(const uintptr_t fdt_addr) {
                 print("\n -------------- Node: ");
                 print(name);
                 print(" -------------- \n");
-                //ptr += strlen(name) + 1;
-                for (int i = 0; name[i] != '\0'; ++i) {
-                    ++ptr;
-                }
+                ptr += strlen((char *)name) + 1;
                 ++ptr;
                 // Align to 4-byte boundary
                 while ((uintptr_t)ptr % 4 != 0) ptr++;
@@ -147,18 +97,18 @@ void read_fdt(const uintptr_t fdt_addr) {
                 print_num(prop_len);
                 print(" = ");
 
-                if (ptr[prop_len-1] == '\0') {
+                if (prop_len > 0 && ptr[0] != '\0' && ptr[prop_len-1] == '\0') {
                     // Print property as string
                     print("str: ");
                     print((const char *)(ptr));
                 } else {
                     // Print property as hex (binary data)
+                    print("hex: ");
                     for (uint32_t i = 0; i < prop_len; i++) {
-                        print_num((int)ptr[i]);
+                        print_char_hex((char)ptr[i]);
                     }
                 }
                 print("\n");
-
 
                 ptr += prop_len;
                 while ((uintptr_t)ptr % 4 != 0) ptr++;
