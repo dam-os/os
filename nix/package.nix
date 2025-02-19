@@ -14,7 +14,7 @@
 
   installPhase = ''
     mkdir -p $out
-    cp kernel.elf $out/kernel.elf
+    cp build/kernel.elf $out/kernel.elf
   '';
 
   meta = {

@@ -1,3 +1,4 @@
+#include "uart.h"
 #include "device_tree.h"
 #include <stdint.h>
 
@@ -22,14 +23,6 @@ struct fdt_header {
     uint32_t size_dt_strings;
     uint32_t size_dt_struct;
 };
-
-
-void print(const char *str) {
-  while (*str != '\0') {
-    putchar(*str);
-    str++;
-  }
-}
 
 void print_num(int num) {
     char buffer[12]; // Buffer to hold the number as a string, enough for a 32-bit integer
@@ -62,7 +55,6 @@ void print_num(int num) {
 void print_hex(uintptr_t ptr) {
     const char hex_digits[] = "0123456789ABCDEF";
     char buffer[16];  // Buffer for the hexadecimal representation
-    int i = 0;
 
     // Print the "0x" prefix
     putchar('0');
