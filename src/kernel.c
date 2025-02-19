@@ -10,7 +10,6 @@
 
 #define PRINT_SYS_INFO 0
 
-
 void kmain(void) {
   print("Hello world!\r\n");
 
