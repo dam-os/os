@@ -29,21 +29,38 @@ void print(const char *str) {
   }
 }
 
+/**
+ * Prints integers using putchar
+ *
+ * Takes an integer 123 and reverses it to 321. Then prints each digit from
+ * right to left.
+ */
 void __print_int(int v) {
-  while (1) {
-    putchar(v % 10 +'0');
-    if (v < 10) break;
+  /* Reversed int is initialized to 1 to we don't lose trailing zeros. A 500
+   * would be reversed to 005 aka. 5, but now it will become 1005. We just don't
+   * print the last 1. */
+  int r = 1;
+  /* Reverse v */
+  while (v) {
+    r *= 10;
+    r += v % 10;
     v /= 10;
+  }
+
+  /* Print r in reverse */
+  while (r-1) {
+    putchar(r % 10 +'0');
+    r /= 10;
   }
 }
 
-void __formatprint(const char *str, va_list ap) {
+void __formatprint(const char *str, va_list *ap) {
   switch (*str) {
     case '%':
       putchar('%');
       break;
     case 'd':
-      __print_int(va_arg(ap, int));
+      __print_int(va_arg(*ap, int));
       break;
   }
 }
@@ -56,11 +73,13 @@ void printf(const char *str, ...) {
     switch (*str) {
       case '%':
         str++;
-        __formatprint(str, ap);
+        __formatprint(str, &ap);
         break;
       default:
         putchar(*str);
     }
     str++;
   } 
+
+  va_end(ap);
 }

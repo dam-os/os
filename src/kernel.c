@@ -13,6 +13,10 @@
 void kmain(void) {
   print("Hello world!\r\n");
 
+  /* print format */
+  printf("We can now print numbers!\n");
+  printf("Like %d, %d and even %d!", 1, 42, 6700);
+
   /* File device tree */
   int cmdMax = 200;
   char cmd[cmdMax]; 
