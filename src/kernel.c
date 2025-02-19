@@ -1,4 +1,6 @@
 
+#include "lib/memory.h"
+#include "lib/string.h"
 #include <stddef.h>
 #include <stdint.h>
 #define SYSCON_ADDR 0x100000
@@ -36,6 +38,14 @@ void poweroff(void) {
 
 void kmain(void) {
   print("Hello world!\r\n");
+  char *a = "Hi!";
+  char *b = "Hi!";
+  int x = strcmp(a, b);
+  if (x == 1) {
+    putchar('W');
+  } else {
+    putchar('L');
+  }
   while (1) {
     // Read a single character from the UART
     char c = getchar();
