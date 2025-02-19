@@ -23,13 +23,14 @@
     };
 
     packages.x86_64-linux = {
-      default = pkgs.callPackage ./nix/package.nix { src = ./.; };
-      vm = pkgs.writeShellApplication {
+      damos = pkgs.callPackage ./nix/package.nix { src = ./.; };
+      default = pkgs.writeShellApplication {
         name = "damos-vm";
         text = ''
-          ${pkgs.qemu}/bin/qemu-system-riscv64 -machine virt -bios none -kernel ${self.packages.x86_64-linux.default}/kernel.elf -serial mon:stdio
+          ${pkgs.qemu}/bin/qemu-system-riscv64 -machine virt -bios none -kernel ${self.packages.x86_64-linux.damos}/kernel.elf -serial mon:stdio
         '';
       };
+      vm = self.packages.x86_64-linux.default;
     };
   };
 }
