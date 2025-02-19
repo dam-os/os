@@ -6,7 +6,7 @@
 #include "lib/device_tree.h"
 #include "lib/uart.h"
 #include "lib/device_tree.h"
-#include "lib/stdio.h"
+#include "lib/print.h"
 
 #define PRINT_SYS_INFO 0
 
