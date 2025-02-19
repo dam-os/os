@@ -55,6 +55,7 @@ void printf(const char *str, ...) {
   while (*str != '\0') {
     switch (*str) {
       case '%':
+        str++;
         __formatprint(str, ap);
         break;
       default:
