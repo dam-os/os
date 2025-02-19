@@ -15,6 +15,7 @@
 
         packages = with pkgs; [
            coreboot-toolchain.riscv
+           qemu
            clang-tools_19 
         ];
         shellHook = "echo 'Happy hacking'";
@@ -22,7 +23,7 @@
     };
 
     packages.x86_64-linux = {
-      default = pkgs.callPackage ./nix/package.nix { src = ./src; };
+      default = pkgs.callPackage ./nix/package.nix { src = ./.; };
       vm = pkgs.writeShellApplication {
         name = "damos-vm";
         text = ''
