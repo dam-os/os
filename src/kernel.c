@@ -11,6 +11,11 @@
 #define PRINT_SYS_INFO 0
 
 void kmain(void) {
+  uintptr_t dtb_address;
+  __asm__ volatile ("mv %0, a1" : "=r" (dtb_address));
+
+  if (PRINT_SYS_INFO) read_fdt(dtb_address);
+  
   print("Hello world!\r\n");
 
   /* print format */
@@ -24,10 +29,6 @@ void kmain(void) {
   int cmdMax = 200;
   char cmd[cmdMax]; 
   char* p = cmd; 
-  uintptr_t dtb_address;
-  __asm__ volatile ("mv %0, a1" : "=r" (dtb_address));
-
-  if (PRINT_SYS_INFO) read_fdt(dtb_address);
 
   /* String compare */
   char *a = "Hi!";
