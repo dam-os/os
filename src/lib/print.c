@@ -54,6 +54,10 @@ void __print_int(int v) {
   }
 }
 
+void __print_int_hex(int v) {
+
+}
+
 void __formatprint(const char *str, va_list *ap) {
   switch (*str) {
     case '%':
@@ -62,6 +66,8 @@ void __formatprint(const char *str, va_list *ap) {
     case 'd':
       __print_int(va_arg(*ap, int));
       break;
+    case 'c':
+      putchar(va_arg(*ap, int));
   }
 }
 

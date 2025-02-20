@@ -16,6 +16,7 @@ void kmain(void) {
   /* print format */
   printf("We can now print numbers!\n");
   printf("Like %d, %d and even %d!", 1, 42, 6700);
+  printf("Can also print chars? %c", 'Y');
 
   /* File device tree */
   int cmdMax = 200;
