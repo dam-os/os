@@ -1,6 +1,6 @@
 #include <stddef.h>
-#include <stdint.h>
 
+#include "lib/print.h"
 #include "lib/memory.h"
 #include "lib/string.h"
 #include "lib/device_tree.h"
@@ -14,10 +14,11 @@ void kmain(void) {
   print("Hello world!\r\n");
 
   /* print format */
-  printf("We can now print numbers!\n");
-  printf("Like %d, %d and even %d!\n", 1, 42, 6700);
-  printf("Can also print chars? %c\n", 'Y');
-  printf("What about strings? %s\n", "Yep yep yep");
+  printfmt("We can now print numbers!\n");
+  printfmt("Like %d, %d and even %d!\n", 1, 42, 6700);
+  printfmt("Can also print chars? %c\n", 'Y');
+  printfmt("What about strings? %s\n", "Yep yep yep");
+  printfmt("Hex now too! %x, %x, %x", 10, 11, 12);
 
   /* File device tree */
   int cmdMax = 200;
@@ -39,7 +40,6 @@ void kmain(void) {
   }
 
   /* CLI */
-  printf("Hello world!!! %d", 5);
   while (1) {
     // Read a single character from the UART
     char c = getchar();

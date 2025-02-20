@@ -1,13 +1,19 @@
-#include "print.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
+
+#include "assert.h"
+#include "print.h"
 
 #define UART_BASE 0x10000000
 #define UART_DATA (*(volatile uint8_t *)(UART_BASE + 0x00))
 #define UART_LSR (*(volatile uint8_t *)(UART_BASE + 0x05))
 #define UART_LSR_RX_READY 0x01
 #define UART_LSR_TX_EMPTY 0x20
+
+#define DIGIT_COUNT 36
+
+static const char DIGITS[DIGIT_COUNT] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 char getchar(void) {
   while (!(UART_LSR & UART_LSR_RX_READY))
@@ -35,27 +41,25 @@ void print(const char *str) {
  * Takes an integer 123 and reverses it to 321. Then prints each digit from
  * right to left.
  */
-void __print_int(int v) {
+void __print_int_base(int v, char base) {
+  assert(base >= 2U && base <= DIGIT_COUNT, "Number base not within bounds (2 <= base <= 36)");
   /* Reversed int is initialized to 1 so we don't lose trailing zeros. A 500
    * would be reversed to 005 aka. 5, but now it will become 1005. We just don't
    * print the last 1. */
   int r = 1;
+
   /* Reverse v */
   while (v) {
-    r *= 10;
-    r += v % 10;
-    v /= 10;
+    r *= base;
+    r += v % base;
+    v /= base;
   }
 
   /* Print r in reverse */
   while (r-1) {
-    putchar(r % 10 +'0');
-    r /= 10;
+    putchar(DIGITS[r % base]);
+    r /= base;
   }
-}
-
-void __print_hex(int v) {
-  print("Not implemented");
 }
 
 void __print_string(char *str) {
@@ -68,13 +72,13 @@ void __formatprint(const char *str, va_list *ap) {
       putchar('%');
       break;
     case 'd':
-      __print_int(va_arg(*ap, int));
+      __print_int_base(va_arg(*ap, int), 10);
       break;
     case 'c':
       putchar(va_arg(*ap, int));
       break;
     case 'x':
-      __print_hex(va_arg(*ap, int));
+      __print_int_base(va_arg(*ap, int), 16);
       break;
     case 's':
       __print_string(va_arg(*ap, char*));
@@ -82,7 +86,7 @@ void __formatprint(const char *str, va_list *ap) {
   }
 }
 
-void printf(const char *str, ...) {
+void printfmt(const char *str, ...) {
   va_list ap;
   va_start(ap, str);
 
