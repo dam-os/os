@@ -8,13 +8,13 @@ void test_strcpy() {
     char *src = "Hello, world!";
     strcpy(src, dest);
     assert(strcmp(dest, src) == 0, "test_strcpy 1");
-    printfmt("test_strcpy passed!\n");
+    cprintf("test_strcpy passed!\n");
 }
 
 void test_strcmp() {
     assert(strcmp("apple", "apple") == 0, "test_strcmp 1");
     assert(strcmp("apple", "banana") == -1, "test_strcmp 2");
-    printfmt("test_strcmp passed!\n");
+    cprintf("test_strcmp passed!\n");
 }
 
 void test_memset() {
@@ -23,13 +23,13 @@ void test_memset() {
     for (int i = 0; i < 10; i++) {
         assert(buffer[i] == 'A', "test_memset 1");
     }
-    printfmt("test_memset passed!\n");
+    cprintf("test_memset passed!\n");
 }
 
 int run_tests() {
     test_strcmp();
     test_strcpy();
     test_memset();
-    printfmt("All tests passed!\n");
+    cprintf("All tests passed!\n");
     return 0;
 }
