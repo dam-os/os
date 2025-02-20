@@ -1,6 +1,7 @@
 #include "uart.h"
 #include "device_tree.h"
 #include "string.h"
+#include "print.h"
 #include <stdint.h>
 
 // Magic header
@@ -53,12 +54,9 @@ void read_fdt(const uintptr_t fdt_addr) {
       return;
   }
     print("Valid Device tree found!\n");
-    print("Total Size:");
-    print_num(totalsize);
-    print("\nStructure Block Offset:");
-    print_num(struct_offset);
-    print("\nStrings Block Offset: ");
-    print_num(strings_offset);
+    printfmt("Total Size: %d", totalsize);
+    printfmt("\nStructure Block Offset: %d", struct_offset);
+    printfmt("\nStrings Block Offset: %d", strings_offset);
 
     const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
     const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
@@ -93,8 +91,7 @@ void read_fdt(const uintptr_t fdt_addr) {
                 // Print Property Value
                 print("\n - Property:");
                 print(prop_name);
-                print("\nLen:");
-                print_num(prop_len);
+                printfmt("\nLen: %d", prop_len);
                 print(" = ");
 
                 if (prop_len > 0 && ptr[0] != '\0' && ptr[prop_len-1] == '\0') {

@@ -1,32 +1,13 @@
 #include <stddef.h>
-#include <stdint.h>
 #include <stdarg.h>
 
 #include "assert.h"
 #include "print.h"
-
-#define UART_BASE 0x10000000
-#define UART_DATA (*(volatile uint8_t *)(UART_BASE + 0x00))
-#define UART_LSR (*(volatile uint8_t *)(UART_BASE + 0x05))
-#define UART_LSR_RX_READY 0x01
-#define UART_LSR_TX_EMPTY 0x20
+#include "uart.h"
 
 #define DIGIT_COUNT 36
 
 static const char DIGITS[DIGIT_COUNT] = "0123456789abcdefghijklmnopqrstuvwxyz";
-
-char getchar(void) {
-  while (!(UART_LSR & UART_LSR_RX_READY))
-    ; // Wait until a character is available
-  return UART_DATA;
-}
-
-char putchar(char c) {
-  while (!(UART_LSR & UART_LSR_TX_EMPTY))
-    ; // Wait until UART is ready to transmit
-  UART_DATA = c;
-  return c;
-}
 
 void print(const char *str) {
   while (*str != '\0') {
@@ -42,7 +23,7 @@ void print(const char *str) {
  * right to left.
  */
 void __print_int_base(int v, char base) {
-  assert(base >= 2U && base <= DIGIT_COUNT, "Number base not within bounds (2 <= base <= 36)");
+  assert(base >= 2U && base <= DIGIT_COUNT, "Number base not within bounds (2 <= base <= 36)\n");
   /* Reversed int is initialized to 1 so we don't lose trailing zeros. A 500
    * would be reversed to 005 aka. 5, but now it will become 1005. We just don't
    * print the last 1. */

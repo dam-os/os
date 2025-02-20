@@ -1,3 +1,7 @@
+#ifndef UART_H
+#define UART_H
+
 char getchar(void);
 char putchar(char c);
-void print(const char *str);
+
+#endif /* !UART_H */
