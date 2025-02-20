@@ -19,9 +19,3 @@ char putchar(char c) {
   return c;
 }
 
-void print(const char *str) {
-  while (*str != '\0') {
-    putchar(*str);
-    str++;
-  }
-}
