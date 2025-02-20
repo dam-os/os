@@ -24,20 +24,20 @@ void cvprintf_str(char *str) {
 
 void cvprintf_int(int v, int base, int digits) {
   char buf[digits], *p = buf;
-  while (v) {
+  do {
     *p++ = DIGITS[v % base];
     v /= base;
-  }
+  } while (v);
   while (p != buf) {
     putchar(*--p);
   }
 }
 void cvprintf_uint64_t(uint64_t v, int base, int digits) {
   char buf[digits], *p = buf;
-  while (v) {
+  do {
     *p++ = DIGITS[v % base];
     v /= base;
-  }
+  } while(v);
   while (p != buf) {
     putchar(*--p);
   }
