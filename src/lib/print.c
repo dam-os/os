@@ -26,6 +26,11 @@ void __print_int_base(int v, char base)
 {
     int r = 0, z = 0, m;
 
+    if (v < 0) {
+      v *= -1;
+      putchar('-');
+    }
+
     /* Reverse v */
     do
     {
