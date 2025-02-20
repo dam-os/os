@@ -12,7 +12,7 @@ int strcmp(char *a, char *b) {
   if (l != strlen(b))
     return -1;
   for (int i = 0; i < l; i++) {
-    if (!(a[i] ^ b[i])) {
+    if (a[i] ^ b[i]) {
       return -1;
     }
   }
