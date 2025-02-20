@@ -26,8 +26,8 @@ void kmain(void) {
   printfmt("What about strings? %s\n", "Yep yep yep");
   printfmt("Hex now too! %x, %x, %x", 10, 11, 12);
 
-  int *page = alloc_page(3);
-  int *page2 = alloc_page(3);
+  int *page = alloc_pages(3);
+  int *page2 = alloc_pages(3);
   printfmt("\nTHIS IS DIFF: %d\n", &page2[0] - &page[0]);
   /* File device tree */
   int cmdMax = 200;

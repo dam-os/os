@@ -13,7 +13,7 @@ int lookup(int n, int *byte_idx, int *bit_idx) {
   int zero_count = 0;
   int bit_index = 0;
   for (int byte = 0; byte < mem_table_size; byte++) {
-    for (int bit = 0; byte < 8; byte++) {
+    for (int bit = 0; bit < 8; byte++) {
       if (!(memory_table[byte] & (1 << bit))) {
         if (zero_count == 0) {
           bit_index = bit;
@@ -52,7 +52,7 @@ int *set_memory_table() {
   return base;
 }
 
-int *alloc_page(int n) {
+int *alloc_pages(int n) {
   static int *base;
   if (mem_table_size == 0)
     base = set_memory_table();
