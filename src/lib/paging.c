@@ -11,17 +11,19 @@ int mem_table_size = 0;
 
 int lookup(int n, int *byte_idx, int *bit_idx) {
   int zero_count = 0;
-  int bit_index = 0;
+  int bit_index = -1;
+  int byte_index = -1;
   for (int byte = 0; byte < mem_table_size; byte++) {
     for (int bit = 0; bit < 8; byte++) {
       if (!(memory_table[byte] & (1 << bit))) {
         if (zero_count == 0) {
+          byte_index = byte;
           bit_index = bit;
         }
         zero_count++;
         if (zero_count == n) {
-          *byte_idx = byte;
-          *bit_idx = bit;
+          *byte_idx = byte_index;
+          *bit_idx = bit_index;
           return byte * 8 * PAGE_SIZE + bit * PAGE_SIZE;
         }
       } else {
