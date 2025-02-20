@@ -75,6 +75,9 @@ void __formatprint(const char *str, va_list *ap) {
     case 's':
       __print_string(va_arg(*ap, char*));
       break;
+    case 'b':
+      __print_int_base(va_arg(*ap, int), 2);
+      break;
   }
 }
 
