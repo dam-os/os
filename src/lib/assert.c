@@ -4,6 +4,6 @@
 
 void assert(short condition, char *msg) {
   if (condition) return;
-  printfmt("Assertion failed: %s", msg);
+  cprintf("Assertion failed: %s", msg);
   poweroff();
 }
