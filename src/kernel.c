@@ -19,8 +19,21 @@ void kmain(void) {
   print("Hello world!\r\n");
 
   /* print format */
-  printfmt("hello %d\n", 1000000000);
-  printfmt("binary??? %b\n", 16);
+  cprintf("hello %d\n", 1234567);
+  cprintf("hello %d\n", 12345678901);
+  cprintf("binary??? %b\n", 586);
+  cprintf("hex... %x, %x\n", 16, 500);
+  cprintf("bin... %b, %b\n", 16, 500);
+
+  int buf[64];
+  int *ptr = buf;
+
+  cprintf("ponter: %p\n%ld\n", ptr, ptr);
+  cprintf("%d\n", 98);
+  cprintf("%d\n", 99);
+  cprintf("%d\n", 100);
+  cprintf("%d\n", 101);
+
   
   PANIC("uh oh spaghettios %d", 5);
   print("we will never print this");

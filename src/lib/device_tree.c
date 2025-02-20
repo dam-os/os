@@ -54,9 +54,9 @@ void read_fdt(const uintptr_t fdt_addr) {
       return;
   }
     print("Valid Device tree found!\n");
-    printfmt("Total Size: %d", totalsize);
-    printfmt("\nStructure Block Offset: %d", struct_offset);
-    printfmt("\nStrings Block Offset: %d", strings_offset);
+    cprintf("Total Size: %d", totalsize);
+    cprintf("\nStructure Block Offset: %d", struct_offset);
+    cprintf("\nStrings Block Offset: %d", strings_offset);
 
     const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
     const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
@@ -91,7 +91,7 @@ void read_fdt(const uintptr_t fdt_addr) {
                 // Print Property Value
                 print("\n - Property:");
                 print(prop_name);
-                printfmt("\nLen: %d", prop_len);
+                cprintf("\nLen: %d", prop_len);
                 print(" = ");
 
                 if (prop_len > 0 && ptr[0] != '\0' && ptr[prop_len-1] == '\0') {
