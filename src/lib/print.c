@@ -5,6 +5,8 @@
 #include "print.h"
 #include "uart.h"
 
+typedef unsigned long long uint64_t;
+
 #define DIGIT_COUNT 36
 
 static const char DIGITS[DIGIT_COUNT] = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -16,66 +18,63 @@ void print(const char *str) {
   }
 }
 
-/**
- * Prints integers using putchar
- *
- * Takes an integer 123 and reverses it to 321. Then prints each digit from
- * right to left.
- */
-void __print_int_base(int v, char base) {
-  int r = 0, z = 0, m;
+void cvprintf_str(char *str) { print(str); }
 
-  if (v < 0) {
-    v *= -1;
-    putchar('-');
-  }
-
-  /* Reverse v */
-  do {
-    r *= base;
-    m = v % base;
-    z += !m;
-    r += m;
+void cvprintf_int(int v, int base, int digits) {
+  char buf[digits], *p = buf;
+  while (v) {
+    *p++ = DIGITS[v % base];
     v /= base;
-  } while (v);
-
-  /* Print r in reverse */
-  while (r) {
-    putchar(DIGITS[r % base]);
-    r /= base;
   }
-  while (z) {
-    putchar('0');
-    z--;
+  while (p != buf) {
+    putchar(*--p);
+  }
+}
+void cvprintf_uint64_t(uint64_t v, int base, int digits) {
+  char buf[digits], *p = buf;
+  while (v) {
+    *p++ = DIGITS[v % base];
+    v /= base;
+  }
+  while (p != buf) {
+    putchar(*--p);
   }
 }
 
-void __print_string(char *str) { print(str); }
-
-void __formatprint(const char *str, va_list *ap) {
-  switch (*str) {
+void cvprintf(const char **str, va_list *ap) {
+  switch (*(*str)) {
   case '%':
     putchar('%');
-    break;
-  case 'd':
-    __print_int_base(va_arg(*ap, int), 10);
     break;
   case 'c':
     putchar(va_arg(*ap, int));
     break;
-  case 'x':
-    __print_int_base(va_arg(*ap, int), 16);
-    break;
   case 's':
-    __print_string(va_arg(*ap, char *));
+    cvprintf_str(va_arg(*ap, char *));
+    break;
+  case 'd':
+    cvprintf_int(va_arg(*ap, int), 10, 10);
+    break;
+  case 'x':
+    cvprintf_int(va_arg(*ap, int), 16, 8);
+    break;
+  case 'p':
+    cvprintf_uint64_t(va_arg(*ap, uint64_t), 16, 16);
     break;
   case 'b':
-    __print_int_base(va_arg(*ap, int), 2);
+    cvprintf_int(va_arg(*ap, int), 2, 32);
     break;
+  case 'l': {
+    switch (*++(*str)) {
+    case 'd':
+      cvprintf_uint64_t(va_arg(*ap, uint64_t), 10, 19);
+      break;
+    };
+  } break;
   }
 }
 
-void printfmt(const char *str, ...) {
+void cprintf(const char *str, ...) {
   va_list ap;
   va_start(ap, str);
 
@@ -83,7 +82,7 @@ void printfmt(const char *str, ...) {
     switch (*str) {
     case '%':
       str++;
-      __formatprint(str, &ap);
+      cvprintf(&str, &ap);
       break;
     default:
       putchar(*str);
