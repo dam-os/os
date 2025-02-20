@@ -7,6 +7,7 @@
 #include "lib/string.h"
 #include "lib/system.h"
 #include "lib/uart.h"
+#include "lib/pci.h"
 
 #define PRINT_SYS_INFO 0
 
@@ -40,6 +41,8 @@ void kmain(void) {
   cprintf("%d\n", 100);
   cprintf("%d\n", 101);
 
+  enumerate_pci();
+  
   PANIC("uh oh spaghettios %d", 5);
   print("we will never print this");
 }
