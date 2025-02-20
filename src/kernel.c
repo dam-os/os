@@ -5,6 +5,7 @@
 #include "lib/paging.h"
 #include "lib/print.h"
 #include "lib/string.h"
+#include "lib/system.h"
 #include "lib/uart.h"
 
 #define PRINT_SYS_INFO 0
@@ -61,4 +62,9 @@ void kmain(void) {
       putchar(c); // Echo back to the terminal
     }
   }
+  printfmt("hello %d\n", 1000000000);
+  printfmt("binary??? %b\n", 16);
+
+  PANIC("uh oh spaghettios %d", 5);
+  print("we will never print this");
 }
