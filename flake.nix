@@ -24,10 +24,19 @@
 
     packages.x86_64-linux = {
       damos = pkgs.callPackage ./nix/package.nix { src = ./.; };
-      default = pkgs.writeShellApplication {
+      default = let
+        inherit (pkgs) qemu;
+        inherit (self.packages.x86_64-linux) damos;
+      in pkgs.writeShellApplication {
         name = "damos-vm";
         text = ''
-          ${pkgs.qemu}/bin/qemu-system-riscv64 -machine virt -bios none -kernel ${self.packages.x86_64-linux.damos}/kernel.elf -serial mon:stdio
+          ${qemu}/bin/qemu-system-riscv64 \
+            -machine virt \
+            -bios none \
+            -drive id=drive0,file=file.txt,format=raw,if=none \
+            -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+            -kernel ${damos}/kernel.elf \
+            -serial mon:stdio
         '';
       };
       vm = self.packages.x86_64-linux.default;

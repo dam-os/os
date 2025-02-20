@@ -54,7 +54,13 @@ $(TESTBUILDDIR)/%.o: $(TESTDIR)/%.c | build_dirs
 
 # Run main kernel
 run: damos
-	qemu-system-riscv64 -machine virt -bios none -kernel $(BUILDDIR)/kernel.elf -serial mon:stdio
+	qemu-system-riscv64 \
+		-machine virt \
+		-bios none \
+		-drive id=drive0,file=file.txt,format=raw,if=none \
+    -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+		-kernel $(BUILDDIR)/kernel.elf \
+		-serial mon:stdio
 
 # Run test kernel in QEMU
 run_test: test_kernel
