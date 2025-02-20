@@ -25,7 +25,7 @@ void enumerate_pci() {
             if (vendor_device_id != 0xFFFFFFFF) {  // 0xFFFFFFFF means "no device"
                 uint16_t vendor_id = vendor_device_id & 0xFFFF;
                 uint16_t device_id = (vendor_device_id >> 16) & 0xFFFF;
-                printfmt("PCI Device Found: Bus %d, Device %d, Function 0x00, Vendor: %d, Device: %d\n",
+                cprintf("PCI Device Found: Bus %d, Device %d, Function 0x00, Vendor: %d, Device: %d\n",
                         bus, device, vendor_id, device_id);
             }
         }
