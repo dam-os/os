@@ -14,7 +14,7 @@ int lookup(int n, int *byte_idx, int *bit_idx) {
   int bit_index = -1;
   int byte_index = -1;
   for (int byte = 0; byte < mem_table_size; byte++) {
-    for (int bit = 0; bit < 8; byte++) {
+    for (int bit = 0; bit < 8; bit++) {
       if (!(memory_table[byte] & (1 << bit))) {
         if (zero_count == 0) {
           byte_index = byte;
@@ -34,7 +34,7 @@ int lookup(int n, int *byte_idx, int *bit_idx) {
   return -1;
 }
 
-int *set_memory_table() {
+int *set_mem_table() {
   int free_ram_size =
       ((int)(uintptr_t)&__free_ram_end - (uintptr_t)&__free_ram);
   mem_table_size = (free_ram_size / PAGE_SIZE) / 8;
@@ -49,21 +49,34 @@ int *set_memory_table() {
     int bit_pos = (free_ram_size / PAGE_SIZE) - 1 - i;
     memory_table[bit_pos / 8] |= (1 << (bit_pos % 8));
   }
-  printfmt("\nbase: %d\n", base);
+  printfmt("\nbase: %d\n", &base[0] - (int *)&__free_ram[0]);
   printfmt("\nfree ram: %d\n", __free_ram);
   return base;
+}
+
+void printBits(unsigned char byte) {
+  for (int i = 0; i <= 7; i++) {
+    printfmt("%d", (byte >> i) & 1);
+  }
+}
+
+void print_mem_table() {
+  for (size_t i = 0; i < 20; i++) {
+    printBits((unsigned char)memory_table[i]);
+    printfmt(" "); // Space between each byte
+  }
+  printfmt("\n"); // Space between each byte
 }
 
 int *alloc_pages(int n) {
   static int *base;
   if (mem_table_size == 0)
-    base = set_memory_table();
+    base = set_mem_table();
   if (n <= 0)
     poweroff();
   int byte_index = -1;
   int bit_index = -1;
   int *page = base + lookup(n, &byte_index, &bit_index);
-
   for (int i = 0; i < n; i++) {
     memory_table[byte_index] |= (1 << bit_index);
     bit_index++;
@@ -73,6 +86,7 @@ int *alloc_pages(int n) {
     byte_index++;
   }
 
+  print_mem_table();
   memset((void *)page, 0, n * PAGE_SIZE);
   return page;
 }
