@@ -22,25 +22,31 @@ void print(const char *str) {
  * Takes an integer 123 and reverses it to 321. Then prints each digit from
  * right to left.
  */
-void __print_int_base(int v, char base) {
-  assert(base >= 2U && base <= DIGIT_COUNT, "Number base not within bounds (2 <= base <= 36)\n");
-  /* Reversed int is initialized to 1 so we don't lose trailing zeros. A 500
-   * would be reversed to 005 aka. 5, but now it will become 1005. We just don't
-   * print the last 1. */
-  int r = 1;
+void __print_int_base(int v, char base)
+{
+    int r = 0, z = 0, m;
 
-  /* Reverse v */
-  while (v) {
-    r *= base;
-    r += v % base;
-    v /= base;
-  }
+    /* Reverse v */
+    do
+    {
+        r *= base;
+        m = v % base;
+        z += !m;
+        r += m;
+        v /= base;
+    } while (v);
 
-  /* Print r in reverse */
-  while (r-1) {
-    putchar(DIGITS[r % base]);
-    r /= base;
-  }
+    /* Print r in reverse */
+    while (r)
+    {
+        putchar(DIGITS[r % base]);
+        r /= base;
+    }
+    while (z)
+    {
+        putchar('0');
+        z--;
+    }
 }
 
 void __print_string(char *str) {
