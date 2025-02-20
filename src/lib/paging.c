@@ -1,4 +1,5 @@
 #include "memory.h"
+#include "print.h"
 #include "system.h"
 #include <stdint.h>
 #define PAGE_SIZE 0x1000
@@ -8,7 +9,7 @@ char *memory_table;
 
 int mem_table_size = 0;
 
-int lookup(int n) {
+int lookup(int n, int *byte_idx, int *bit_idx) {
   int zero_count = 0;
   int bit_index = 0;
   for (int byte = 0; byte < mem_table_size; byte++) {
@@ -19,7 +20,8 @@ int lookup(int n) {
         }
         zero_count++;
         if (zero_count == n) {
-          bit_index = bit;
+          *byte_idx = byte;
+          *bit_idx = bit;
           return byte * 8 * PAGE_SIZE + bit * PAGE_SIZE;
         }
       } else {
@@ -45,11 +47,10 @@ int *set_memory_table() {
     int bit_pos = (free_ram_size / PAGE_SIZE) - 1 - i;
     memory_table[bit_pos / 8] |= (1 << (bit_pos % 8));
   }
+  printfmt("\nbase: %d\n", base);
+  printfmt("\nfree ram: %d\n", __free_ram);
   return base;
 }
-// 4096 + 10000
-// 14096
-// 4096-10000%
 
 int *alloc_page(int n) {
   static int *base;
@@ -57,7 +58,19 @@ int *alloc_page(int n) {
     base = set_memory_table();
   if (n <= 0)
     poweroff();
-  int *page = base + lookup(n);
+  int byte_index = -1;
+  int bit_index = -1;
+  int *page = base + lookup(n, &byte_index, &bit_index);
+
+  for (int i = 0; i < n; i++) {
+    memory_table[byte_index] |= (1 << bit_index);
+    bit_index++;
+    if (bit_index != 8)
+      continue;
+    bit_index = 0;
+    byte_index++;
+  }
+
   memset((void *)page, 0, n * PAGE_SIZE);
   return page;
 }
