@@ -30,7 +30,6 @@ void kmain(void) {
   int cmdMax = 200;
   char cmd[cmdMax];
   char *p = cmd;
-
   /* String compare */
   char *a = "Hi!";
   char *b = "Hi!";

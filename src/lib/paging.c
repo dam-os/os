@@ -8,6 +8,7 @@ extern char __free_ram[], __free_ram_end[];
 char *memory_table;
 
 int mem_table_size = 0;
+int *basec;
 
 int lookup(int n, int *byte_idx, int *bit_idx) {
   int zero_count = 0;
@@ -69,14 +70,13 @@ void print_mem_table() {
 }
 
 int *alloc_pages(int n) {
-  static int *base;
   if (mem_table_size == 0)
-    base = set_mem_table();
+    basec = set_mem_table();
   if (n <= 0)
     poweroff();
   int byte_index = -1;
   int bit_index = -1;
-  int *page = base + lookup(n, &byte_index, &bit_index);
+  int *page = basec + lookup(n, &byte_index, &bit_index);
   for (int i = 0; i < n; i++) {
     memory_table[byte_index] |= (1 << bit_index);
     bit_index++;
@@ -87,6 +87,25 @@ int *alloc_pages(int n) {
   }
 
   print_mem_table();
+  printfmt("setting  %d\n", page);
   memset((void *)page, 0, n * PAGE_SIZE);
   return page;
+}
+
+int free_pages(int *addr, int n) {
+  int page_index = addr - basec;
+  int byte_index = page_index / 8;
+  int bit_index = page_index % 8;
+
+  printfmt("freeing %d, %d... %d\n", byte_index, bit_index, page_index);
+  for (int i = 0; i < n; i++) {
+    memory_table[byte_index] &= ~(1 << bit_index);
+    bit_index++;
+    if (bit_index == 8) {
+      bit_index = 0;
+      byte_index++;
+    }
+  }
+  print_mem_table();
+  return 0;
 }
