@@ -1,2 +1,1 @@
-#include <cstdint>
-int *alloc_pages(uint8_t n);
+long long *alloc_pages(int n);

@@ -4,7 +4,9 @@
 #define PAGE_SIZE 0x1000
 extern char __free_ram[], __free_ram_end[];
 
-int *alloc_pages(uint8_t n) {
+int *alloc_pages(int n) {
+  if (n <= 0)
+    poweroff();
   static int *next_page = (int *)__free_ram;
   int *page = next_page;
   next_page += n * PAGE_SIZE;
