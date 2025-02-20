@@ -17,10 +17,14 @@ SECTIONS {
 		PROVIDE(global_pointer = .);
 		PROVIDE(bss_end = .);
 	}
-	.rodata : ALIGN(4K) {
+   	.rodata : ALIGN(4K) {
 		*(.rodata);
 	}
 	.data : ALIGN(4K) {
 		*(.data);
 	}
+    . = ALIGN(4096);
+    __free_ram = .;
+    . += 64 * 1024 * 1024;
+    __free_ram_end = .;
 }
