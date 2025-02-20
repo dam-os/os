@@ -54,8 +54,12 @@ void __print_int(int v) {
   }
 }
 
-void __print_int_hex(int v) {
+void __print_hex(int v) {
+  print("Not implemented");
+}
 
+void __print_string(char *str) {
+  print(str);
 }
 
 void __formatprint(const char *str, va_list *ap) {
@@ -68,6 +72,13 @@ void __formatprint(const char *str, va_list *ap) {
       break;
     case 'c':
       putchar(va_arg(*ap, int));
+      break;
+    case 'x':
+      __print_hex(va_arg(*ap, int));
+      break;
+    case 's':
+      __print_string(va_arg(*ap, char*));
+      break;
   }
 }
 
