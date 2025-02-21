@@ -10,6 +10,7 @@
 #include "lib/pci.h"
 #include "lib/uart.h"
 #include "lib/disk.h"
+#include "lib/vga.h"
 
 #define PRINT_SYS_INFO 0
 
@@ -49,6 +50,7 @@ void kmain(void) {
   cprintf("%d\n", 101);
 
   enumerate_pci();
+  init_virtio_vga();
   
   PANIC("uh oh spaghettios %d", 5);
   print("we will never print this");

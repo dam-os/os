@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "print.h"
 
-#define PCI_CONFIG_BASE 0x30000000 
+#define PCI_CONFIG_BASE ((uintptr_t)0x30000000)
 
 // https://wiki.osdev.org/PCI#Enumerating_PCI_Buses
 // Read a 32-bit value from PCI configuration space
@@ -17,6 +17,12 @@ void pci_write_word(uint8_t bus, uint8_t device, uint8_t function, uint8_t offse
     *addr = value;
 }
 
+uint32_t * pci_get_addr(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset) {
+    uint32_t *addr = (uint32_t *)(PCI_CONFIG_BASE +
+                        (bus << 16) + (device << 11) + (function << 8) + offset);
+    return addr;
+}
+
 // Enumerate PCI buses, devices, and functions
 void enumerate_pci() {
     for (uint8_t bus = 0; bus < 255; bus++) {         // Scan all PCI buses (0-255)
@@ -25,7 +31,7 @@ void enumerate_pci() {
             if (vendor_device_id != 0xFFFFFFFF) {  // 0xFFFFFFFF means "no device"
                 uint16_t vendor_id = vendor_device_id & 0xFFFF;
                 uint16_t device_id = (vendor_device_id >> 16) & 0xFFFF;
-                cprintf("PCI Device Found: Bus %d, Device %d, Function 0x00, Vendor: %d, Device: %d\n",
+                cprintf("PCI Device Found: Bus %d, Device %d, Function 0x00, Vendor: %x, Device: %x\n",
                         bus, device, vendor_id, device_id);
             }
         }
