@@ -7,4 +7,8 @@ typedef int uint32_t;
 typedef long long uint64_t;
 typedef long double uint128_t;
 
+typedef uint32_t uintptr_t;
+
+#define NULL 0
+
 #endif // !COMMON_H
