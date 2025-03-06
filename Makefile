@@ -24,7 +24,7 @@ TEST_KERNEL_OBJECT = $(TESTBUILDDIR)/test_kernel.o
 # Compiler settings
 CC = riscv64-elf-gcc
 AS = riscv64-elf-as
-CFLAGS = -Wall -Wextra -c -mcmodel=medany -ffreestanding
+CFLAGS = -Wall -Wextra -c -mcmodel=medany -ffreestanding -ggdb
 LDFLAGS = -T $(SRCDIR)/linker.ld -nostdlib -lgcc
 
 # Main kernel build (uses kernel.c)
@@ -54,7 +54,23 @@ $(TESTBUILDDIR)/%.o: $(TESTDIR)/%.c | build_dirs
 
 # Run main kernel
 run: damos
-	qemu-system-riscv64 -machine virt -bios none -kernel $(BUILDDIR)/kernel.elf -serial mon:stdio
+	qemu-system-riscv64 \
+		-machine virt \
+		-bios none \
+		-drive id=drive0,file=file.txt,format=raw,if=none \
+		-device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+		-kernel $(BUILDDIR)/kernel.elf \
+		-serial mon:stdio \
+
+debug: damos
+	qemu-system-riscv64 \
+		-machine virt \
+		-bios none \
+		-drive id=drive0,file=file.txt,format=raw,if=none \
+		-device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+		-kernel $(BUILDDIR)/kernel.elf \
+		-serial mon:stdio \
+		-s -S
 
 debug: damos
 	qemu-system-riscv64 -machine virt -bios none -kernel $(BUILDDIR)/kernel.elf -serial mon:stdio -s -S 
