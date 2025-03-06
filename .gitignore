@@ -2,3 +2,4 @@
 result
 *.o
 *.elf
+.gdb_history

@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include "common.h"
 
 #define UART_BASE 0x10000000
 #define UART_DATA (*(volatile uint8_t *)(UART_BASE + 0x00))
@@ -18,4 +18,3 @@ char putchar(char c) {
   UART_DATA = c;
   return c;
 }
-
