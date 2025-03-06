@@ -125,8 +125,8 @@ struct trap_frame {
 void handle_trap(struct trap_frame *f) {
   uint64_t mcause = READ_CSR(mcause);
   uint64_t mtval = READ_CSR(mtval);
-  uint64_t user_pc = READ_CSR(sepc);
+  uint64_t user_pc = READ_CSR(mepc);
 
-  PANIC("unexpected trap mcause=%x, mtval=%x, mepc=%x\n", mcause, mtval,
+  PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\n", mcause, mtval,
         user_pc);
 }
