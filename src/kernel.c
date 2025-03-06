@@ -1,43 +1,38 @@
-#include "lib/exception.h"
-#include <stddef.h>
-
 #include "lib/device_tree.h"
 #include "lib/disk.h"
+#include "lib/exception.h"
 #include "lib/memory.h"
 #include "lib/paging.h"
+#include "lib/pci.h"
 #include "lib/print.h"
 #include "lib/process.h"
 #include "lib/string.h"
 #include "lib/system.h"
-#include "lib/pci.h"
 #include "lib/uart.h"
 
 #define PRINT_SYS_INFO 0
 
-void delay(void) {
-  for (int i = 0; i < 30000000; i++)
-    __asm__ __volatile__("nop");
-}
-
 struct proc *proc_a;
 struct proc *proc_b;
 
+int guh = 0;
+
 void proc_a_entry(void) {
   cprintf("Starting process A\n");
-  while (1) {
-    putchar('A');
+  for (int i = 0; i < 5; i++) {
+    cprintf("A running for the %d. time...\n", i + 1);
     yield();
-    delay();
   }
+  cprintf("Process A is done!\n");
 }
 
 void proc_b_entry(void) {
   cprintf("Starting process B\n");
-  while (1) {
-    putchar('B');
+  for (int i = 0; i < 8; i++) {
+    cprintf("B running for the %d. time...\n", i + 1);
     yield();
-    delay();
   }
+  cprintf("Process B is done!\n");
 }
 
 void kmain(void) {
@@ -47,14 +42,14 @@ void kmain(void) {
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
 
+  // ! Must be called before using processes !
   init_proc();
 
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
 
   yield();
-
-  print("Hello world!\r\n");
+  print("\nAll processes finished execution!\n");
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
   __asm__ __volatile__("unimp");
@@ -81,10 +76,10 @@ void kmain(void) {
   cprintf("%d\n", 101);
 
   enumerate_pci();
-  
+
   PANIC("uh oh spaghettios %d", 5);
   print("we will never print this");
   print("\n");
-  print("death");
+  print("death\n");
   poweroff();
 }
