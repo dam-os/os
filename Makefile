@@ -56,6 +56,9 @@ $(TESTBUILDDIR)/%.o: $(TESTDIR)/%.c | build_dirs
 run: damos
 	qemu-system-riscv64 -machine virt -bios none -kernel $(BUILDDIR)/kernel.elf -serial mon:stdio
 
+debug: damos
+	qemu-system-riscv64 -machine virt -bios none -kernel $(BUILDDIR)/kernel.elf -serial mon:stdio -s -S 
+
 # Run test kernel in QEMU
 run_test: test_kernel
 	qemu-system-riscv64 -machine virt -bios none -kernel $(TESTBUILDDIR)/test_kernel.elf -serial mon:stdio

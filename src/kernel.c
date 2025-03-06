@@ -1,3 +1,4 @@
+#include "lib/exception.h"
 #include <stddef.h>
 
 #include "lib/device_tree.h"
@@ -6,7 +7,6 @@
 #include "lib/print.h"
 #include "lib/string.h"
 #include "lib/system.h"
-#include "lib/uart.h"
 
 #define PRINT_SYS_INFO 0
 
@@ -18,6 +18,9 @@ void kmain(void) {
     read_fdt(dtb_address);
 
   print("Hello world!\r\n");
+
+  WRITE_CSR(stvec, (uint32_t)kernel_entry);
+  __asm__ __volatile__("unimp");
 
   int *page = alloc_pages(5);
   alloc_pages(3);
