@@ -7,6 +7,7 @@
 #include "lib/print.h"
 #include "lib/string.h"
 #include "lib/system.h"
+#include "lib/pci.h"
 #include "lib/uart.h"
 #include "lib/disk.h"
 
@@ -47,6 +48,8 @@ void kmain(void) {
   cprintf("%d\n", 100);
   cprintf("%d\n", 101);
 
+  enumerate_pci();
+  
   PANIC("uh oh spaghettios %d", 5);
   print("we will never print this");
   print("\n");
