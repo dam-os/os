@@ -22,6 +22,7 @@ struct proc_registers {
   uint64_t s9;  //  88
   uint64_t s10; //  96
   uint64_t s11; // 104
+  uint64_t sp;  // 112
 };
 typedef struct proc_registers proc_registers_t;
 
@@ -30,10 +31,13 @@ struct proc {
   int state; // 4
 
   proc_registers_t reg; // 8
+  uint8_t stack[4096];  // 120
 };
 typedef struct proc proc_t;
 
-void switch_process(struct proc *current_process, struct proc *next_process);
-struct proc *create_process(void *target_fuction);
+void switch_process(proc_t *current_process, proc_t *next_process);
+proc_t *create_process(void *target_fuction);
+void init_proc(void);
+void yield(void);
 
 #endif // !PROCESS_H

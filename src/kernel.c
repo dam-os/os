@@ -26,7 +26,7 @@ void proc_a_entry(void) {
   cprintf("Starting process A\n");
   while (1) {
     putchar('A');
-    switch_process(proc_a, proc_b);
+    yield();
     delay();
   }
 }
@@ -35,7 +35,7 @@ void proc_b_entry(void) {
   cprintf("Starting process B\n");
   while (1) {
     putchar('B');
-    switch_process(proc_b, proc_a);
+    yield();
     delay();
   }
 }
@@ -47,11 +47,12 @@ void kmain(void) {
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
 
+  init_proc();
+
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
-  proc_a_entry();
 
-  /*verify_disk();*/
+  yield();
 
   print("Hello world!\r\n");
 
