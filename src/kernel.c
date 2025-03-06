@@ -15,8 +15,6 @@
 struct proc *proc_a;
 struct proc *proc_b;
 
-int guh = 0;
-
 void proc_a_entry(void) {
   cprintf("Starting process A\n");
   for (int i = 0; i < 5; i++) {
