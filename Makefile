@@ -58,12 +58,7 @@ run: damos
 		-machine virt \
 		-bios none \
 		-drive id=drive0,file=file.txt,format=raw,if=none \
-<<<<<<< HEAD
-    -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
-		-kernel $(BUILDDIR)/kernel.elf \
-		-serial mon:stdio
-=======
-		-device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+        -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
 		-kernel $(BUILDDIR)/kernel.elf \
 		-serial mon:stdio \
 
@@ -76,7 +71,6 @@ debug: damos
 		-kernel $(BUILDDIR)/kernel.elf \
 		-serial mon:stdio \
 		-s -S
->>>>>>> main
 
 # Run test kernel in QEMU
 run_test: test_kernel
