@@ -23,6 +23,8 @@ void kmain(void) {
   
   verify_disk();
 
+  init_virtio_vga();
+
   print("Hello world!\r\n");
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
