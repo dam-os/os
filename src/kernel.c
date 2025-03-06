@@ -7,6 +7,8 @@
 #include "lib/print.h"
 #include "lib/string.h"
 #include "lib/system.h"
+#include "lib/uart.h"
+#include "lib/disk.h"
 
 #define PRINT_SYS_INFO 0
 
@@ -16,6 +18,8 @@ void kmain(void) {
 
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
+  
+  verify_disk();
 
   print("Hello world!\r\n");
 
@@ -46,4 +50,6 @@ void kmain(void) {
 
   PANIC("uh oh spaghettios %d", 5);
   print("we will never print this");
+  print("\n");
+  poweroff();
 }
