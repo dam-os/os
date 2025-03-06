@@ -19,7 +19,8 @@ void kmain(void) {
 
   print("Hello world!\r\n");
 
-  WRITE_CSR(stvec, (uint32_t)kernel_entry);
+  WRITE_CSR(medeleg, 0xFFFF);
+  WRITE_CSR(stvec, (uint64_t)kernel_entry);
   __asm__ __volatile__("unimp");
 
   int *page = alloc_pages(5);
