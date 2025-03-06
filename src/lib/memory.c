@@ -1,5 +1,4 @@
 #include "memory.h"
-#include <stddef.h>
 
 void memset(const char *dst, char c, size_t n) {
   char *d = (char *)dst;

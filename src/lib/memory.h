@@ -1,4 +1,5 @@
 
+// @TODO: Remove stddef dependency
 #include <stddef.h>
 
 void memset(const char *p, char c, size_t n);

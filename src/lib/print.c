@@ -1,10 +1,9 @@
-#include <stdarg.h>
-#include <stddef.h>
-
+#include "print.h"
 #include "assert.h"
 #include "common.h"
-#include "print.h"
 #include "uart.h"
+// @TODO: Don't depend on stdarg.h!
+#include <stdarg.h>
 
 #define DIGIT_COUNT 36
 

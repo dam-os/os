@@ -1,8 +1,6 @@
-#include <stddef.h>
-
+#include "system.h"
 #include "common.h"
 #include "print.h"
-#include "system.h"
 
 #define SYSCON_ADDR 0x100000
 
