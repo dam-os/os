@@ -4,16 +4,6 @@
 proc_t processes[MAX_PROCCESSES];
 proc_t *current_proc = NULL;
 
-#define SAVE(reg, var)                                                         \
-  do {                                                                         \
-    __asm__ volatile("mv %0, " reg : "=r"(var));                               \
-  } while (0)
-
-#define RESTORE(reg, var)                                                      \
-  do {                                                                         \
-    __asm__ volatile("mv " reg ", %0" : "=r"(var));                            \
-  } while (0)
-
 __attribute__((naked)) void switch_process(proc_t *current_process,
                                            proc_t *next_process) {
 
