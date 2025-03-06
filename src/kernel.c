@@ -2,16 +2,43 @@
 #include <stddef.h>
 
 #include "lib/device_tree.h"
+#include "lib/disk.h"
 #include "lib/memory.h"
 #include "lib/paging.h"
 #include "lib/print.h"
+#include "lib/process.h"
 #include "lib/string.h"
 #include "lib/system.h"
 #include "lib/pci.h"
 #include "lib/uart.h"
-#include "lib/disk.h"
 
 #define PRINT_SYS_INFO 0
+
+void delay(void) {
+  for (int i = 0; i < 30000000; i++)
+    __asm__ __volatile__("nop");
+}
+
+struct proc *proc_a;
+struct proc *proc_b;
+
+void proc_a_entry(void) {
+  cprintf("Starting process A\n");
+  while (1) {
+    putchar('A');
+    switch_process(proc_a, proc_b);
+    delay();
+  }
+}
+
+void proc_b_entry(void) {
+  cprintf("Starting process B\n");
+  while (1) {
+    putchar('B');
+    switch_process(proc_b, proc_a);
+    delay();
+  }
+}
 
 void kmain(void) {
   uintptr_t dtb_address;
@@ -19,8 +46,12 @@ void kmain(void) {
 
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
-  
-  verify_disk();
+
+  proc_a = create_process(proc_a_entry);
+  proc_b = create_process(proc_b_entry);
+  proc_a_entry();
+
+  /*verify_disk();*/
 
   print("Hello world!\r\n");
 
@@ -53,5 +84,6 @@ void kmain(void) {
   PANIC("uh oh spaghettios %d", 5);
   print("we will never print this");
   print("\n");
+  print("death");
   poweroff();
 }
