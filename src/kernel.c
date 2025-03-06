@@ -19,7 +19,6 @@ void kmain(void) {
 
   print("Hello world!\r\n");
 
-  // WRITE_CSR(medeleg, 0xFFFF);
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
   __asm__ __volatile__("unimp");
 
