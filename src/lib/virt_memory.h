@@ -1,0 +1,1 @@
+void map_virt_mem(uint64_t *table2, uint64_t vaddr, uint64_t paddr);

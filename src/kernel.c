@@ -9,6 +9,7 @@
 #include "lib/string.h"
 #include "lib/system.h"
 #include "lib/uart.h"
+#include "lib/virt_memory.h"
 
 #define PRINT_SYS_INFO 0
 
@@ -33,12 +34,26 @@ void proc_b_entry(void) {
   cprintf("Process B is done!\n");
 }
 
+extern char __kernel_base[], __free_ram_end[];
+
+
 void kmain(void) {
   uintptr_t dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
+  
+  verify_disk();
+  
+  print("Mapping pages!\r\n");
+  uint64_t* page_table = (uint64_t*)alloc_pages(1);
+  uint64_t paddr = (uint64_t) __kernel_base;
+  while (paddr < (uint64_t) __free_ram_end) {
+    map_virt_mem(page_table, paddr, paddr);
+    paddr += PAGE_SIZE;
+  }
+
 
   // ! Must be called before using processes !
   init_proc();
