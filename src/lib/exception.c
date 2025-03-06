@@ -75,37 +75,37 @@ __attribute__((naked)) __attribute__((aligned(4))) void kernel_entry(void) {
                        "sret\n");
 }
 struct trap_frame {
-  uint32_t ra;
-  uint32_t gp;
-  uint32_t tp;
-  uint32_t t0;
-  uint32_t t1;
-  uint32_t t2;
-  uint32_t t3;
-  uint32_t t4;
-  uint32_t t5;
-  uint32_t t6;
-  uint32_t a0;
-  uint32_t a1;
-  uint32_t a2;
-  uint32_t a3;
-  uint32_t a4;
-  uint32_t a5;
-  uint32_t a6;
-  uint32_t a7;
-  uint32_t s0;
-  uint32_t s1;
-  uint32_t s2;
-  uint32_t s3;
-  uint32_t s4;
-  uint32_t s5;
-  uint32_t s6;
-  uint32_t s7;
-  uint32_t s8;
-  uint32_t s9;
-  uint32_t s10;
-  uint32_t s11;
-  uint32_t sp;
+  uint64_t ra;
+  uint64_t gp;
+  uint64_t tp;
+  uint64_t t0;
+  uint64_t t1;
+  uint64_t t2;
+  uint64_t t3;
+  uint64_t t4;
+  uint64_t t5;
+  uint64_t t6;
+  uint64_t a0;
+  uint64_t a1;
+  uint64_t a2;
+  uint64_t a3;
+  uint64_t a4;
+  uint64_t a5;
+  uint64_t a6;
+  uint64_t a7;
+  uint64_t s0;
+  uint64_t s1;
+  uint64_t s2;
+  uint64_t s3;
+  uint64_t s4;
+  uint64_t s5;
+  uint64_t s6;
+  uint64_t s7;
+  uint64_t s8;
+  uint64_t s9;
+  uint64_t s10;
+  uint64_t s11;
+  uint64_t sp;
 } __attribute__((packed));
 
 #define READ_CSR(reg)                                                          \
@@ -117,14 +117,14 @@ struct trap_frame {
 
 #define WRITE_CSR(reg, value)                                                  \
   do {                                                                         \
-    uint32_t __tmp = (value);                                                  \
+    uint64_t __tmp = (value);                                                  \
     __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                    \
   } while (0)
 
 void handle_trap(struct trap_frame *f) {
-  uint32_t scause = READ_CSR(scause);
-  uint32_t stval = READ_CSR(stval);
-  uint32_t user_pc = READ_CSR(sepc);
+  uint64_t scause = READ_CSR(scause);
+  uint64_t stval = READ_CSR(stval);
+  uint64_t user_pc = READ_CSR(sepc);
 
   PANIC("unexpected trap scause=%x, stval=%x, sepc=%x\n", scause, stval,
         user_pc);
