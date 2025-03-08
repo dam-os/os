@@ -33,7 +33,7 @@ define QFLAGS
 		-machine virt \
 		-bios none \
 		-drive id=drive0,file=file.txt,format=raw,if=none \
-        -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+		-device virtio-blk-pci,drive=drive0 \
 		-kernel $(BUILDDIR)/kernel.elf \
 		-serial mon:stdio
 endef

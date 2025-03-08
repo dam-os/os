@@ -7,9 +7,7 @@
 #define SECTOR_SIZE 512
 #define VIRTQ_ENTRY_NUM 16
 #define VIRTIO_DEVICE_BLK 2
-#define VIRTIO_BLK_PADDR                                                       \
-  0x10001000 /* Gotten from the flat device tree thingy. @TODO: Is the first   \
-                disk always mapped to the smallest address? */
+#define VIRTIO_BLK_PADDR 0x10001000 // @TODO: get this from pci enumerator
 #define VIRTIO_REG_MAGIC 0x00
 #define VIRTIO_REG_VERSION 0x04
 #define VIRTIO_REG_DEVICE_ID 0x08
