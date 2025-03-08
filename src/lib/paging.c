@@ -35,7 +35,7 @@ int lookup(int n, int *byte_idx, int *bit_idx) {
   return -1;
 }
 
-int *set_mem_table() {
+void init_mem_table() {
   int free_ram_size =
       ((int)(uintptr_t)&__free_ram_end - (uintptr_t)&__free_ram);
   mem_table_size = (free_ram_size / PAGE_SIZE) / 8;
@@ -50,7 +50,7 @@ int *set_mem_table() {
     int bit_pos = (free_ram_size / PAGE_SIZE) - 1 - i;
     memory_table[bit_pos / 8] |= (1 << (bit_pos % 8));
   }
-  return base;
+  basec = base;
 }
 
 void printBits(unsigned char byte) {
@@ -69,7 +69,8 @@ void print_mem_table() {
 
 int *alloc_pages(int n) {
   if (mem_table_size == 0)
-    basec = set_mem_table();
+    // this sets base variable
+    init_mem_table();
   if (n <= 0)
     poweroff();
   int byte_index = -1;

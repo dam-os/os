@@ -1,6 +1,7 @@
 #include "lib/device_tree.h"
 #include "lib/disk.h"
 #include "lib/exception.h"
+#include "lib/kheap.h"
 #include "lib/memory.h"
 #include "lib/paging.h"
 #include "lib/pci.h"
@@ -9,7 +10,6 @@
 #include "lib/string.h"
 #include "lib/system.h"
 #include "lib/uart.h"
-
 #define PRINT_SYS_INFO 0
 
 struct proc *proc_a;
@@ -42,7 +42,22 @@ void kmain(void) {
 
   // ! Must be called before using processes !
   init_proc();
+  // optional to call but still cool
+  init_mem_table();
+  init_heap(100);
 
+  char *ptr1 = (char *)kmalloc(100);
+  strcpy(ptr1, "Hello, this is block 1!");
+  cprintf("Allocated and filled 100 bytes: %s\n", ptr1);
+
+  char *ptr2 = (char *)kmalloc(200);
+  strcpy(ptr2, "This is a larger block of 200 bytes.");
+  cprintf("Allocated and filled 200 bytes: %s\n", ptr2);
+
+  char *ptr3 = (char *)kmalloc(50);
+  strcpy(ptr3, "Block 3 with 50 bytes.");
+  cprintf("Allocated and filled 50 bytes: %s\n", ptr3);
+  print_heap_contents();
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
 
