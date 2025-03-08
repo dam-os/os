@@ -1,13 +1,13 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef int uint32_t;
-typedef long long uint64_t;
-typedef long double uint128_t;
+typedef unsigned char uint8;
+typedef unsigned short uint16;
+typedef int uint32;
+typedef long long uint64;
+typedef long double uint128;
 
-typedef uint64_t uintptr_t;
+typedef uint64 uintptr;
 
 #define NULL 0
 

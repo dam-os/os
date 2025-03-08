@@ -28,7 +28,7 @@ void cvprintf_int(int v, int base, int digits) {
     putchar(*--p);
   }
 }
-void cvprintf_uint64_t(uint64_t v, int base, int digits) {
+void cvprintf_uint64_t(uint64 v, int base, int digits) {
   char buf[digits], *p = buf;
   do {
     *p++ = DIGITS[v % base];
@@ -57,7 +57,7 @@ void cvprintf(const char **str, va_list *ap) {
     cvprintf_int(va_arg(*ap, int), 16, 8);
     break;
   case 'p':
-    cvprintf_uint64_t(va_arg(*ap, uint64_t), 16, 16);
+    cvprintf_uint64_t(va_arg(*ap, uint64), 16, 16);
     break;
   case 'b':
     cvprintf_int(va_arg(*ap, int), 2, 32);
@@ -65,7 +65,7 @@ void cvprintf(const char **str, va_list *ap) {
   case 'l': {
     switch (*++(*str)) {
     case 'd':
-      cvprintf_uint64_t(va_arg(*ap, uint64_t), 10, 19);
+      cvprintf_uint64_t(va_arg(*ap, uint64), 10, 19);
       break;
     };
   } break;

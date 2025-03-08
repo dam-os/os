@@ -6,7 +6,7 @@
 
 void poweroffmsg(char *msg) {
   print(msg);
-  *(uint32_t *)SYSCON_ADDR = 0x5555;
+  *(uint32 *)SYSCON_ADDR = 0x5555;
 }
 
 void poweroff(void) { poweroffmsg("Poweroff requested\n"); }

@@ -1,8 +1,8 @@
 #include "common.h"
 
 #define UART_BASE 0x10000000
-#define UART_DATA (*(volatile uint8_t *)(UART_BASE + 0x00))
-#define UART_LSR (*(volatile uint8_t *)(UART_BASE + 0x05))
+#define UART_DATA (*(volatile uint8 *)(UART_BASE + 0x00))
+#define UART_LSR (*(volatile uint8 *)(UART_BASE + 0x05))
 #define UART_LSR_RX_READY 0x01
 #define UART_LSR_TX_EMPTY 0x20
 

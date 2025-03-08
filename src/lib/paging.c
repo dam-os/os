@@ -2,7 +2,9 @@
 #include "memory.h"
 #include "print.h"
 #include "system.h"
+
 #define PAGE_SIZE 0x1000
+
 extern char __free_ram[], __free_ram_end[];
 
 char *memory_table;
@@ -36,8 +38,7 @@ int lookup(int n, int *byte_idx, int *bit_idx) {
 }
 
 int *set_mem_table() {
-  int free_ram_size =
-      ((int)(uintptr_t)&__free_ram_end - (uintptr_t)&__free_ram);
+  int free_ram_size = ((int)(uintptr)&__free_ram_end - (uintptr)&__free_ram);
   mem_table_size = (free_ram_size / PAGE_SIZE) / 8;
   memset(__free_ram, '\0', mem_table_size);
   memory_table = __free_ram;

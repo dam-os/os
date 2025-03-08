@@ -1,6 +1,5 @@
-#include "print.h"
+#include "common.h"
 #include "system.h"
-#include <stdint.h>
 
 __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
   __asm__ __volatile__("csrw sscratch, sp\n"
@@ -76,37 +75,37 @@ __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
                        "sret\n");
 }
 struct trap_frame {
-  uint64_t ra;
-  uint64_t gp;
-  uint64_t tp;
-  uint64_t t0;
-  uint64_t t1;
-  uint64_t t2;
-  uint64_t t3;
-  uint64_t t4;
-  uint64_t t5;
-  uint64_t t6;
-  uint64_t a0;
-  uint64_t a1;
-  uint64_t a2;
-  uint64_t a3;
-  uint64_t a4;
-  uint64_t a5;
-  uint64_t a6;
-  uint64_t a7;
-  uint64_t s0;
-  uint64_t s1;
-  uint64_t s2;
-  uint64_t s3;
-  uint64_t s4;
-  uint64_t s5;
-  uint64_t s6;
-  uint64_t s7;
-  uint64_t s8;
-  uint64_t s9;
-  uint64_t s10;
-  uint64_t s11;
-  uint64_t sp;
+  uint64 ra;
+  uint64 gp;
+  uint64 tp;
+  uint64 t0;
+  uint64 t1;
+  uint64 t2;
+  uint64 t3;
+  uint64 t4;
+  uint64 t5;
+  uint64 t6;
+  uint64 a0;
+  uint64 a1;
+  uint64 a2;
+  uint64 a3;
+  uint64 a4;
+  uint64 a5;
+  uint64 a6;
+  uint64 a7;
+  uint64 s0;
+  uint64 s1;
+  uint64 s2;
+  uint64 s3;
+  uint64 s4;
+  uint64 s5;
+  uint64 s6;
+  uint64 s7;
+  uint64 s8;
+  uint64 s9;
+  uint64 s10;
+  uint64 s11;
+  uint64 sp;
 } __attribute__((packed));
 
 #define READ_CSR(reg)                                                          \
@@ -118,14 +117,14 @@ struct trap_frame {
 
 #define WRITE_CSR(reg, value)                                                  \
   do {                                                                         \
-    uint64_t __tmp = (value);                                                  \
+    uint64 __tmp = (value);                                                    \
     __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                    \
   } while (0)
 
 void handle_trap(struct trap_frame *f) {
-  uint64_t mcause = READ_CSR(mcause);
-  uint64_t mtval = READ_CSR(mtval);
-  uint64_t user_pc = READ_CSR(mepc);
+  uint64 mcause = READ_CSR(mcause);
+  uint64 mtval = READ_CSR(mtval);
+  uint64 user_pc = READ_CSR(mepc);
 
   PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\n", mcause, mtval,
         user_pc);

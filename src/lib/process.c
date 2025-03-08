@@ -82,7 +82,7 @@ proc_t *create_process(void *target_function) {
   process->state = PROCESS_READY;
   process->pid = i;
 
-  process->reg.sp = (uint64_t)&process->stack[sizeof(process->stack)];
+  process->reg.sp = (uint64)&process->stack[sizeof(process->stack)];
 
   process->reg.s0 = 0;
   process->reg.s1 = 0;
@@ -97,7 +97,7 @@ proc_t *create_process(void *target_function) {
   process->reg.s10 = 0;
   process->reg.s11 = 0;
 
-  process->reg.ra = (uint64_t)target_function;
+  process->reg.ra = (uint64)target_function;
 
   return process;
 }
