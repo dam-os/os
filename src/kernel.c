@@ -67,7 +67,7 @@ void kmain(void) {
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
   __asm__ __volatile__("unimp");
 
-  int *page = alloc_pages(5);
+  uint64_t page = alloc_pages(5);
   alloc_pages(3);
   free_pages(page, 5);
   alloc_pages(3);

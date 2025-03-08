@@ -1,4 +1,6 @@
+#include "common.h"
 #include "paging.h"
+#include "print.h"
 #include "system.h"
 #include <stddef.h>
 struct block {
@@ -9,7 +11,7 @@ struct block {
 struct block *blocks = NULL;
 int max_size = 0;
 int init_heap(int page_numbers) {
-  int *pages = alloc_pages(page_numbers);
+  uint64_t pages = alloc_pages(page_numbers);
 
   blocks = (struct block *)pages;
   max_size = page_numbers * PAGE_SIZE;
@@ -24,16 +26,18 @@ int init_heap(int page_numbers) {
   return 1;
 }
 
-char *kmalloc(int size) {
+uint64_t kmalloc(int size) {
   struct block *current = blocks;
   while (current) {
     // if the block is free and big enough
     if (current->free && current->size >= size) {
+      cprintf("found %p\n", current);
       // if we need to split the block
       if (current->size > size + sizeof(struct block)) {
         // puts the new block in the available space in ram
         struct block *new_block =
             (struct block *)((char *)current + sizeof(struct block) + size);
+        cprintf("new block %p\n", new_block);
         // new block is made smaller and we fix the linked list such that it
         // points correctly
         new_block->size = current->size - size - sizeof(struct block);
@@ -44,8 +48,8 @@ char *kmalloc(int size) {
         current->next = new_block;
       }
       current->free = 0;
-      return (char *)(struct block *)((char *)current + sizeof(struct block) +
-                                      size);
+      return (uint64_t)(struct block *)((char *)current + sizeof(struct block) +
+                                        size);
     }
     current = current->next;
   }
@@ -64,7 +68,7 @@ void print_heap_contents() {
 
   while (current) {
     if (!current->free) { // If the block is allocated
-      char *data = (char *)current + sizeof(struct block);
+      uint64_t data = (uint64_t)current + sizeof(struct block);
       cprintf("Block at %p with size %zu contains: %s\n", data, current->size,
               data);
     }
