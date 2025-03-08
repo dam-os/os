@@ -53,6 +53,15 @@ void kmain(void) {
     map_virt_mem(page_table, paddr, paddr);
     paddr += PAGE_SIZE;
   }
+  uint64_t satp_val = (uint64_t) 8 << 60 | (uint64_t) 0xffff << 44 | ((uint64_t) page_table / PAGE_SIZE);
+
+  __asm__ __volatile__(
+        "sfence.vma\n"
+        "csrw satp, %[satp]\n"
+        "sfence.vma\n"
+        :
+        : [satp] "r" (satp_val) 
+    );
 
 
   // ! Must be called before using processes !
