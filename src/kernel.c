@@ -46,16 +46,16 @@ void kmain(void) {
   init_mem_table();
   init_heap(100);
 
-  char *ptr1 = (char *)kmalloc(100);
-  strcpy(ptr1, "Hello, this is block 1!");
+  uint64_t ptr1 = kmalloc(20);
+  cstrcpy((char *)ptr1, "11234567890234567890");
   cprintf("Allocated and filled 100 bytes: %s\n", ptr1);
 
-  char *ptr2 = (char *)kmalloc(200);
-  strcpy(ptr2, "This is a larger block of 200 bytes.");
-  cprintf("Allocated and filled 200 bytes: %s\n", ptr2);
+  uint64_t ptr2 = kmalloc(10);
+  cstrcpy((char *)ptr2, "1234567890");
+  cprintf("Allocated and filled 10 bytes: %s\n", ptr2);
 
   char *ptr3 = (char *)kmalloc(50);
-  strcpy(ptr3, "Block 3 with 50 bytes.");
+  cstrcpy(ptr3, "Block 3 with 50 bytes.");
   cprintf("Allocated and filled 50 bytes: %s\n", ptr3);
   print_heap_contents();
   proc_a = create_process(proc_a_entry);

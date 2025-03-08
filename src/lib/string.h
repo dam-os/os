@@ -1,5 +1,5 @@
-int strlen(char *str);
+int cstrlen(char *src);
 
-int strcmp(char *str_a, char *str_b);
+int cstrcmp(char *src, char *dest);
 
-void strcpy(char *str_a, char *str_b);
+void cstrcpy(char *src, char *dest);
