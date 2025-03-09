@@ -14,6 +14,7 @@
 
 struct proc *proc_a;
 struct proc *proc_b;
+extern char *stack_top;
 
 void proc_a_entry(void) {
   cprintf("Starting process A\n");
@@ -39,7 +40,7 @@ void kmain(void) {
 
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
-
+  cprintf("Stack top at: %p\n", stack_top);
   // ! Must be called before using processes !
   init_proc();
   // optional to call but still cool
@@ -47,16 +48,11 @@ void kmain(void) {
   init_heap(100);
 
   uint64_t ptr1 = kmalloc(20);
-  cstrcpy((char *)ptr1, "11234567890234567890");
-  cprintf("Allocated and filled 100 bytes: %s\n", ptr1);
+  cprintf("Allocated and filled 20 bytes: %s\n", ptr1);
 
   uint64_t ptr2 = kmalloc(10);
-  cstrcpy((char *)ptr2, "1234567890");
   cprintf("Allocated and filled 10 bytes: %s\n", ptr2);
 
-  char *ptr3 = (char *)kmalloc(50);
-  cstrcpy(ptr3, "Block 3 with 50 bytes.");
-  cprintf("Allocated and filled 50 bytes: %s\n", ptr3);
   print_heap_contents();
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
@@ -65,7 +61,6 @@ void kmain(void) {
   print("\nAll processes finished execution!\n");
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
-  __asm__ __volatile__("unimp");
 
   uint64_t page = alloc_pages(5);
   alloc_pages(3);

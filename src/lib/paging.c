@@ -36,7 +36,7 @@ uint64_t lookup(int n, int *byte_idx, int *bit_idx) {
 }
 
 void init_mem_table() {
-  int free_ram_size = ((int)(uint64_t)&__free_ram_end - (uint64_t)&__free_ram);
+  uint64_t free_ram_size = ((uint64_t)&__free_ram_end - (uint64_t)&__free_ram);
   mem_table_size = (free_ram_size / PAGE_SIZE) / 8;
   memset(__free_ram, '\0', mem_table_size);
   memory_table = __free_ram;
@@ -50,6 +50,9 @@ void init_mem_table() {
     memory_table[bit_pos / 8] |= (1 << (bit_pos % 8));
   }
   basec = base;
+
+  cprintf("Free RAM starts at: %p\n", __free_ram);
+  cprintf("base memory for paging starts at: %p\n", __free_ram);
 }
 
 void printBits(unsigned char byte) {
