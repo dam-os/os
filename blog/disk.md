@@ -8,4 +8,6 @@
   that explains that modern virtio devices cannot be used with mmio, but need to
   be added with pci
 - Mounted as PCI device instead, used a mix of virtio specs and osdev PCI/virtio
-  pages to read from device
+  pages
+- Mounted as non-transitional to ensure that it definitely uses the 1.0 spec.
+  Also update the device IDs in the header file to match PCI specs.

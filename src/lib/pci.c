@@ -4,27 +4,27 @@
 
 #define PCI_CONFIG_BASE 0x30000000
 
+#define ADDR(bus, device, function, offset)                                    \
+  (PCI_CONFIG_BASE + (bus << 16) + (device << 11) + (function << 8) + offset)
+
 // https://wiki.osdev.org/PCI#Enumerating_PCI_Buses
-// Read a 32-bit value from PCI configuration space
+// Read a n-bit values from PCI configuration space
 uint8 pci_read_8(uint8 bus, uint8 device, uint8 function, uint8 offset) {
-  return (uint8)pci_read_32(bus, device, function, offset);
+  return *(volatile uint8 *)ADDR(bus, device, function, offset);
 }
 uint16 pci_read_16(uint8 bus, uint8 device, uint8 function, uint8 offset) {
-  return (uint16)pci_read_32(bus, device, function, offset);
+  return *(volatile uint16 *)ADDR(bus, device, function, offset);
 }
 uint32 pci_read_32(uint8 bus, uint8 device, uint8 function, uint8 offset) {
-  volatile uint32 *addr =
-      (volatile uint32 *)(PCI_CONFIG_BASE + (bus << 16) + (device << 11) +
-                          (function << 8) + offset);
-  return *addr;
+  return *(volatile uint32 *)ADDR(bus, device, function, offset);
+}
+uint64 pci_read_64(uint8 bus, uint8 device, uint8 function, uint8 offset) {
+  return *(volatile uint64 *)ADDR(bus, device, function, offset);
 }
 
 void pci_write_32(uint8 bus, uint8 device, uint8 function, uint8 offset,
                   uint32 value) {
-  volatile uint32 *addr =
-      (volatile uint32 *)(PCI_CONFIG_BASE + (bus << 16) + (device << 11) +
-                          (function << 8) + offset);
-  *addr = value;
+  *(volatile uint32 *)ADDR(bus, device, function, offset) = value;
 }
 
 // Enumerate PCI buses, devices, and functions
