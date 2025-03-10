@@ -1,4 +1,4 @@
-# making virtual memory
+# Making virtual memory
 
 https://www.simonsungm.cool/2019/10/20/RISC-V-Page-Table-I/
 
@@ -13,6 +13,16 @@ https://pdos.csail.mit.edu/6.828/2021/slides/6s081-lec-vm.pdf
 
 https://marz.utk.edu/my-courses/cosc562c/mmu/
 
+https://chenweixiang.github.io/docs/riscv-privileged-v1.10.pdf#section.4.4
+
+
+## General info
+https://docs.keystone-enclave.org/en/latest/Getting-Started/How-Keystone-Works/RISC-V-Background.html
+Could be that M-mode operates exclusively on physical addresses in qemu as well
+
+
+### S-mode
+https://blog.stephenmarz.com/2020/11/23/back-that-s-up/
 
 # Debug the page table
 Let's lookup the addr 0x080000104
