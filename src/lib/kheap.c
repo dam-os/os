@@ -77,6 +77,25 @@ void *kmalloc(int size) {
   return 0;
 }
 
+void *krealloc(uint64_t ptr, int size) {
+  struct block *block = (struct block *)(ptr - sizeof(struct block));
+  int possible_size = block->size;
+  struct block *current = block->next;
+  // check if we can expand current block
+  while (possible_size < size && current) {
+    if (current->free) {
+      possible_size += current->size;
+      continue;
+    }
+    break;
+  }
+  if (possible_size >= size) {
+    // expand current block
+  } else {
+    // alloc new block and free the old
+  }
+}
+
 int kfree(void *ptr) {
   struct block *block = (struct block *)(ptr - sizeof(struct block));
   block->free = 1;
