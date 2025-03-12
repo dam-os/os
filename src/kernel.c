@@ -53,6 +53,7 @@ void kmain(void) {
   uint64_t ptr2 = kmalloc(10);
   cprintf("Allocated and filled 10 bytes: %p\n", ptr2);
   kfree(ptr2);
+  kfree(ptr1);
   print_heap_contents();
   poweroff();
   proc_a = create_process(proc_a_entry);

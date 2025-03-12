@@ -65,10 +65,11 @@ void *kmalloc(int size) {
       }
       // if the block is perfect size we just use that one
       current->free = 0;
-      cprintf("return ptr to here: %p\n", (current + sizeof(struct block)));
+      cprintf("return ptr to here: %p\n",
+              ((void *)current + sizeof(struct block)));
       cprintf("blck actually here: %p, %p\n", current, sizeof(struct block));
 
-      return (current + sizeof(struct block));
+      return ((void *)current + sizeof(struct block));
     }
     current = current->next;
   }
@@ -81,6 +82,7 @@ int kfree(void *ptr) {
   block->free = 1;
   // merge free blocks
   cprintf("freeing block at %p\n", block);
+  cprintf("pointer here %p\n", ptr);
   struct block *current = blocks;
   while (current) {
     if (current->free && current->next && current->next->free) {
