@@ -14,7 +14,7 @@
 
 struct proc *proc_a;
 struct proc *proc_b;
-extern char *stack_top;
+extern char stack_top[];
 
 void proc_a_entry(void) {
   cprintf("Starting process A\n");
@@ -48,15 +48,15 @@ void kmain(void) {
   init_heap(100);
 
   uint64_t ptr1 = kmalloc(20);
-  cprintf("Allocated and filled 20 bytes: %s\n", ptr1);
+  cprintf("Allocated and filled 20 bytes: %p\n", ptr1);
 
   uint64_t ptr2 = kmalloc(10);
-  cprintf("Allocated and filled 10 bytes: %s\n", ptr2);
-
+  cprintf("Allocated and filled 10 bytes: %p\n", ptr2);
+  kfree(ptr2);
   print_heap_contents();
+  poweroff();
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
-
   yield();
   print("\nAll processes finished execution!\n");
 

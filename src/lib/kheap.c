@@ -16,19 +16,16 @@ int max_size = 0;
 
 void print_heap_contents() {
   struct block *current = blocks;
-
-  while (current) {
-    if (!current->free) { // If the block is allocated
-      uint64_t data = (uint64_t)current + sizeof(struct block);
-      cprintf("Block at %p with size %zu contains: %s\n", data, current->size,
-              data);
-    }
-    cprintf("%p\n", current);
-    cprintf("%p\n", current->next);
+  cprintf("Heap blocks:\n");
+  while (current != NULL) {
+    cprintf("Block at %p:\n", (void *)current);
+    cprintf("  Size: %d bytes\n", current->size - sizeof(struct block));
+    cprintf("  Status: %s\n", current->free ? "Free" : "Allocated");
+    cprintf("  Next Block: %p\n", (void *)current->next);
+    cprintf("-------------------------\n");
     current = current->next;
   }
 }
-
 int init_heap(int page_numbers) {
   uint64_t pages = alloc_pages(page_numbers);
   cprintf("PAGES START AT: %p\n", pages);
@@ -46,10 +43,9 @@ int init_heap(int page_numbers) {
   return 1;
 }
 
-uint64_t kmalloc(int size) {
+void *kmalloc(int size) {
   struct block *current = blocks;
 
-  return 0;
   while (current) {
     // if the block is free and big enough
     if (current->free && current->size >= size) {
@@ -64,12 +60,15 @@ uint64_t kmalloc(int size) {
         new_block->next = current->next;
         new_block->free = 1;
         // we set the size of the block we will use
-        current->size -= size + sizeof(struct block);
+        current->size = size + sizeof(struct block);
         current->next = new_block;
       }
       // if the block is perfect size we just use that one
       current->free = 0;
-      return (uint64_t)(char *)(current + sizeof(struct block));
+      cprintf("return ptr to here: %p\n", (current + sizeof(struct block)));
+      cprintf("blck actually here: %p, %p\n", current, sizeof(struct block));
+
+      return (current + sizeof(struct block));
     }
     current = current->next;
   }
@@ -77,8 +76,18 @@ uint64_t kmalloc(int size) {
   return 0;
 }
 
-int kfree(char *ptr) {
+int kfree(void *ptr) {
   struct block *block = (struct block *)(ptr - sizeof(struct block));
   block->free = 1;
+  // merge free blocks
+  cprintf("freeing block at %p\n", block);
+  struct block *current = blocks;
+  while (current) {
+    if (current->free && current->next && current->next->free) {
+      current->size += sizeof(struct block) + current->next->size;
+      current->next = current->next->next;
+    }
+    current = current->next;
+  }
   return 1;
 }
