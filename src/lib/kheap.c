@@ -85,14 +85,14 @@ int kfree(void *ptr) {
   struct block *block = (struct block *)(ptr - sizeof(struct block));
   block->free = 1;
   // merge free blocks
-  /*struct block *current = block->next;*/
-  /*while (current) {*/
-  /*  if (current && current && current->next) {*/
-  /*    current->size += sizeof(struct block) + current->size;*/
-  /*    current = current->next;*/
-  /*  }*/
-  /*  current = current->next;*/
-  /*}*/
+  struct block *current = block->next;
+  while (current) {
+    if (current && current && current->next) {
+      current->size += sizeof(struct block) + current->size;
+      current = current->next;
+    }
+    current = current->next;
+  }
   return 1;
 }
 
