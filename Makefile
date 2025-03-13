@@ -35,6 +35,7 @@ define QFLAGS
 		-drive id=drive0,file=file.txt,format=raw,if=none \
         -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
 		-kernel $(BUILDDIR)/kernel.elf \
+		-cpu rv64,pmp=false \
 		-serial mon:stdio
 endef
 
