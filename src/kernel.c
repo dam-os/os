@@ -34,6 +34,8 @@ void proc_b_entry(void) {
   cprintf("Process B is done!\n");
 }
 
+
+
 extern char __kernel_base[], __free_ram_end[];
 
 
@@ -53,16 +55,22 @@ void kmain(void) {
     map_virt_mem(page_table, paddr, paddr);
     paddr += PAGE_SIZE;
   }
+  //map_virt_mem(page_table, 0x90000000, 0x80000000);
+
   uint64_t satp_val = (uint64_t) 8 << 60 | (uint64_t) 0xffff << 44 | ((uint64_t) page_table / PAGE_SIZE);
 
-  __asm__ __volatile__(
+/*   __asm__ __volatile__(
         "sfence.vma\n"
         "csrw satp, %[satp]\n"
         "sfence.vma\n"
         :
         : [satp] "r" (satp_val) 
     );
+  print("satp set!\r\n"); */
 
+  //uint64_t* aaaa = (uint64_t*)0x90000000;
+  //uint64_t value = *aaaa;
+  print("Error!\r\n");
 
   // ! Must be called before using processes !
   init_proc();
@@ -74,7 +82,7 @@ void kmain(void) {
   print("\nAll processes finished execution!\n");
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
-  __asm__ __volatile__("unimp");
+  //__asm__ __volatile__("unimp");
 
   int *page = alloc_pages(5);
   alloc_pages(3);

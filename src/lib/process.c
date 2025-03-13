@@ -1,5 +1,7 @@
 #include "process.h"
 #include "system.h"
+#include "paging.h"
+#include "virt_memory.h"
 
 // Assuming 2 proc_t struct arguments, saves current registers into arg 0 (a0),
 // and loads registers from arg 1 (a1)
@@ -65,6 +67,21 @@ __attribute__((naked)) void start_switch_process(proc_t *current_process,
                        "jalr x0, 0(t0)");
 }
 
+#define MSTATUS_MPIE 0//(1 << 7)
+
+__attribute__((naked)) void switch_to_umode(void) {
+  __asm__ __volatile__(
+      "csrw mepc, s0             \n"
+      "csrw mstatus, %[mstatus]  \n"
+      "mret                      \n"
+      :
+      : [mstatus] "r" (MSTATUS_MPIE)
+  );
+}
+
+extern char __kernel_base[], __free_ram_end[];
+
+
 proc_t *create_process(void *target_function) {
   proc_t *process = NULL;
 
@@ -84,7 +101,7 @@ proc_t *create_process(void *target_function) {
 
   process->reg.sp = (uint64_t)&process->stack[sizeof(process->stack)];
 
-  process->reg.s0 = 0;
+  process->reg.s0 = (uint64_t)switch_to_umode;
   process->reg.s1 = 0;
   process->reg.s2 = 0;
   process->reg.s3 = 0;
@@ -99,6 +116,15 @@ proc_t *create_process(void *target_function) {
 
   process->reg.ra = (uint64_t)target_function;
 
+  print("Mapping pages!\r\n");
+  uint64_t* page_table = (uint64_t*)alloc_pages(1);
+  uint64_t paddr = (uint64_t) __kernel_base;
+  while (paddr < (uint64_t) __free_ram_end) {
+    map_virt_mem(page_table, paddr, paddr);
+    paddr += PAGE_SIZE;
+  }
+
+  process->page_table = page_table;
   return process;
 }
 
@@ -136,6 +162,14 @@ void yield(void) {
 
   proc_t *curr = current_proc;
   current_proc = next;
+
+/*   __asm__ __volatile__(
+    "sfence.vma\n"
+    "csrw satp, %[satp]\n"
+    "sfence.vma\n"
+    :
+    : [satp] "r" (0) 
+  ); */
 
   // Start process if its not runnable, else just switch to it
   if (next->state == PROCESS_READY) {

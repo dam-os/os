@@ -20,6 +20,7 @@ https://chenweixiang.github.io/docs/riscv-privileged-v1.10.pdf#section.4.4
 https://docs.keystone-enclave.org/en/latest/Getting-Started/How-Keystone-Works/RISC-V-Background.html
 Could be that M-mode operates exclusively on physical addresses in qemu as well
 
+https://danielmangum.com/posts/risc-v-bytes-privilege-levels/
 
 ### S-mode
 https://blog.stephenmarz.com/2020/11/23/back-that-s-up/
