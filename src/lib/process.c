@@ -67,15 +67,15 @@ __attribute__((naked)) void start_switch_process(proc_t *current_process,
                        "jalr x0, 0(t0)");
 }
 
-#define MSTATUS_MPIE 0//(1 << 7)
+#define MSTATUS_MPP (0b00 << 11)//(1 << 7)
 
-__attribute__((naked)) void switch_to_umode(void) {
+__attribute__((naked)) void switch_to_umode(proc_t *current_process, proc_t *next_process, void* target) {
   __asm__ __volatile__(
-      "csrw mepc, s0             \n"
+      "csrw mepc, a2             \n"
       "csrw mstatus, %[mstatus]  \n"
       "mret                      \n"
       :
-      : [mstatus] "r" (MSTATUS_MPIE)
+      : [mstatus] "r" (MSTATUS_MPP)
   );
 }
 
@@ -101,7 +101,7 @@ proc_t *create_process(void *target_function) {
 
   process->reg.sp = (uint64_t)&process->stack[sizeof(process->stack)];
 
-  process->reg.s0 = (uint64_t)switch_to_umode;
+  process->reg.s0 = 0;
   process->reg.s1 = 0;
   process->reg.s2 = 0;
   process->reg.s3 = 0;
@@ -174,7 +174,11 @@ void yield(void) {
   // Start process if its not runnable, else just switch to it
   if (next->state == PROCESS_READY) {
     next->state = PROCESS_RUNNABLE;
-    start_switch_process(curr, next);
+    if (curr->pid == 0) {
+      switch_to_umode(curr, next, start_switch_process);
+    } else {
+      start_switch_process(curr, next);
+    }
   } else {
 
     switch_process(curr, next);
