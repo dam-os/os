@@ -36,7 +36,7 @@ void print_heap_contents() {
   }
 }
 int init_heap(int page_numbers) {
-  uint64_t pages = alloc_pages(page_numbers);
+  void *pages = (void *)alloc_pages(page_numbers);
   blocks = (struct block *)pages;
   max_size = page_numbers * PAGE_SIZE;
 
