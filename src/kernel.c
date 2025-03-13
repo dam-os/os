@@ -46,23 +46,6 @@ void kmain(void) {
   // optional to call but still cool
   init_mem_table();
   init_heap(100);
-
-  uint64_t ptr1 = kmalloc(20);
-  cprintf("Allocated and filled 20 bytes: %p\n", ptr1);
-  print_heap_contents();
-  uint64_t ptr2 = kmalloc(10);
-  uint64_t ptr3 = kmalloc(500);
-  cprintf("Allocated and filled 500 bytes: %p\n", ptr2);
-  print_heap_contents();
-  kfree(ptr2);
-  cprintf("freed ptr 2: %p\n", ptr2);
-  print_heap_contents();
-  cprintf("realloc ptr 1 to 10 bytes: %p\n", ptr2);
-  krealloc(ptr1, 10);
-  krealloc(ptr3, 200);
-  print_heap_contents();
-  /*krealloc(ptr1, 200);*/
-  poweroff();
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
   yield();
