@@ -103,6 +103,8 @@ proc_t *create_process(void *target_function) {
     map_virt_mem(page_table, paddr, paddr);
     paddr += PAGE_SIZE;
   }
+  map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
+  for (int i = 0x30000000; i < 0x40000000; i+= 0x1000 ) map_virt_mem(page_table, i, i); // PCI
 
   process->page_table = page_table;
   return process;
@@ -143,14 +145,14 @@ void yield(void) {
   proc_t *curr = current_proc;
   current_proc = next;
 
-  /* uint64_t satp_val = (uint64_t) 8 << 60 | (uint64_t) 0xffff << 44 | ((uint64_t) next->page_table / PAGE_SIZE);
+  uint64_t satp_val = (uint64_t) 8 << 60 | (uint64_t) 0x0 << 44 | ((uint64_t) next->page_table / PAGE_SIZE);
    __asm__ __volatile__(
     "sfence.vma\n"
     "csrw satp, %[satp]\n"
     "sfence.vma\n"
     :
     : [satp] "r" (satp_val) 
-  ); */
+  ); 
 
   // Start process if its not runnable, else just switch to it
   if (next->state == PROCESS_READY) {
