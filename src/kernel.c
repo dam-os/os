@@ -48,29 +48,6 @@ void kmain(void) {
   
   verify_disk();
   
- /*  print("Mapping pages!\r\n");
-  uint64_t* page_table = (uint64_t*)alloc_pages(1);
-  uint64_t paddr = (uint64_t) __kernel_base;
-  while (paddr < (uint64_t) __free_ram_end) {
-    map_virt_mem(page_table, paddr, paddr);
-    paddr += PAGE_SIZE;
-  } */
-  //map_virt_mem(page_table, 0x90000000, 0x80000000);
-
-  //uint64_t satp_val = (uint64_t) 8 << 60 | (uint64_t) 0xffff << 44 | ((uint64_t) page_table / PAGE_SIZE);
-
-/*   __asm__ __volatile__(
-        "sfence.vma\n"
-        "csrw satp, %[satp]\n"
-        "sfence.vma\n"
-        :
-        : [satp] "r" (satp_val) 
-    );
-  print("satp set!\r\n"); */
-
-  //uint64_t* aaaa = (uint64_t*)0x90000000;
-  //uint64_t value = *aaaa;
-  print("Error!\r\n");
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
   
   // ! Must be called before using processes !
@@ -84,7 +61,7 @@ void kmain(void) {
   __asm__ __volatile__("auipc t0, 0\n");
   __asm__ __volatile__("addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after yield
   __asm__ __volatile__("csrw mepc, t0\n");
-  yield();
+  yield(); // WARNING: Kernel returns here in usermode!
   
   print("\nAll processes finished execution!\n");
 
