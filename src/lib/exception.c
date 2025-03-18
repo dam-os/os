@@ -1,9 +1,10 @@
 #include "print.h"
+#include "process.h"
 #include "system.h"
-#include <stdint.h>
+#include "common.h"
 
 __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
-  __asm__ __volatile__("csrw sscratch, sp\n"
+  __asm__ __volatile__("csrw mscratch, sp\n"
                        "addi sp, sp, -8 * 31\n"
                        "sd ra,  8 * 0(sp)\n"
                        "sd gp,  8 * 1(sp)\n"
@@ -36,7 +37,7 @@ __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
                        "sd s10, 8 * 28(sp)\n"
                        "sd s11, 8 * 29(sp)\n"
 
-                       "csrr a0, sscratch\n"
+                       "csrr a0, mscratch\n"
                        "sd a0, 8 * 30(sp)\n"
 
                        "mv a0, sp\n"
@@ -73,7 +74,7 @@ __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
                        "ld s10, 8 * 28(sp)\n"
                        "ld s11, 8 * 29(sp)\n"
                        "ld sp,  8 * 30(sp)\n"
-                       "sret\n");
+                       "mret\n");
 }
 struct trap_frame {
   uint64_t ra;
@@ -122,11 +123,36 @@ struct trap_frame {
     __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                    \
   } while (0)
 
+  #define MCAUSE_ECALL 8
+
+int syscall(int sysno, int arg0, int arg1, int arg2) {
+    int res;
+
+    __asm__ __volatile__("ecall"
+                         : "=r"(res)
+                         : "r"(arg0), "r"(arg1), "r"(arg2), "r"(sysno)
+                         : "memory");
+    return res;
+}
+
+void handle_syscall(struct trap_frame *f) {
+  if (f->a3 == 8) { // a0, a1 and a2 are arguments for the syscall
+    yield();
+  } else  {
+    PANIC("unexpected syscall a3=%x\n", f->a3);
+  }
+}
+
 void handle_trap(struct trap_frame *f) {
   uint64_t mcause = READ_CSR(mcause);
   uint64_t mtval = READ_CSR(mtval);
   uint64_t user_pc = READ_CSR(mepc);
+  if (mcause == MCAUSE_ECALL) {
+    handle_syscall(f);
+    user_pc += 4;
+  } else {
 
-  PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\n", mcause, mtval,
-        user_pc);
+    PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\n", mcause, mtval,
+          user_pc);
+  }
 }
