@@ -8,7 +8,6 @@
 #include "lib/process.h"
 #include "lib/string.h"
 #include "lib/system.h"
-#include "lib/uart.h"
 #include "lib/virt_memory.h"
 
 #define PRINT_SYS_INFO 0
@@ -33,11 +32,6 @@ void proc_b_entry(void) {
   }
   cprintf("Process B is done!\n");
 }
-
-
-
-extern char __kernel_base[], __free_ram_end[];
-
 
 void kmain(void) {
   uintptr_t dtb_address;

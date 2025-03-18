@@ -30,6 +30,9 @@ https://blog.stephenmarz.com/2020/11/23/back-that-s-up/
 gdb just got stuck at the mret instruction and with ctrl+c i could see the $pc was 0.
 Solution: disable pmp memory protection in qemu 
 
+# Problem: Instruction Page Fault with valid page table (user mode)
+qemu shows valid table, with mapped addrs, but mret still gets Instruction Page Fault. This was because the pages were missing the PAGE_USER flag.
+
 # Debug the page table
 Let's lookup the addr 0x080000104
 vpn2 = 0x080000104 >> 30 = 0x2
