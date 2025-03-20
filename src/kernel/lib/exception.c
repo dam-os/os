@@ -1,7 +1,7 @@
+#include "../drivers/system.h"
+#include "common.h"
 #include "print.h"
 #include "process.h"
-#include "system.h"
-#include "common.h"
 
 __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
   __asm__ __volatile__("csrw mscratch, sp\n"
@@ -123,22 +123,22 @@ struct trap_frame {
     __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                    \
   } while (0)
 
-  #define MCAUSE_ECALL 8
+#define MCAUSE_ECALL 8
 
 int syscall(int sysno, int arg0, int arg1, int arg2) {
-    int res;
+  int res;
 
-    __asm__ __volatile__("ecall"
-                         : "=r"(res)
-                         : "r"(arg0), "r"(arg1), "r"(arg2), "r"(sysno)
-                         : "memory");
-    return res;
+  __asm__ __volatile__("ecall"
+                       : "=r"(res)
+                       : "r"(arg0), "r"(arg1), "r"(arg2), "r"(sysno)
+                       : "memory");
+  return res;
 }
 
 void handle_syscall(struct trap_frame *f) {
   if (f->a3 == 8) { // a0, a1 and a2 are arguments for the syscall
     yield();
-  } else  {
+  } else {
     PANIC("unexpected syscall a3=%x\n", f->a3);
   }
 }

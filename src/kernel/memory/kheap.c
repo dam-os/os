@@ -1,9 +1,8 @@
-#include "common.h"
+#include "../drivers/system.h"
+#include "../lib/common.h"
+#include "../lib/print.h"
 #include "memory.h"
 #include "paging.h"
-#include "print.h"
-#include "system.h"
-#include <stddef.h>
 
 struct block {
   size_t size;

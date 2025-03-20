@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../lib/common.h"
 
 #define UART_BASE 0x10000000
 #define UART_DATA (*(volatile uint8_t *)(UART_BASE + 0x00))

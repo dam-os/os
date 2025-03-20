@@ -1,12 +1,14 @@
-SRCDIR = src
+SRCDIR = src/kernel
 BUILDDIR = build
 LIBDIR = $(SRCDIR)/lib
+MEMDIR = $(SRCDIR)/memory
+DRIVERDIR = $(SRCDIR)/drivers
 TESTDIR = test
 TESTBUILDDIR = $(BUILDDIR)/test
 
 # Source files
 KERNEL_SRC = $(SRCDIR)/kernel.c
-C_SOURCES = $(filter-out $(KERNEL_SRC), $(wildcard $(SRCDIR)/*.c)) $(wildcard $(LIBDIR)/*.c)
+C_SOURCES = $(filter-out $(KERNEL_SRC), $(wildcard $(SRCDIR)/*.c)) $(wildcard $(LIBDIR)/*.c) $(wildcard $(MEMDIR)/*.c) $(wildcard $(DRIVERDIR)/*.c)
 ASM_SOURCES = $(wildcard $(SRCDIR)/*.s)
 
 # Test-specific files
@@ -49,13 +51,19 @@ test_kernel: clean build_dirs $(TEST_KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) 
 
 # Ensure build directories exist
 build_dirs:
-	mkdir -p $(BUILDDIR) $(BUILDDIR)/lib $(TESTBUILDDIR)
+	mkdir -p $(BUILDDIR) $(BUILDDIR)/lib $(BUILDDIR)/memory $(BUILDDIR)/drivers $(TESTBUILDDIR)
 
 # Compilation rules
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c | build_dirs
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: $(LIBDIR)/%.c | build_dirs
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILDDIR)/%.o: $(MEMDIR)/%.c | build_dirs
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILDDIR)/%.o: $(DRVDIR)/%.c | build_dirs
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.s | build_dirs
