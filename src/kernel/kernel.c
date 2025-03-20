@@ -1,15 +1,15 @@
-#include "lib/device_tree.h"
-#include "lib/disk.h"
+#include "drivers/device_tree.h"
+#include "drivers/disk.h"
+#include "drivers/pci.h"
+#include "drivers/system.h"
 #include "lib/exception.h"
-#include "lib/kheap.h"
-#include "lib/memory.h"
-#include "lib/paging.h"
-#include "lib/pci.h"
 #include "lib/print.h"
 #include "lib/process.h"
 #include "lib/string.h"
-#include "lib/system.h"
-#include "lib/virt_memory.h"
+#include "memory/kheap.h"
+#include "memory/memory.h"
+#include "memory/paging.h"
+#include "memory/virt_memory.h"
 
 #define PRINT_SYS_INFO 0
 
@@ -41,11 +41,11 @@ void kmain(void) {
 
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
-  
+
   verify_disk();
-  
+
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
-  
+
   cprintf("Stack top at: %p\n", stack_top);
   // ! Must be called before using processes !
   init_proc();
@@ -58,12 +58,12 @@ void kmain(void) {
   // Manually set registers since kenel cant do syscall
   __asm__ __volatile__("csrw mscratch, sp\n");
   __asm__ __volatile__("auipc t0, 0\n");
-  __asm__ __volatile__("addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after yield
+  __asm__ __volatile__(
+      "addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after yield
   __asm__ __volatile__("csrw mepc, t0\n");
   yield(); // WARNING: Kernel returns here in usermode!
-  
-  print("\nAll processes finished execution!\n");
 
+  print("\nAll processes finished execution!\n");
 
   uint64_t page = alloc_pages(5);
   alloc_pages(3);

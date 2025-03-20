@@ -1,13 +1,14 @@
 #include "process.h"
-#include "print.h"
-#include "system.h"
-#include "paging.h"
-#include "virt_memory.h"
+#include "../drivers/system.h"
+#include "../memory/paging.h"
+#include "../memory/virt_memory.h"
 #include "exception.h"
+#include "print.h"
 
 // Assuming 2 proc_t struct arguments, saves current registers into arg 0 (a0),
 // and loads registers from arg 1 (a1)
-// Assumes mscratch has the current stack pointer from the exception kernel_entry
+// Assumes mscratch has the current stack pointer from the exception
+// kernel_entry
 #define SAVE_AND_LOAD_REGISTERS()                                              \
   __asm__ __volatile__("sd ra,    8(a0)\n"                                     \
                        "sd s0,   16(a0)\n"                                     \
@@ -47,19 +48,18 @@
 proc_t processes[MAX_PROCCESSES];
 proc_t *current_proc = NULL;
 
-
 /**
  * Switch from current_process to next_process by saving registers to
- * current_process, loading registers from next_processing, and jumping back to user mode to the addr in mepc.
+ * current_process, loading registers from next_processing, and jumping back to
+ * user mode to the addr in mepc.
  */
- __attribute__((naked)) void switch_process(proc_t *current_process,
-  proc_t *next_process) {
-    SAVE_AND_LOAD_REGISTERS();
+__attribute__((naked)) void switch_process(proc_t *current_process,
+                                           proc_t *next_process) {
+  SAVE_AND_LOAD_REGISTERS();
   __asm__ __volatile__("mret");
 }
 
 extern char __kernel_base[], __free_ram_end[];
-
 
 proc_t *create_process(void *target_function) {
   proc_t *process = NULL;
@@ -96,15 +96,16 @@ proc_t *create_process(void *target_function) {
 
   process->reg.ra = (uint64_t)exit_proc;
 
-   print("Mapping pages!\r\n");
-  uint64_t* page_table = (uint64_t*)alloc_pages(1);
-  uint64_t paddr = (uint64_t) __kernel_base;
-  while (paddr < (uint64_t) __free_ram_end) {
+  print("Mapping pages!\r\n");
+  uint64_t *page_table = (uint64_t *)alloc_pages(1);
+  uint64_t paddr = (uint64_t)__kernel_base;
+  while (paddr < (uint64_t)__free_ram_end) {
     map_virt_mem(page_table, paddr, paddr);
     paddr += PAGE_SIZE;
   }
   map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
-  for (int i = 0x30000000; i < 0x40000000; i+= 0x1000 ) map_virt_mem(page_table, i, i); // PCI
+  for (int i = 0x30000000; i < 0x40000000; i += 0x1000)
+    map_virt_mem(page_table, i, i); // PCI
 
   process->page_table = page_table;
   return process;
@@ -145,19 +146,18 @@ void yield(void) {
   proc_t *curr = current_proc;
   current_proc = next;
 
-  uint64_t satp_val = (uint64_t) 8 << 60 | (uint64_t) 0x0 << 44 | ((uint64_t) next->page_table / PAGE_SIZE);
-   __asm__ __volatile__(
-    "sfence.vma\n"
-    "csrw satp, %[satp]\n"
-    "sfence.vma\n"
-    :
-    : [satp] "r" (satp_val) 
-  ); 
+  uint64_t satp_val = (uint64_t)8 << 60 | (uint64_t)0x0 << 44 |
+                      ((uint64_t)next->page_table / PAGE_SIZE);
+  __asm__ __volatile__("sfence.vma\n"
+                       "csrw satp, %[satp]\n"
+                       "sfence.vma\n"
+                       :
+                       : [satp] "r"(satp_val));
 
   // Start process if its not runnable, else just switch to it
   if (next->state == PROCESS_READY) {
-      next->state = PROCESS_RUNNABLE;
-  } 
+    next->state = PROCESS_RUNNABLE;
+  }
   switch_process(curr, next); // ra becomes end of this
 }
 

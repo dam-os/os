@@ -1,7 +1,7 @@
 #include "device_tree.h"
-#include "common.h"
-#include "print.h"
-#include "string.h"
+#include "../lib/common.h"
+#include "../lib/print.h"
+#include "../lib/string.h"
 #include "uart.h"
 
 // Magic header
