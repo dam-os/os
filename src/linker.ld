@@ -12,9 +12,9 @@ SECTIONS {
 		PROVIDE(bss_start = .);
 		*(.bss);
 		. += 4096;
-		PROVIDE(stack_top = .);
-		. += 4096;
 		PROVIDE(global_pointer = .);
+		PROVIDE(stack_top = .);
+		. += 64 * 4096;
 		PROVIDE(bss_end = .);
 	}
    	.rodata : ALIGN(4K) {

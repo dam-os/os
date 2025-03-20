@@ -1,6 +1,7 @@
 #include "lib/device_tree.h"
 #include "lib/disk.h"
 #include "lib/exception.h"
+#include "lib/kheap.h"
 #include "lib/memory.h"
 #include "lib/paging.h"
 #include "lib/pci.h"
@@ -9,11 +10,11 @@
 #include "lib/string.h"
 #include "lib/system.h"
 #include "lib/uart.h"
-
 #define PRINT_SYS_INFO 0
 
 struct proc *proc_a;
 struct proc *proc_b;
+extern char stack_top[];
 
 void proc_a_entry(void) {
   cprintf("Starting process A\n");
@@ -39,20 +40,20 @@ void kmain(void) {
 
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
-
+  cprintf("Stack top at: %p\n", stack_top);
   // ! Must be called before using processes !
   init_proc();
-
+  // optional to call but still cool
+  init_mem_table();
+  init_heap(100);
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
-
   yield();
   print("\nAll processes finished execution!\n");
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
-  __asm__ __volatile__("unimp");
 
-  int *page = alloc_pages(5);
+  uint64_t page = alloc_pages(5);
   alloc_pages(3);
   free_pages(page, 5);
   alloc_pages(3);

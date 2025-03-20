@@ -72,7 +72,7 @@ void read_fdt(const uintptr_t fdt_addr) {
       print("\n -------------- Node: ");
       print(name);
       print(" -------------- \n");
-      ptr += strlen((char *)name) + 1;
+      ptr += cstrlen((char *)name) + 1;
       ++ptr;
       // Align to 4-byte boundary
       while ((uintptr_t)ptr % 4 != 0)
