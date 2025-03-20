@@ -9,7 +9,8 @@
 #include "lib/process.h"
 #include "lib/string.h"
 #include "lib/system.h"
-#include "lib/uart.h"
+#include "lib/virt_memory.h"
+
 #define PRINT_SYS_INFO 0
 
 struct proc *proc_a;
@@ -20,7 +21,7 @@ void proc_a_entry(void) {
   cprintf("Starting process A\n");
   for (int i = 0; i < 5; i++) {
     cprintf("A running for the %d. time...\n", i + 1);
-    yield();
+    syscall(0, 0, 0, 8);
   }
   cprintf("Process A is done!\n");
 }
@@ -29,7 +30,7 @@ void proc_b_entry(void) {
   cprintf("Starting process B\n");
   for (int i = 0; i < 8; i++) {
     cprintf("B running for the %d. time...\n", i + 1);
-    yield();
+    syscall(0, 0, 0, 8);
   }
   cprintf("Process B is done!\n");
 }
@@ -40,6 +41,11 @@ void kmain(void) {
 
   if (PRINT_SYS_INFO)
     read_fdt(dtb_address);
+  
+  verify_disk();
+  
+  WRITE_CSR(mtvec, (uint64_t)kernel_entry);
+  
   cprintf("Stack top at: %p\n", stack_top);
   // ! Must be called before using processes !
   init_proc();
@@ -48,10 +54,16 @@ void kmain(void) {
   init_heap(100);
   proc_a = create_process(proc_a_entry);
   proc_b = create_process(proc_b_entry);
-  yield();
+
+  // Manually set registers since kenel cant do syscall
+  __asm__ __volatile__("csrw mscratch, sp\n");
+  __asm__ __volatile__("auipc t0, 0\n");
+  __asm__ __volatile__("addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after yield
+  __asm__ __volatile__("csrw mepc, t0\n");
+  yield(); // WARNING: Kernel returns here in usermode!
+  
   print("\nAll processes finished execution!\n");
 
-  WRITE_CSR(mtvec, (uint64_t)kernel_entry);
 
   uint64_t page = alloc_pages(5);
   alloc_pages(3);
