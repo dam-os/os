@@ -1,17 +1,17 @@
-#include "paging.h"
-#include "common.h"
+#include "../drivers/system.h"
+#include "../lib/common.h"
+#include "../lib/print.h"
 #include "memory.h"
-#include "print.h"
-#include "system.h"
+#define PAGE_SIZE 0x1000
 
 extern char __free_ram[], __free_ram_end[];
 
 char *memory_table;
 
 int mem_table_size = 0;
-int *basec;
+uint64 basec;
 
-int lookup(int n, int *byte_idx, int *bit_idx) {
+uint64 lookup(int n, int *byte_idx, int *bit_idx) {
   int zero_count = 0;
   int bit_index = -1;
   int byte_index = -1;
@@ -36,21 +36,24 @@ int lookup(int n, int *byte_idx, int *bit_idx) {
   return -1;
 }
 
-int *set_mem_table() {
-  int free_ram_size = ((int)(uintptr)&__free_ram_end - (uintptr)&__free_ram);
+void init_mem_table() {
+  uint64 free_ram_size = ((uint64)&__free_ram_end - (uint64)&__free_ram);
   mem_table_size = (free_ram_size / PAGE_SIZE) / 8;
   memset(__free_ram, '\0', mem_table_size);
   memory_table = __free_ram;
   int mem_table_pages = (mem_table_size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-  int *base = (int *)__free_ram + (mem_table_size) +
-              (PAGE_SIZE - (mem_table_size % PAGE_SIZE));
+  uint64 base = (uint64)__free_ram + (mem_table_size) +
+                (PAGE_SIZE - (mem_table_size % PAGE_SIZE));
 
   for (int i = 0; i < mem_table_pages; i++) {
     int bit_pos = (free_ram_size / PAGE_SIZE) - 1 - i;
     memory_table[bit_pos / 8] |= (1 << (bit_pos % 8));
   }
-  return base;
+  basec = base;
+
+  cprintf("Free RAM starts at: %p\n", __free_ram);
+  cprintf("base memory for paging starts at: %p\n", __free_ram);
 }
 
 void printBits(unsigned char byte) {
@@ -67,14 +70,15 @@ void print_mem_table() {
   cprintf("\n"); // Space between each byte
 }
 
-int *alloc_pages(int n) {
+uint64 alloc_pages(int n) {
   if (mem_table_size == 0)
-    basec = set_mem_table();
+    // this sets base variable
+    init_mem_table();
   if (n <= 0)
     poweroff();
   int byte_index = -1;
   int bit_index = -1;
-  int *page = basec + lookup(n, &byte_index, &bit_index);
+  uint64 page = basec + lookup(n, &byte_index, &bit_index);
 
   for (int i = 0; i < n; i++) {
     memory_table[byte_index] |= (1 << bit_index);
@@ -89,8 +93,8 @@ int *alloc_pages(int n) {
   return page;
 }
 
-int free_pages(int *addr, int n) {
-  int page_index = (addr)-basec;
+int free_pages(uint64 addr, int n) {
+  uint64 page_index = (addr)-basec;
   int byte_index = page_index / 8 / PAGE_SIZE;
   int bit_index = page_index % 8;
 

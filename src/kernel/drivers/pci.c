@@ -1,6 +1,6 @@
 #include "pci.h"
-#include "common.h"
-#include "print.h"
+#include "../lib/common.h"
+#include "../lib/print.h"
 
 u8 pci_cfg_r8(u64 offset) { return PCI_REG8(offset); }
 u16 pci_cfg_r16(u64 offset) { return PCI_REG16(offset); }

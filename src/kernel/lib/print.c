@@ -1,7 +1,7 @@
 #include "print.h"
+#include "../drivers/uart.h"
+#include "../lib/common.h"
 #include "assert.h"
-#include "common.h"
-#include "uart.h"
 // @TODO: Don't depend on stdarg.h!
 #include <stdarg.h>
 

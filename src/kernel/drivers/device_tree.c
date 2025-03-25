@@ -1,7 +1,7 @@
 #include "device_tree.h"
-#include "common.h"
-#include "print.h"
-#include "string.h"
+#include "../lib/common.h"
+#include "../lib/print.h"
+#include "../lib/string.h"
 #include "uart.h"
 
 // Magic header
@@ -72,7 +72,7 @@ void read_fdt(const uintptr fdt_addr) {
       print("\n -------------- Node: ");
       print(name);
       print(" -------------- \n");
-      ptr += strlen((char *)name) + 1;
+      ptr += cstrlen((char *)name) + 1;
       ++ptr;
       // Align to 4-byte boundary
       while ((uintptr)ptr % 4 != 0)

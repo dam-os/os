@@ -1,7 +1,7 @@
 #ifndef PCI_H
 #define PCI_H
 
-#include "common.h"
+#include "../lib/common.h"
 
 #define PCI_ADDR_BAR0 0x10
 #define PCI_ADDR_CAP 0x34

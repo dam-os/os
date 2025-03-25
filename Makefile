@@ -1,12 +1,14 @@
-SRCDIR = src
+SRCDIR = src/kernel
 BUILDDIR = build
 LIBDIR = $(SRCDIR)/lib
+MEMDIR = $(SRCDIR)/memory
+DRIVERDIR = $(SRCDIR)/drivers
 TESTDIR = test
 TESTBUILDDIR = $(BUILDDIR)/test
 
 # Source files
 KERNEL_SRC = $(SRCDIR)/kernel.c
-C_SOURCES = $(filter-out $(KERNEL_SRC), $(wildcard $(SRCDIR)/*.c)) $(wildcard $(LIBDIR)/*.c)
+C_SOURCES = $(filter-out $(KERNEL_SRC), $(wildcard $(SRCDIR)/*.c)) $(wildcard $(LIBDIR)/*.c) $(wildcard $(MEMDIR)/*.c) $(wildcard $(DRIVERDIR)/*.c)
 ASM_SOURCES = $(wildcard $(SRCDIR)/*.s)
 
 # Test-specific files
@@ -35,6 +37,7 @@ define QFLAGS
 		-drive id=drive0,file=file.txt,format=raw,if=none \
 		-device virtio-blk-pci-non-transitional,drive=drive0 \
 		-kernel $(BUILDDIR)/kernel.elf \
+		-cpu rv64,pmp=false \
 		-serial mon:stdio
 endef
 
@@ -48,13 +51,19 @@ test_kernel: clean build_dirs $(TEST_KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) 
 
 # Ensure build directories exist
 build_dirs:
-	mkdir -p $(BUILDDIR) $(BUILDDIR)/lib $(TESTBUILDDIR)
+	mkdir -p $(BUILDDIR) $(BUILDDIR)/lib $(BUILDDIR)/memory $(BUILDDIR)/drivers $(TESTBUILDDIR)
 
 # Compilation rules
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c | build_dirs
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: $(LIBDIR)/%.c | build_dirs
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILDDIR)/%.o: $(MEMDIR)/%.c | build_dirs
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILDDIR)/%.o: $(DRVDIR)/%.c | build_dirs
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.s | build_dirs
@@ -68,6 +77,8 @@ run: damos
 	$(QEMU) $(QFLAGS)
 
 debug: damos
+	@tmux split-window -h
+	@tmux send-keys "gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'" C-m
 	$(QEMU) $(QFLAGS) -s -S
 
 # Run test kernel in QEMU

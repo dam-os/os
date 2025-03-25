@@ -1,7 +1,7 @@
 #include "disk.h"
-#include "common.h"
+#include "../lib/common.h"
+#include "../lib/print.h"
 #include "pci.h"
-#include "print.h"
 
 #define BUS 0
 #define DEVICE 16
@@ -226,24 +226,26 @@ void init_disk(void) {
   }
   virtio_block.qsize = max;
 
-  // 初始化 vring 相关
-  int r = virtio_vring_init(&gs_virtio_blk.vr, gs_blk_buf, sizeof(gs_blk_buf),
-                            qsize, qnum);
-  if (r) {
-    printf("virtio_vring_init failed: %d\n", r);
-    return r;
-  }
-
-  // 根据 vring 等初始化的内容进行配置
-  // (1) set queue size.
-  virtio_pci_set_queue_size(&gs_virtio_blk_hw, qnum, qsize);
-  // (2) disable msix / enable msix
-  // virtio_pci_set_config_msix(&gs_virtio_blk_hw, 0);
-  // virtio_pci_set_queue_msix(&gs_virtio_blk_hw, qnum, 1);
-  // virtio_pci_disable_config_msix(&gs_virtio_blk_hw);              // config
-  // 需要一个中断 virtio_pci_disable_queue_msix(&gs_virtio_blk_hw, qnum); //
-  // 每个 virtqueue 需要一个中断 (3) write physical addresses.
-  virtio_pci_set_queue_addr(&gs_virtio_blk_hw, qnum, &gs_virtio_blk.vr);
-  // (4) queue is ready.
-  virtio_pci_set_queue_enable(&gs_virtio_blk_hw, qnum);
+  // // 初始化 vring 相关
+  // int r = virtio_vring_init(&gs_virtio_blk.vr, gs_blk_buf,
+  // sizeof(gs_blk_buf),
+  //                           qsize, qnum);
+  // if (r) {
+  //   printf("virtio_vring_init failed: %d\n", r);
+  //   return r;
+  // }
+  //
+  // // 根据 vring 等初始化的内容进行配置
+  // // (1) set queue size.
+  // virtio_pci_set_queue_size(&gs_virtio_blk_hw, qnum, qsize);
+  // // (2) disable msix / enable msix
+  // // virtio_pci_set_config_msix(&gs_virtio_blk_hw, 0);
+  // // virtio_pci_set_queue_msix(&gs_virtio_blk_hw, qnum, 1);
+  // // virtio_pci_disable_config_msix(&gs_virtio_blk_hw);              //
+  // config
+  // // 需要一个中断 virtio_pci_disable_queue_msix(&gs_virtio_blk_hw, qnum); //
+  // // 每个 virtqueue 需要一个中断 (3) write physical addresses.
+  // virtio_pci_set_queue_addr(&gs_virtio_blk_hw, qnum, &gs_virtio_blk.vr);
+  // // (4) queue is ready.
+  // virtio_pci_set_queue_enable(&gs_virtio_blk_hw, qnum);
 }

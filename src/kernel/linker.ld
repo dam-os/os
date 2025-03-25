@@ -3,6 +3,7 @@ ENTRY(start);
 . = 0x80000000;
  
 SECTIONS {
+	__kernel_base = .;
 	/* Include entry point at start of binary */
 	.text : ALIGN(4K) {
 		*(.init);
@@ -12,9 +13,9 @@ SECTIONS {
 		PROVIDE(bss_start = .);
 		*(.bss);
 		. += 4096;
-		PROVIDE(stack_top = .);
-		. += 4096;
 		PROVIDE(global_pointer = .);
+		PROVIDE(stack_top = .);
+		. += 64 * 4096;
 		PROVIDE(bss_end = .);
 	}
    	.rodata : ALIGN(4K) {

@@ -1,8 +1,8 @@
 #ifndef DISK_H
 #define DISK_H
 
-#include "common.h"
-#include "paging.h"
+#include "../lib/common.h"
+#include "../memory/paging.h"
 
 #define QUEUE_SIZE (16)
 
@@ -190,7 +190,6 @@ static const char *DeviceTypeNames[] = {
     "HOST",         "ENTROPY_SOURCE", "TRANSPORT",
 };
 
-void verify_disk(void);
 void init_disk(void);
 
 struct virtio_blk_device {

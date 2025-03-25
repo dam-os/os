@@ -18,4 +18,5 @@
 
 void kernel_entry(void);
 
+int syscall(int sysno, int arg0, int arg1, int arg2);
 #endif // !EXCEPTION_H
