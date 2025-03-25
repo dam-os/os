@@ -1,9 +1,8 @@
+#include "paging.h"
 #include "common.h"
 #include "memory.h"
 #include "print.h"
 #include "system.h"
-
-#define PAGE_SIZE 0x1000
 
 extern char __free_ram[], __free_ram_end[];
 

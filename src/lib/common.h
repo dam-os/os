@@ -9,6 +9,12 @@ typedef long double uint128;
 
 typedef uint64 uintptr;
 
+typedef uint8 u8;
+typedef uint16 u16;
+typedef uint32 u32;
+typedef uint64 u64;
+typedef uintptr uptr;
+
 #define NULL 0
 
 #endif // !COMMON_H
