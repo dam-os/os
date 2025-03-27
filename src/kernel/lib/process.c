@@ -4,6 +4,9 @@
 #include "../memory/virt_memory.h"
 #include "exception.h"
 #include "print.h"
+#include "../memory/paging.h"
+#include "../memory/memory.h"
+
 
 // Assuming 2 proc_t struct arguments, saves current registers into arg 0 (a0),
 // and loads registers from arg 1 (a1)
@@ -23,8 +26,7 @@
                        "sd s9,   88(a0)\n"                                     \
                        "sd s10,  96(a0)\n"                                     \
                        "sd s11, 104(a0)\n"                                     \
-                       "csrr t0, mscratch\n"                                   \
-                       "sd t0,  112(a0)\n"                                     \
+                       "sd t6,  112(a0)\n"                                     \
                        "csrr t0,   mepc\n"                                     \
                        "addi t0, t0, 4\n"                                      \
                        "sd t0,  120(a0)\n"                                     \
@@ -56,12 +58,18 @@ proc_t *current_proc = NULL;
 __attribute__((naked)) void switch_process(proc_t *current_process,
                                            proc_t *next_process) {
   SAVE_AND_LOAD_REGISTERS();
+
   __asm__ __volatile__("mret");
 }
 
 extern char __kernel_base[], __free_ram_end[];
 
-proc_t *create_process(void *target_function) {
+extern char _binary_build_shell_bin_start[];
+extern char _binary_build_shell_bin_size[];
+extern char _binary_build_shell_bin_end[];
+
+
+proc_t *create_process(void *target_function, int isKernel) {
   proc_t *process = NULL;
 
   int i;
@@ -94,18 +102,36 @@ proc_t *create_process(void *target_function) {
   process->reg.s11 = 0;
   process->reg.syscall_entry = (uint64_t)target_function;
 
-  process->reg.ra = (uint64_t)exit_proc;
+  process->reg.ra = (uint64_t)exit_proc_syscall;
 
   print("Mapping pages!\r\n");
   uint64_t *page_table = (uint64_t *)alloc_pages(1);
-  uint64_t paddr = (uint64_t)__kernel_base;
-  while (paddr < (uint64_t)__free_ram_end) {
-    map_virt_mem(page_table, paddr, paddr);
-    paddr += PAGE_SIZE;
+
+  #define USER_BASE 0x1000000
+
+  if (isKernel) {
+      uint64_t paddr = (uint64_t)__kernel_base;
+      while (paddr < (uint64_t)__free_ram_end) {
+        map_virt_mem(page_table, paddr, paddr);
+        paddr += PAGE_SIZE;
+      }
+      map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
+      for (int i = 0x30000000; i < 0x40000000; i += 0x1000) map_virt_mem(page_table, i, i); // PCI
+  } else {
+
+    // Map user pages
+    uint64_t image_size = (uint64_t)_binary_build_shell_bin_size;
+    uint64_t image = (uint64_t)_binary_build_shell_bin_start;
+    for (uint64_t off = 0; off < image_size; off += PAGE_SIZE) {
+      uint64_t page =  alloc_pages(1);
+
+      uint64_t remaining = image_size - off;
+      uint64_t copy_size = PAGE_SIZE <= remaining ? PAGE_SIZE : remaining;
+
+      memcpy((char *)image + off, (char *) page, copy_size);
+      map_virt_mem(page_table, USER_BASE + off, page);
+    }
   }
-  map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
-  for (int i = 0x30000000; i < 0x40000000; i += 0x1000)
-    map_virt_mem(page_table, i, i); // PCI
 
   process->page_table = page_table;
   return process;
@@ -113,7 +139,7 @@ proc_t *create_process(void *target_function) {
 
 // Initiate the kernel process as the current one
 void init_proc(void) {
-  current_proc = create_process(NULL);
+  current_proc = create_process(NULL, 1);
   current_proc->pid = 0;
   current_proc->state = PROCESS_RUNNABLE;
 }
@@ -158,6 +184,13 @@ void yield(void) {
   if (next->state == PROCESS_READY) {
     next->state = PROCESS_RUNNABLE;
   }
+  __asm__ __volatile__( // kinda hacky, save the entry sp to t6
+    "csrr t6, mscratch\n"            \
+    "csrw mscratch, %[mscratch]\n"
+    :
+    : [mscratch] "r" ((uint64_t) &next->exception_stack[sizeof(next->exception_stack)])
+  );
+
   switch_process(curr, next); // ra becomes end of this
 }
 
@@ -168,5 +201,9 @@ void yield(void) {
  */
 void exit_proc(void) {
   current_proc->state = PROCESS_EMPTY;
-  syscall(0, 0, 0, 8);
+  yield();
+}
+
+void exit_proc_syscall(void) {
+  syscall(2, 0, 0, 0);
 }

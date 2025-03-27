@@ -15,13 +15,14 @@
 
 struct proc *proc_a;
 struct proc *proc_b;
+struct proc *proc_c;
 extern char stack_top[];
 
 void proc_a_entry(void) {
   cprintf("Starting process A\n");
   for (int i = 0; i < 5; i++) {
     cprintf("A running for the %d. time...\n", i + 1);
-    syscall(0, 0, 0, 8);
+    syscall(8, 0, 0, 0);
   }
   cprintf("Process A is done!\n");
 }
@@ -30,7 +31,7 @@ void proc_b_entry(void) {
   cprintf("Starting process B\n");
   for (int i = 0; i < 8; i++) {
     cprintf("B running for the %d. time...\n", i + 1);
-    syscall(0, 0, 0, 8);
+    syscall(8, 0, 0, 0);
   }
   cprintf("Process B is done!\n");
 }
@@ -52,8 +53,9 @@ void kmain(void) {
   // optional to call but still cool
   init_mem_table();
   init_heap(100);
-  proc_a = create_process(proc_a_entry);
-  proc_b = create_process(proc_b_entry);
+  proc_a = create_process(proc_a_entry, 1);
+  proc_b = create_process(proc_b_entry, 1);
+  proc_c = create_process((void *)0x1000000, 0);
 
   // Manually set registers since kenel cant do syscall
   __asm__ __volatile__("csrw mscratch, sp\n");

@@ -3,6 +3,7 @@ BUILDDIR = build
 LIBDIR = $(SRCDIR)/lib
 MEMDIR = $(SRCDIR)/memory
 DRIVERDIR = $(SRCDIR)/drivers
+USERDIR = src/user
 TESTDIR = test
 TESTBUILDDIR = $(BUILDDIR)/test
 
@@ -26,8 +27,10 @@ TEST_KERNEL_OBJECT = $(TESTBUILDDIR)/test_kernel.o
 # Compiler settings
 CC = riscv64-elf-gcc
 AS = riscv64-elf-as
+OBJCOPY = riscv64-elf-objcopy
 CFLAGS = -Wall -Wextra -c -mcmodel=medany -ffreestanding -ggdb
 LDFLAGS = -T $(SRCDIR)/linker.ld -nostdlib -lgcc
+USERLDFLAGS = -T $(USERDIR)/user.ld -O2 -g3 -Wall -Wextra -fno-stack-protector -ffreestanding -nostdlib
 
 # Qemu settings
 QEMU = qemu-system-riscv64
@@ -43,7 +46,11 @@ endef
 
 # Main kernel build (uses kernel.c)
 damos: clean build_dirs $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS)
-	$(CC) $(LDFLAGS) $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
+	$(CC) $(USERLDFLAGS) -o $(BUILDDIR)/shell.elf $(USERDIR)/shell.c $(USERDIR)/user.c
+	$(OBJCOPY) --set-section-flags .bss=alloc,contents -O binary $(BUILDDIR)/shell.elf $(BUILDDIR)/shell.bin
+	$(OBJCOPY) -Ibinary -Oelf64-littleriscv $(BUILDDIR)/shell.bin $(BUILDDIR)/shell.bin.o
+
+	$(CC) $(LDFLAGS) $(BUILDDIR)/shell.bin.o $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
 
 # Test kernel build (uses test_kernel.c)
 test_kernel: clean build_dirs $(TEST_KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) $(TEST_OBJECTS)
@@ -79,7 +86,7 @@ run: damos
 debug: damos
 	@tmux split-window -h
 	@tmux send-keys "gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'" C-m
-	$(QEMU) $(QFLAGS) -s -S
+	$(QEMU) $(QFLAGS) -s -S -nographic
 
 # Run test kernel in QEMU
 run_test: test_kernel
