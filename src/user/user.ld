@@ -1,21 +1,19 @@
 ENTRY(start);
  
-. = 0x80000000;
+. = 0x1000000;
  
 SECTIONS {
-	__kernel_base = .;
 	/* Include entry point at start of binary */
 	.text : ALIGN(4K) {
+		KEEP(*(.text.start));
 		*(.init);
 		*(.text);
 	}
 	.bss : ALIGN(4K) {
-		PROVIDE(bss_start = .);
 		*(.bss);
 		. += 4096;
-		PROVIDE(stack_top = .);
-		. += 64 * 4096;
-		PROVIDE(bss_end = .);
+		PROVIDE(user_stack_top = .);
+		. += 164 * 4096;
 	}
    	.rodata : ALIGN(4K) {
 		*(.rodata);
@@ -24,7 +22,4 @@ SECTIONS {
 		*(.data);
 	}
     . = ALIGN(4096);
-    __free_ram = .;
-    . += 64 * 1024 * 1024;
-    __free_ram_end = .;
 }
