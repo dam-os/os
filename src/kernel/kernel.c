@@ -2,6 +2,7 @@
 #include "drivers/disk.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
+#include "drivers/vga.h"
 #include "lib/exception.h"
 #include "lib/print.h"
 #include "lib/process.h"
@@ -53,6 +54,8 @@ void kmain(void) {
   // optional to call but still cool
   init_mem_table();
   init_heap(100);
+
+  init_virtio_vga();
   proc_a = create_process(proc_a_entry, 1);
   proc_b = create_process(proc_b_entry, 1);
   proc_c = create_process((void *)0x1000000, 0);
