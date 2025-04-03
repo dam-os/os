@@ -40,6 +40,7 @@
             pythonWithPackages
             swig
             dtc # Device Tree Compiler
+            ubootTools
             
             # Additional tools
             pkg-config

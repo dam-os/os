@@ -1,0 +1,30 @@
+/dts-v1/;
+
+/ {
+    description = "Simple FIT image with OS";
+    #address-cells = <1>;
+
+    images {
+        kernel@1 {
+            description = "My OS";
+            data = /incbin/("../os/build/kernel.elf");
+            type = "kernel";
+            arch = "riscv";
+            os = "linux";
+            compression = "none";
+            load = <0x81200000>;
+            entry = <0x81200000>;
+            hash@1 {
+                algo = "crc32";
+            };
+        };
+    };
+
+    configurations {
+        default = "config@1";
+        config@1 {
+            description = "Boot My OS";
+            kernel = "kernel@1";
+        };
+    };
+};
