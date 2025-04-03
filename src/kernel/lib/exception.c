@@ -1,9 +1,12 @@
+#include "../drivers/system.h"
+#include "common.h"
 #include "print.h"
-#include "system.h"
-#include <stdint.h>
+#include "process.h"
+#include "../memory/virt_memory.h"
+
 
 __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
-  __asm__ __volatile__("csrw sscratch, sp\n"
+  __asm__ __volatile__("csrrw sp, mscratch, sp\n" // Set sp to kernel stack (mscratch written in process.c)
                        "addi sp, sp, -8 * 31\n"
                        "sd ra,  8 * 0(sp)\n"
                        "sd gp,  8 * 1(sp)\n"
@@ -36,11 +39,13 @@ __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
                        "sd s10, 8 * 28(sp)\n"
                        "sd s11, 8 * 29(sp)\n"
 
-                       "csrr a0, sscratch\n"
-                       "sd a0, 8 * 30(sp)\n"
-
-                       "mv a0, sp\n"
+                       "csrr a0, mscratch\n"   // get old sp, aka entry sp
+                       "sd a0, 8 * 30(sp)\n"   // put original sp as saved sp
+                       
+                       "mv a0, sp\n"  // set trapframe as argument for handle trap (top of kernel stack)
                        "call handle_trap\n"
+
+                       "csrw mscratch, sp\n" // set mscratch back to kernel stack
 
                        "ld ra,  8 * 0(sp)\n"
                        "ld gp,  8 * 1(sp)\n"
@@ -72,8 +77,8 @@ __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
                        "ld s9,  8 * 27(sp)\n"
                        "ld s10, 8 * 28(sp)\n"
                        "ld s11, 8 * 29(sp)\n"
-                       "ld sp,  8 * 30(sp)\n"
-                       "sret\n");
+                       "ld sp,  8 * 30(sp)\n"  // Loads the saved entry sp
+                       "mret\n");
 }
 struct trap_frame {
   uint64_t ra;
@@ -122,11 +127,44 @@ struct trap_frame {
     __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                    \
   } while (0)
 
+#define MCAUSE_ECALL 8
+
+int syscall(int sysno, void* arg1, void* arg2, void* arg3) {
+  int res;
+
+  __asm__ __volatile__("ecall"
+                       : "=r"(res)
+                       : "r"(sysno), "r"(arg1), "r"(arg2), "r"(arg3)
+                       : "memory");
+  return res;
+}
+
+void handle_syscall(struct trap_frame *f) {
+  if (f->a0 == 8) { // a1, a2 and a3 are arguments for the syscall
+    yield();
+  } else if (f->a0 == 1) {
+      uint64_t satp_val = READ_CSR(satp);
+      uint64_t real_addr = translate_va_to_pa(f->a1, satp_val);
+
+      cprintf("Printing from shell: %s\n", (char *)(real_addr));
+  } else if (f->a0 == 2) {
+    exit_proc();
+  } else {
+    PANIC("unexpected syscall a0=%x\n", f->a0);
+  }
+}
+
 void handle_trap(struct trap_frame *f) {
   uint64_t mcause = READ_CSR(mcause);
   uint64_t mtval = READ_CSR(mtval);
   uint64_t user_pc = READ_CSR(mepc);
+  if (mcause == MCAUSE_ECALL) {
+    handle_syscall(f);
+    user_pc += 4;
+    WRITE_CSR(mepc, user_pc);
+  } else {
 
-  PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\n", mcause, mtval,
-        user_pc);
+    PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\n", mcause, mtval,
+          user_pc);
+  }
 }

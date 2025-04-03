@@ -11,3 +11,6 @@
     __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                    \
   } while (0)
 void kernel_entry(void);
+
+
+int syscall(int sysno, void* arg0, void* arg1, void* arg2);

@@ -1,10 +1,17 @@
 #include "process.h"
-#include "system.h"
-#include "paging.h"
-#include "virt_memory.h"
+#include "../drivers/system.h"
+#include "../memory/paging.h"
+#include "../memory/virt_memory.h"
+#include "exception.h"
+#include "print.h"
+#include "../memory/paging.h"
+#include "../memory/memory.h"
+
 
 // Assuming 2 proc_t struct arguments, saves current registers into arg 0 (a0),
 // and loads registers from arg 1 (a1)
+// Assumes mscratch has the current stack pointer from the exception
+// kernel_entry
 #define SAVE_AND_LOAD_REGISTERS()                                              \
   __asm__ __volatile__("sd ra,    8(a0)\n"                                     \
                        "sd s0,   16(a0)\n"                                     \
@@ -19,7 +26,10 @@
                        "sd s9,   88(a0)\n"                                     \
                        "sd s10,  96(a0)\n"                                     \
                        "sd s11, 104(a0)\n"                                     \
-                       "sd sp,  112(a0)\n"                                     \
+                       "sd t6,  112(a0)\n"                                     \
+                       "csrr t0,   mepc\n"                                     \
+                       "addi t0, t0, 4\n"                                      \
+                       "sd t0,  120(a0)\n"                                     \
                        "ld ra,    8(a1)\n"                                     \
                        "ld s0,   16(a1)\n"                                     \
                        "ld s1,   24(a1)\n"                                     \
@@ -33,56 +43,33 @@
                        "ld s9,   88(a1)\n"                                     \
                        "ld s10,  96(a1)\n"                                     \
                        "ld s11, 104(a1)\n"                                     \
-                       "ld sp,  112(a1)")
+                       "ld sp,  112(a1)\n"                                     \
+                       "ld t0,  120(a1)\n"                                     \
+                       "csrw mepc,  t0");
 
 proc_t processes[MAX_PROCCESSES];
 proc_t *current_proc = NULL;
 
 /**
  * Switch from current_process to next_process by saving registers to
- * current_process, loading registers from next_processing, and simulating a
- * return from the yield() call using ret.
+ * current_process, loading registers from next_processing, and jumping back to
+ * user mode to the addr in mepc.
  */
 __attribute__((naked)) void switch_process(proc_t *current_process,
                                            proc_t *next_process) {
   SAVE_AND_LOAD_REGISTERS();
-  __asm__ __volatile__("ret");
-}
 
-/**
- * Start next_process and switch from current_process to it.
- * We can't ret into the start of a function, so we have to start it as a normal
-function would be called:
- * 1. Load the next position into ra.
- * 2. Jump to callee.
- * In this case, the "next instruction" is simply the exit_proc function, which
- * handles process exit. The process will "ret" to exit_proc all on its own when
- * it's done.
- */
-__attribute__((naked)) void start_switch_process(proc_t *current_process,
-                                                 proc_t *next_process) {
-  SAVE_AND_LOAD_REGISTERS();
-  __asm__ __volatile__("lla ra, %0" ::"i"(exit_proc));
-  __asm__ __volatile__("ld t0, 8(a1)\n"
-                       "jalr x0, 0(t0)");
-}
-
-#define MSTATUS_MPIE 0//(1 << 7)
-
-__attribute__((naked)) void switch_to_umode(void) {
-  __asm__ __volatile__(
-      "csrw mepc, s0             \n"
-      "csrw mstatus, %[mstatus]  \n"
-      "mret                      \n"
-      :
-      : [mstatus] "r" (MSTATUS_MPIE)
-  );
+  __asm__ __volatile__("mret");
 }
 
 extern char __kernel_base[], __free_ram_end[];
 
+extern char _binary_build_shell_bin_start[];
+extern char _binary_build_shell_bin_size[];
+extern char _binary_build_shell_bin_end[];
 
-proc_t *create_process(void *target_function) {
+
+proc_t *create_process(void *target_function, int isKernel) {
   proc_t *process = NULL;
 
   int i;
@@ -101,7 +88,7 @@ proc_t *create_process(void *target_function) {
 
   process->reg.sp = (uint64_t)&process->stack[sizeof(process->stack)];
 
-  process->reg.s0 = (uint64_t)switch_to_umode;
+  process->reg.s0 = 0;
   process->reg.s1 = 0;
   process->reg.s2 = 0;
   process->reg.s3 = 0;
@@ -113,16 +100,40 @@ proc_t *create_process(void *target_function) {
   process->reg.s9 = 0;
   process->reg.s10 = 0;
   process->reg.s11 = 0;
+  process->reg.syscall_entry = (uint64_t)target_function;
 
-  process->reg.ra = (uint64_t)target_function;
+  process->reg.ra = (uint64_t)exit_proc_syscall;
 
   print("Mapping pages!\r\n");
-  uint64_t* page_table = (uint64_t*)alloc_pages(1);
-  uint64_t paddr = (uint64_t) __kernel_base;
-  while (paddr < (uint64_t) __free_ram_end) {
-    map_virt_mem(page_table, paddr, paddr);
-    paddr += PAGE_SIZE;
+  uint64_t *page_table = (uint64_t *)alloc_pages(1);
+
+  #define USER_BASE 0x1000000
+
+  if (isKernel) {
+      uint64_t paddr = (uint64_t)__kernel_base;
+      while (paddr < (uint64_t)__free_ram_end) {
+        map_virt_mem(page_table, paddr, paddr);
+        paddr += PAGE_SIZE;
+      }
+      map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
+      for (int i = 0x30000000; i < 0x40000000; i += 0x1000) map_virt_mem(page_table, i, i); // PCI
+  } else {
+    print("User\n");
+    // Map user pages
+    uint64_t image_size = (uint64_t)_binary_build_shell_bin_size;
+    uint64_t image = (uint64_t)_binary_build_shell_bin_start;
+    for (uint64_t off = 0; off < image_size; off += PAGE_SIZE) {
+      uint64_t page =  alloc_pages(1);
+      
+      uint64_t remaining = image_size - off;
+      uint64_t copy_size = PAGE_SIZE <= remaining ? PAGE_SIZE : remaining;
+
+      memcpy((char *)image + off, (char *) page, copy_size);
+      map_virt_mem(page_table, USER_BASE + off, page);
+    }
   }
+  print("DONE\n");
+
 
   process->page_table = page_table;
   return process;
@@ -130,7 +141,7 @@ proc_t *create_process(void *target_function) {
 
 // Initiate the kernel process as the current one
 void init_proc(void) {
-  current_proc = create_process(NULL);
+  current_proc = create_process(NULL, 1);
   current_proc->pid = 0;
   current_proc->state = PROCESS_RUNNABLE;
 }
@@ -163,22 +174,26 @@ void yield(void) {
   proc_t *curr = current_proc;
   current_proc = next;
 
-/*   __asm__ __volatile__(
-    "sfence.vma\n"
-    "csrw satp, %[satp]\n"
-    "sfence.vma\n"
-    :
-    : [satp] "r" (0) 
-  ); */
+  uint64_t satp_val = (uint64_t)8 << 60 | (uint64_t)0x0 << 44 |
+                      ((uint64_t)next->page_table / PAGE_SIZE);
+  __asm__ __volatile__("sfence.vma\n"
+                       "csrw satp, %[satp]\n"
+                       "sfence.vma\n"
+                       :
+                       : [satp] "r"(satp_val));
 
   // Start process if its not runnable, else just switch to it
   if (next->state == PROCESS_READY) {
     next->state = PROCESS_RUNNABLE;
-    start_switch_process(curr, next);
-  } else {
-
-    switch_process(curr, next);
   }
+  __asm__ __volatile__( // kinda hacky, save the entry sp to t6
+    "csrr t6, mscratch\n"            \
+    "csrw mscratch, %[mscratch]\n"
+    :
+    : [mscratch] "r" ((uint64_t) &next->exception_stack[sizeof(next->exception_stack)])
+  );
+
+  switch_process(curr, next); // ra becomes end of this
 }
 
 /**
@@ -189,4 +204,8 @@ void yield(void) {
 void exit_proc(void) {
   current_proc->state = PROCESS_EMPTY;
   yield();
+}
+
+void exit_proc_syscall(void) {
+  syscall(2, 0, 0, 0);
 }

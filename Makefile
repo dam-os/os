@@ -1,12 +1,15 @@
-SRCDIR = src
+SRCDIR = src/kernel
 BUILDDIR = build
 LIBDIR = $(SRCDIR)/lib
+MEMDIR = $(SRCDIR)/memory
+DRIVERDIR = $(SRCDIR)/drivers
+USERDIR = src/user
 TESTDIR = test
 TESTBUILDDIR = $(BUILDDIR)/test
 
 # Source files
 KERNEL_SRC = $(SRCDIR)/kernel.c
-C_SOURCES = $(filter-out $(KERNEL_SRC), $(wildcard $(SRCDIR)/*.c)) $(wildcard $(LIBDIR)/*.c)
+C_SOURCES = $(filter-out $(KERNEL_SRC), $(wildcard $(SRCDIR)/*.c)) $(wildcard $(LIBDIR)/*.c) $(wildcard $(MEMDIR)/*.c) $(wildcard $(DRIVERDIR)/*.c)
 ASM_SOURCES = $(wildcard $(SRCDIR)/*.s)
 
 # Test-specific files
@@ -24,8 +27,10 @@ TEST_KERNEL_OBJECT = $(TESTBUILDDIR)/test_kernel.o
 # Compiler settings
 CC = riscv64-elf-gcc
 AS = riscv64-elf-as
+OBJCOPY = riscv64-elf-objcopy
 CFLAGS = -Wall -Wextra -c -mcmodel=medany -ffreestanding -ggdb
 LDFLAGS = -T $(SRCDIR)/linker.ld -nostdlib -lgcc
+USERLDFLAGS = -T $(USERDIR)/user.ld -O2 -g3 -Wall -Wextra -fno-stack-protector -ffreestanding -nostdlib
 
 # Qemu settings
 QEMU = qemu-system-riscv64
@@ -35,12 +40,29 @@ define QFLAGS
 		-drive id=drive0,file=file.txt,format=raw,if=none \
         -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
 		-kernel $(BUILDDIR)/kernel.elf \
+		-cpu rv64,pmp=false \
 		-serial mon:stdio
+endef
+define QFLAGS-SPL
+		-machine virt \
+		-bios ../u-boot/spl/u-boot-spl.bin \
+		-drive id=drive0,file=file.txt,format=raw,if=none \
+        -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+		-cpu rv64,pmp=false \
+		-serial mon:stdio \
+		-drive id=mysdcard,if=none,file=sdcard.img,format=raw,id=mydisk \
+		-device sdhci-pci \
+		-device sd-card,drive=mysdcard
 endef
 
 # Main kernel build (uses kernel.c)
 damos: clean build_dirs $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS)
-	$(CC) $(LDFLAGS) $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
+	$(CC) $(USERLDFLAGS) -o $(BUILDDIR)/shell.elf $(USERDIR)/shell.c $(USERDIR)/user.c
+	$(OBJCOPY) --set-section-flags .bss=alloc,contents -O binary $(BUILDDIR)/shell.elf $(BUILDDIR)/shell.bin
+	$(OBJCOPY) -Ibinary -Oelf64-littleriscv $(BUILDDIR)/shell.bin $(BUILDDIR)/shell.bin.o
+
+	$(CC) $(LDFLAGS) $(BUILDDIR)/shell.bin.o $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
+	
 	riscv64-elf-objcopy -O binary $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.bin
 
 # Test kernel build (uses test_kernel.c)
@@ -49,13 +71,19 @@ test_kernel: clean build_dirs $(TEST_KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) 
 
 # Ensure build directories exist
 build_dirs:
-	mkdir -p $(BUILDDIR) $(BUILDDIR)/lib $(TESTBUILDDIR)
+	mkdir -p $(BUILDDIR) $(BUILDDIR)/lib $(BUILDDIR)/memory $(BUILDDIR)/drivers $(TESTBUILDDIR)
 
 # Compilation rules
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c | build_dirs
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: $(LIBDIR)/%.c | build_dirs
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILDDIR)/%.o: $(MEMDIR)/%.c | build_dirs
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILDDIR)/%.o: $(DRVDIR)/%.c | build_dirs
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.s | build_dirs
@@ -71,7 +99,7 @@ run: damos
 debug: damos
 	@tmux split-window -h
 	@tmux send-keys "gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'" C-m
-	$(QEMU) $(QFLAGS) -s -S
+	$(QEMU) $(QFLAGS) -s -S -nographic
 
 # Run test kernel in QEMU
 run_test: test_kernel
@@ -82,4 +110,4 @@ clean:
 	rm -rf $(BUILDDIR)/*
 
 sdcard:
-	qemu-system-riscv64 -M virt -m 1G -nographic -bios ../u-boot/spl/u-boot-spl.bin -drive id=mysdcard,if=none,file=sdcard.img,format=raw,id=mydisk -device sdhci-pci -device sd-card,drive=mysdcard
+	$(QEMU) $(QFLAGS-SPL)
