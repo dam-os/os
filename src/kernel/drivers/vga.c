@@ -254,29 +254,35 @@ void draw_compressed_image(uint8_t *fb_base) {
   }
 }
 
-void init_virtio_vga() {
-  uint8_t *fb_base = (uint8_t *)0x50000000;
+#define fb_base 0x50000000
 
-  uint32_t *devbase = pci_get_addr(0, 16, 0, 0x0);
+int verify_pci_device(uint32_t* devbase) {
   uint32_t pci_class = (*(devbase + 2)) >> 8;
 
   if (pci_class != 0x030000) {
     cprintf("VGA not found\n");
+    return 0;
   } else {
     cprintf("VGA device found\n");
+    return 1;
   }
+}
 
+uint8_t* setup_pci_bars(uint32_t* devbase) {
+  // Write 0xFFFFFFFF and read size of bar0
   *(devbase + 4) = 0xFFFFFFFF;
-
   uint32_t fb_size = (~(*(devbase + 4)) | 0xF) + 1;
-  uint8_t *io_base = fb_base + fb_size;
-
+  uint8_t *io_base = (uint8_t *)fb_base + fb_size;
+  
+  // Write 0xFFFFFFFF and read size of bar2
   *(devbase + 6) = 0xFFFFFFFF;
   uint32_t io_size = (~(*(devbase + 6)) | 0xF) + 1;
 
+  // Write where framebuffer is to bar 0 and where io is to bar 2
   *(devbase + 4) = (uint32_t)(uintptr_t)(fb_base) | 8;
   *(devbase + 6) = (uint32_t)(uintptr_t)(io_base) | 8;
 
+  // Enable Memory Space in command register
   uint32_t cmd = *(devbase + 1);
   *(devbase + 1) = cmd | 0x0002;
 
@@ -284,13 +290,20 @@ void init_virtio_vga() {
           (uint32_t)(uintptr_t)fb_base, (fb_size + 0x80000) >> 20,
           (uint32_t)(uintptr_t)io_base, io_size);
 
+  return io_base;
+}
+
+void init_virtio_vga() {
+  uint32_t *devbase = pci_get_addr(0, 16, 0, 0x0);
+  
+  if (!verify_pci_device(devbase)) return;
+
+  uint8_t* io_base = setup_pci_bars(devbase);
+
   uint8_t *port0300 = (io_base + (0x400 - 0xC0));
 
   set_mode(port0300, MODE_13_REGS);
-  draw_compressed_image(fb_base);
-
-  *(io_base + 0x406) = 0xFF;
-  *(io_base + 0x408) = 0;
+  draw_compressed_image((uint8_t *)fb_base);
 
   uint8_t *p = io_base + 0x409;
   set_colors(p);
