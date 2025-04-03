@@ -13,8 +13,16 @@ void draw_pixel(uintptr_t fb_base, int x, int y, uint8_t color) {
 }
 
 void clear_screen(uintptr_t fb_base) {
-  for (int i = 320 * 100; i < (320 * 200); i++) {
+  for (int i = 0; i < (320 * 200); i++) {
     ((volatile uint8_t *)fb_base)[i] = 0;
+  }
+}
+void set_screen_a(uintptr_t fb_base) {
+  uint8_t backcolour = 0;  // Black background (0 = black)
+  uint8_t forecolour = 15; // White text (15 = white)
+  uint16_t attrib = (backcolour << 4) | (forecolour & 0x0F);
+  for (int i = 0; i < (80 * 25); i++) {
+    ((volatile uint8_t *)fb_base)[i] = 'A' | (attrib << 8);
   }
 }
 
@@ -256,7 +264,7 @@ void draw_compressed_image(uint8_t *fb_base) {
 
 #define fb_base 0x50000000
 
-int verify_pci_device(uint32_t* devbase) {
+int verify_pci_device(uint32_t *devbase) {
   uint32_t pci_class = (*(devbase + 2)) >> 8;
 
   if (pci_class != 0x030000) {
@@ -268,12 +276,12 @@ int verify_pci_device(uint32_t* devbase) {
   }
 }
 
-uint8_t* setup_pci_bars(uint32_t* devbase) {
+uint8_t *setup_pci_bars(uint32_t *devbase) {
   // Write 0xFFFFFFFF and read size of bar0
   *(devbase + 4) = 0xFFFFFFFF;
   uint32_t fb_size = (~(*(devbase + 4)) | 0xF) + 1;
   uint8_t *io_base = (uint8_t *)fb_base + fb_size;
-  
+
   // Write 0xFFFFFFFF and read size of bar2
   *(devbase + 6) = 0xFFFFFFFF;
   uint32_t io_size = (~(*(devbase + 6)) | 0xF) + 1;
@@ -295,18 +303,24 @@ uint8_t* setup_pci_bars(uint32_t* devbase) {
 
 void init_virtio_vga() {
   uint32_t *devbase = pci_get_addr(0, 16, 0, 0x0);
-  
-  if (!verify_pci_device(devbase)) return;
 
-  uint8_t* io_base = setup_pci_bars(devbase);
+  if (!verify_pci_device(devbase))
+    return;
+
+  uint8_t *io_base = setup_pci_bars(devbase);
 
   uint8_t *port0300 = (io_base + (0x400 - 0xC0));
+  /*set_mode(port0300, TEXT_MODE_REGS);*/
 
   set_mode(port0300, MODE_13_REGS);
-  draw_compressed_image((uint8_t *)fb_base);
+  draw_compressed_image((unsigned char *)fb_base);
+
+  *(io_base + 0x406) = 0xFF;
+  *(io_base + 0x408) = 0;
 
   uint8_t *p = io_base + 0x409;
-  set_colors(p);
+  /*set_colors(p);*/
+  /*set_screen_a(fb_base);*/
 }
 
 void debug_print_virtio() {

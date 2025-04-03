@@ -46,7 +46,6 @@ void kmain(void) {
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds
-  debug_print_virtio();
   cprintf("Sleeping for 10 seconds...");
   sleep(10000);
   cprintf("10 seconds passed\n");
