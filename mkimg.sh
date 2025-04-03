@@ -1,16 +1,19 @@
-# Create an empty disk image (adjust size as needed)
+rm sdcard.img
 dd if=/dev/zero of=sdcard.img bs=1M count=64
 
-# Format it with an ext4 filesystem
-mkfs.ext4 sdcard.img
+parted -s sdcard.img mklabel msdos
+parted -s sdcard.img mkpart primary ext4 1MiB 100%
 
-# Mount the image
+sudo losetup -o 1048576 --sizelimit 63M /dev/loop0 sdcard.img
+
+sudo mkfs.ext4 /dev/loop0
+
 mkdir -p mnt
-sudo mount sdcard.img mnt
+sudo mount /dev/loop0 mnt
 
-# Copy your kernel to the image
-sudo cp ./build/kernel.elf mnt/
-# You could also copy any other files your OS needs
+mkimage -f my-os.its build/my-os.itb
+sudo cp ./build/my-os.itb mnt/
 
-# Unmount
 sudo umount mnt
+
+sudo losetup -d /dev/loop0

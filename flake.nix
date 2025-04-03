@@ -36,15 +36,17 @@
 
       uboot = let
         riscv64Toolchain = pkgs.pkgsCross.riscv64.buildPackages;
-        ubootPython = pkgs.python3.withPackages (ps:
-          with ps; [
-            setuptools
-            pip
-            wheel
-            pyyaml
-            libfdt
-            pytest
-          ]);
+        ubootPython = pkgs.python3.withPackages (
+          ps:
+            with ps; [
+              setuptools
+              pip
+              wheel
+              pyyaml
+              libfdt
+              pytest
+            ]
+        );
       in
         pkgs.mkShell {
           buildInputs = with pkgs; [
@@ -59,6 +61,7 @@
             swig
             dtc # Device Tree Compiler
             ubootTools
+            parted
 
             # Additional tools
             pkg-config

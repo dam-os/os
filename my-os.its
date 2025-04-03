@@ -1,30 +1,31 @@
+
 /dts-v1/;
 
 / {
-    description = "Simple FIT image with OS";
+    description = "U-Boot FIT Image with Custom OS Kernel";
     #address-cells = <1>;
 
     images {
-        kernel@1 {
-            description = "My OS";
-            data = /incbin/("../os/build/kernel.elf");
+        kernel {
+            description = "Custom OS Kernel";
+            data = /incbin/("build/kernel.bin");
             type = "kernel";
-            arch = "riscv";
-            os = "linux";
+            arch = "riscv";  // Change this to your architecture: arm, x86, etc.
+            os = "custom";    // Or use "linux" if applicable
             compression = "none";
-            load = <0x81200000>;
-            entry = <0x81200000>;
-            hash@1 {
-                algo = "crc32";
-            };
+            load = <0x82200000>;  // Change this to the correct load address
+            entry = <0x82200000>; // Change this to the kernel entry point
         };
     };
 
     configurations {
-        default = "config@1";
-        config@1 {
-            description = "Boot My OS";
-            kernel = "kernel@1";
+        default = "config1";
+
+        config1 {
+            description = "Boot Configuration";
+            kernel = "kernel";
+            fdt = "fdt";  // Add if using a Flattened Device Tree
         };
     };
 };
+

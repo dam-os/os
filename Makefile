@@ -41,6 +41,7 @@ endef
 # Main kernel build (uses kernel.c)
 damos: clean build_dirs $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS)
 	$(CC) $(LDFLAGS) $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
+	riscv64-elf-objcopy -O binary $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.bin
 
 # Test kernel build (uses test_kernel.c)
 test_kernel: clean build_dirs $(TEST_KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) $(TEST_OBJECTS)
@@ -79,3 +80,6 @@ run_test: test_kernel
 # Cleanup
 clean:
 	rm -rf $(BUILDDIR)/*
+
+sdcard:
+	qemu-system-riscv64 -M virt -m 1G -nographic -bios ../u-boot/spl/u-boot-spl.bin -drive id=mysdcard,if=none,file=sdcard.img,format=raw,id=mydisk -device sdhci-pci -device sd-card,drive=mysdcard
