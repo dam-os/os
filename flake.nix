@@ -33,6 +33,53 @@
           ];
         shellHook = "echo 'Happy hacking'";
       };
+
+      uboot = let
+        riscv64Toolchain = pkgs.pkgsCross.riscv64.buildPackages;
+        ubootPython = pkgs.python3.withPackages (ps:
+          with ps; [
+            setuptools
+            pip
+            wheel
+            pyyaml
+            libfdt
+            pytest
+          ]);
+      in
+        pkgs.mkShell {
+          buildInputs = with pkgs; [
+            # Build essentials
+            gnumake
+            bison
+            flex
+            bc
+            ncurses
+            openssl
+            ubootPython
+            swig
+            dtc # Device Tree Compiler
+            ubootTools
+
+            # Additional tools
+            pkg-config
+            libuuid
+
+            # Fix for gnutls/gnutls.h
+            gnutls
+            gnutls.dev
+
+            # RISC-V Toolchain
+            riscv64Toolchain.gcc
+            riscv64Toolchain.binutils
+          ];
+
+          # Environment variables for U-Boot build
+          shellHook = ''
+            export CROSS_COMPILE=riscv64-unknown-linux-gnu-
+            export ARCH=riscv
+            export OPENSBI=./opensbi/firmware/fw_dynamic.S
+          '';
+        };
     };
 
     packages.x86_64-linux = {
