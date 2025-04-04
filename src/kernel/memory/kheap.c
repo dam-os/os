@@ -4,6 +4,8 @@
 #include "memory.h"
 #include "paging.h"
 
+#define DEBUG 0
+
 struct block {
   size_t size;
   struct block *next;
@@ -50,6 +52,9 @@ int init_heap(int page_numbers) {
 }
 
 void *kmalloc(int size) {
+  if (DEBUG)
+    cprintf("Trying to allocate %d\n", size);
+
   struct block *current = blocks;
 
   while (current) {
@@ -100,7 +105,9 @@ void *krealloc(void *ptr, int size) {
 
   if (size < block->size - sizeof(struct block)) {
     int remaining_size = block->size - size - sizeof(struct block);
-    cprintf("REMAINING SIZE %d\n", remaining_size);
+    if (DEBUG)
+      cprintf("REMAINING SIZE %d\n", remaining_size);
+
     if (remaining_size > sizeof(struct block)) {
       struct block *new_block =
           (struct block *)((char *)block + sizeof(struct block) + size);
