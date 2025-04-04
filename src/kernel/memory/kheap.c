@@ -27,6 +27,7 @@ int max_size = 0;
 void print_heap_contents() {
   struct block *current = blocks;
   cprintf("Heap blocks:\n");
+  cprintf("  -------------------------\n");
   while (current != NULL) {
     cprintf("  Block at %p:\n", (void *)current);
     cprintf("  Size: %ld bytes\n", current->size - sizeof(struct block));
@@ -53,8 +54,8 @@ int init_heap(int page_numbers) {
 
 void *kmalloc(int size) {
   if (DEBUG) {
-    cprintf("Trying to allocate %d\n", size);
     print_heap_contents();
+    cprintf("Trying to allocate %d bytes\n", size);
   }
 
   struct block *current = blocks;
@@ -78,6 +79,12 @@ void *kmalloc(int size) {
       }
       // if the block is perfect size we just use that one
       current->free = 0;
+
+      if (DEBUG) {
+        cprintf("Allocated %d bytes at %p\n", size,
+                (void *)BLOCK_TO_PTR(current));
+        print_heap_contents();
+      }
 
       return BLOCK_TO_PTR(current);
     }

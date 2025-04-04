@@ -84,6 +84,7 @@ fdt_property_t **read_node_properties(const u8 **ptr,
     *ptr += 4;
 
     props[idx] = (fdt_property_t *)kmalloc(sizeof(fdt_property_t));
+    print_heap_contents();
 
     props[idx]->len = swap_endianess(*(u32 *)*ptr);
     *ptr += 4;
