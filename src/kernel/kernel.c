@@ -2,6 +2,7 @@
 #include "drivers/disk.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
+#include "drivers/uart.h"
 #include "lib/exception.h"
 #include "lib/print.h"
 #include "lib/process.h"
@@ -12,7 +13,7 @@
 #include "memory/paging.h"
 #include "memory/virt_memory.h"
 
-#define PRINT_SYS_INFO 0
+#define PRINT_SYS_INFO 1
 
 struct proc *proc_a;
 struct proc *proc_b;
@@ -28,23 +29,31 @@ void kmain(void) {
   uintptr_t dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
-  if (PRINT_SYS_INFO)
-    read_fdt(dtb_address);
+  init_fdt(dtb_address);
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
+
+  // ===== Init important stuff =====
+  // ! Must be called before using processes !
+  init_proc();
+  // optional to call but still cool
+  init_mem_table();
+  init_heap(100);
+  // ===== Don't touch anything above this line unless u smort =====
+
+  // === FDT ===
+  fdt_node_t *node = find_fdt("cpus");
+  cprintf("Found node: %s\n", node->name);
+  cprintf("Properties:\n");
+  cprintf("name: %s\n", node->properties[0]->name);
 
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds
-  cprintf("Sleeping for 10 seconds...");
-  sleep(10000);
-  cprintf("10 seconds passed\n");
+  cprintf("Sleeping for 1 second...");
+  sleep(1000);
+  cprintf("1 seconds passed\n");
 
-  // // ! Must be called before using processes !
-  // init_proc();
-  // // optional to call but still cool
-  // init_mem_table();
-  // init_heap(100);
   // proc_c = create_process((void *)0x1000000, 0);
   //
   // // Manually set registers since kernel cant do syscall

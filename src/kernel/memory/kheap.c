@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "paging.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 struct block {
   size_t size;
@@ -52,8 +52,10 @@ int init_heap(int page_numbers) {
 }
 
 void *kmalloc(int size) {
-  if (DEBUG)
+  if (DEBUG) {
     cprintf("Trying to allocate %d\n", size);
+    print_heap_contents();
+  }
 
   struct block *current = blocks;
 
