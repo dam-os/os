@@ -1,7 +1,6 @@
 #include "print.h"
 #include "../drivers/uart.h"
 #include "../lib/common.h"
-#include "assert.h"
 // @TODO: Don't depend on stdarg.h!
 #include <stdarg.h>
 
@@ -89,4 +88,9 @@ void cprintf(const char *str, ...) {
   }
 
   va_end(ap);
+}
+
+void print_char_hex(char c) {
+  putchar(DIGITS[(c >> 4) & 0xF]); // Print upper 4 bits
+  putchar(DIGITS[c & 0xF]);        // Print lower 4 bits
 }
