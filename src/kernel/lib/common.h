@@ -7,6 +7,7 @@ typedef int uint32_t;
 typedef long long uint64_t;
 typedef long double uint128_t;
 typedef uint64_t uintptr_t;
+typedef uint64_t size_t;
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
