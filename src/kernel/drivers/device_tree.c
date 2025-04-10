@@ -1,5 +1,4 @@
 #include "device_tree.h"
-#include "../lib/common.h"
 #include "../lib/print.h"
 #include "../lib/string.h"
 #include "uart.h"
@@ -47,7 +46,7 @@ void read_fdt(const uintptr_t fdt_addr) {
   uint32_t struct_offset = swap_endianess(hdr->off_dt_struct);
   uint32_t strings_offset = swap_endianess(hdr->off_dt_strings);
 
-  if (magic != FDT_MAGIC) {
+  if (magic != (uint32_t)FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return;
   }
