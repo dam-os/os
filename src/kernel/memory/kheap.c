@@ -7,7 +7,7 @@
 struct block {
   size_t size;
   struct block *next;
-  int free;
+  size_t free;
 } __attribute__((aligned(8)));
 
 struct block *blocks = NULL;
@@ -49,7 +49,7 @@ int init_heap(int page_numbers) {
   return 1;
 }
 
-void *kmalloc(int size) {
+void *kmalloc(size_t size) {
   struct block *current = blocks;
 
   while (current) {
@@ -95,11 +95,11 @@ int kfree(void *ptr) {
   return 1;
 }
 
-void *krealloc(void *ptr, int size) {
+void *krealloc(void *ptr, size_t size) {
   struct block *block = (struct block *)(ptr - sizeof(struct block));
 
   if (size < block->size - sizeof(struct block)) {
-    int remaining_size = block->size - size - sizeof(struct block);
+    size_t remaining_size = block->size - size - sizeof(struct block);
     cprintf("REMAINING SIZE %d\n", remaining_size);
     if (remaining_size > sizeof(struct block)) {
       struct block *new_block =
@@ -115,7 +115,7 @@ void *krealloc(void *ptr, int size) {
     return ptr;
   }
 
-  int possible_size = block->size;
+  size_t possible_size = block->size;
   struct block *current = block->next;
   struct block *prev = block;
   // check if we can expand current block

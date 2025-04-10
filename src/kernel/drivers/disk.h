@@ -61,7 +61,7 @@ enum DeviceTypes {
   MEMORY_DEVICE = 24
 };
 /* Maps enums above to string names */
-static const char *DeviceTypeNames[] = {
+static const char *const DeviceTypeNames[] = {
     "RESERVED_INVALID", "NETWORK_CARD",
     "BLOCK_DEVICE",     "CONSOLE",
     "ENTROPY_SOURCE",   "MEMORY_BALLOONING_TRADITIONAL",

@@ -1,4 +1,4 @@
-#import "../lib/common.h"
+#include "../lib/common.h"
 
 #define sv39 (uint64_t)8 << 60
 

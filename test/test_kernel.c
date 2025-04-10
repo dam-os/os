@@ -1,12 +1,6 @@
-#include <stddef.h>
-
-#include "../src/lib/print.h"
-#include "../src/lib/memory.h"
-#include "../src/lib/string.h"
-#include "../src/lib/device_tree.h"
-#include "../src/lib/uart.h"
-#include "../src/lib/device_tree.h"
-#include "../src/lib/print.h"
+#include "../src/kernel/memory/memory.h"
+#include "../src/kernel/lib/string.h"
+#include "../src/kernel/drivers/device_tree.h"
 #include "main.h"
 
 
