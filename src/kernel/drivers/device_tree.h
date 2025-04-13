@@ -33,11 +33,17 @@ typedef struct fdt_property fdt_property_t;
 
 struct fdt_node {
   const char *name;
-  fdt_property_t **properties;
+  size_t property_count;
+  fdt_property_t *properties;
+  size_t child_count;
+  struct fdt_node *children;
 };
 typedef struct fdt_node fdt_node_t;
 
 void init_fdt(const uptr addr);
 fdt_node_t *find_fdt(char *target);
+
+void print_node(fdt_node_t *node, u8 indent);
+void print_fdt();
 
 #endif

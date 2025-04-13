@@ -19,3 +19,27 @@ device tree until we find the first node that matches our search pattern.
 
 Since the devices are recursive we can create recursive functions that step
 through each section of the device tree.
+
+While rewriting it to be recursive, issues were found in the way memory
+allocation functioned.
+
+- krealloc didn't work, so it was removed in favor of manually allocating and
+  freeing memory in device tree
+- free had some issues with merging blocks, so that functionality was removed
+- kalloc has some issues with deciding when to split blocks, so that was fixed
+
+When these were fixed, device tree still had its own issues:
+
+- double_or_init function did not work, as it had swapped the src and dst args
+  for memcpy.
+- it seemed to skip every other device tree token
+  - this seems to have caused it to also skip the *_END tokens, causing parsing
+    issues.
+  - This was happening due to an incorrect implementation of align_pointer,
+    which added 4 to the pointer even if it was already at a 4-byte boundary.
+- the values given to values of device properties were incorrect.
+  - This was likely because the values were not endian-swapped
+  - turns out this wasn't an issue - the values were just pointers into the
+    device tree space. It is the consumers job to decode the values, as we
+    cannot do it beforehand without dynamically allocating value space, which I
+    guess we could do, but it would waste memory.

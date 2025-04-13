@@ -1,8 +1,6 @@
 #include "drivers/device_tree.h"
-#include "drivers/disk.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
-#include "drivers/uart.h"
 #include "lib/exception.h"
 #include "lib/print.h"
 #include "lib/process.h"
@@ -19,11 +17,6 @@ struct proc *proc_a;
 struct proc *proc_b;
 struct proc *proc_c;
 extern char stack_top[];
-
-void delay(void) {
-  for (int i = 0; i < 300000000; i++)
-    __asm__ __volatile__("nop"); // do nothing
-}
 
 void kmain(void) {
   uintptr_t dtb_address;
@@ -42,10 +35,11 @@ void kmain(void) {
   // ===== Don't touch anything above this line unless u smort =====
 
   // === FDT ===
+  // print_fdt();
+  // poweroff();
   fdt_node_t *node = find_fdt("cpus");
   cprintf("Found node: %s\n", node->name);
-  cprintf("Properties:\n");
-  cprintf("name: %s\n", node->properties[0]->name);
+  print_node(node, 2);
 
   // === Timer test ===
   u64 start = mtime_get_time();
