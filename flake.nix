@@ -35,6 +35,7 @@
             # Dev commands
             (alias "run" "make run")
             (alias "debug" "make debug")
+            (alias "pwn" "pwndbg ./build/kernel.elf -ex 'target remote localhost:1234' -ex 'b *kmain' -ex 'c'")
           ]);
       };
     };
