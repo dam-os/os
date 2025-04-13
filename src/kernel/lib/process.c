@@ -53,8 +53,8 @@ proc_t *current_proc = NULL;
  * current_process, loading registers from next_processing, and jumping back to
  * user mode to the addr in mepc.
  */
-__attribute__((naked)) void switch_process(proc_t *current_process,
-                                           proc_t *next_process) {
+__attribute__((naked)) void switch_process(__attribute__((unused)) proc_t *_current_process,
+                                           __attribute__((unused)) proc_t *_next_process) {
   SAVE_AND_LOAD_REGISTERS();
 
   __asm__ __volatile__("mret");
