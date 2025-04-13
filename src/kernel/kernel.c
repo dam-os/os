@@ -12,8 +12,6 @@
 #include "memory/paging.h"
 #include "memory/virt_memory.h"
 
-#define PRINT_SYS_INFO 1
-
 struct proc *proc_a;
 struct proc *proc_b;
 struct proc *proc_c;
@@ -33,18 +31,18 @@ void kmain(void) {
   // optional to call but still cool
   init_mem_table();
   init_heap(100);
+
+  init_timer();
   // ===== Don't touch anything above this line unless u smort =====
 
   init_virtio_vga();
   proc_c = create_process((void *)0x1000000, 0);
 
   // === FDT ===
-  // print_fdt();
-  // poweroff();
-  fdt_node_t *node = find_fdt("cpus");
-  cprintf("Found node: %s\n", node->name);
-  print_node(node, 2);
-
+  // fdt_node_t *node = find_fdt("cpus");
+  // cprintf("Found node: %s\n", node->name);
+  // print_node(node, 2);
+  //
   // print("Before free:");
   //
   // print_heap_contents();

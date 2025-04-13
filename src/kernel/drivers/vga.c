@@ -153,10 +153,10 @@ int verify_pci_device(uint32_t *devbase) {
   uint32_t pci_class = (*(devbase + 2)) >> 8;
 
   if (pci_class != 0x030000) {
-    cprintf("VGA not found\n");
+    cprintf("[vga] VGA not found\n");
     return 0;
   } else {
-    cprintf("VGA device found\n");
+    cprintf("[vga] VGA device found\n");
     return 1;
   }
 }
@@ -179,7 +179,7 @@ uint8_t *setup_pci_bars(uint32_t *devbase) {
   uint32_t cmd = *(devbase + 1);
   *(devbase + 1) = cmd | 0x0002;
 
-  cprintf("VGA fb_base %x size %dM io_base %x size %d\n",
+  cprintf("[vga] VGA fb_base %x size %dM io_base %x size %d\n",
           (uint32_t)(uintptr_t)fb_base, (fb_size + 0x80000) >> 20,
           (uint32_t)(uintptr_t)io_base, io_size);
 
@@ -252,17 +252,17 @@ void debug_print_virtio() {
   uint8_t header_type = (reg3 >> 16) & 0xFF;
   uint8_t bist = (reg3 >> 24) & 0xFF;
 
-  cprintf("Device ID:        0x%x\n", device_id);
-  cprintf("Vendor ID:        0x%x\n", vendor_id);
-  cprintf("Command:          0x%x\n", command);
-  cprintf("Status:           0x%b\n", status);
-  cprintf("Class Code:       0x%x\n", class_code);
-  cprintf("Subclass:         0x%x\n", subclass);
-  cprintf("Programming IF:   0x%x\n", prog_if);
-  cprintf("Revision ID:      0x%x\n", revision_id);
-  cprintf("Cache Line Size:  0x%x (%d bytes)\n", cache_line_size,
+  cprintf("[vga] Device ID:        0x%x\n", device_id);
+  cprintf("[vga] Vendor ID:        0x%x\n", vendor_id);
+  cprintf("[vga] Command:          0x%x\n", command);
+  cprintf("[vga] Status:           0x%b\n", status);
+  cprintf("[vga] Class Code:       0x%x\n", class_code);
+  cprintf("[vga] Subclass:         0x%x\n", subclass);
+  cprintf("[vga] Programming IF:   0x%x\n", prog_if);
+  cprintf("[vga] Revision ID:      0x%x\n", revision_id);
+  cprintf("[vga] Cache Line Size:  0x%x (%d bytes)\n", cache_line_size,
           cache_line_size * 4);
-  cprintf("Latency Timer:    0x%x\n", latency_timer);
-  cprintf("Header Type:      0x%x\n", header_type);
-  cprintf("BIST:             0x%x\n", bist);
+  cprintf("[vga] Latency Timer:    0x%x\n", latency_timer);
+  cprintf("[vga] Header Type:      0x%x\n", header_type);
+  cprintf("[vga] BIST:             0x%x\n", bist);
 }
