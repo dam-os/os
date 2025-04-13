@@ -244,7 +244,11 @@ void print_node(fdt_node_t *node, u8 indent) {
   print("\n");
 }
 
-void free_node(fdt_node_t *node_ptr) {
+/**
+ * Frees a nodes properties and children from memory. Does not free the node
+ * itself.
+ */
+void free_node_metadata(fdt_node_t *node_ptr) {
   // Free properties list
   if (node_ptr->property_count > 0) {
     kfree(node_ptr->properties);
@@ -253,11 +257,19 @@ void free_node(fdt_node_t *node_ptr) {
   // Free each child
   if (node_ptr->child_count > 0) {
     for (size_t i = 0; i < node_ptr->child_count; i++) {
-      free_node(&node_ptr->children[i]);
+      free_node_metadata(&node_ptr->children[i]);
     }
     // Free child list
     kfree(node_ptr->children);
   }
+}
+
+/**
+ * Frees a node, its properties and its children from memory.
+ */
+void free_node(fdt_node_t *node_ptr) {
+  // Free props and children
+  free_node_metadata(node_ptr);
 
   // Free top node
   kfree(node_ptr);
