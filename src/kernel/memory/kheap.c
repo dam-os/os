@@ -73,7 +73,7 @@ void *kmalloc(int size) {
       if (current->size > size + 1 + sizeof(struct block) * 2) {
         struct block *old = current;
         struct block *left_split = old;
-        struct block *right_split = old + TOTAL_BLOCK_SIZE(size);
+        struct block *right_split = (struct block *)((char *)old + TOTAL_BLOCK_SIZE(size));
 
         // Set new block sizes
         uptr old_end = (uptr)old + old->size;
