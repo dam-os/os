@@ -3,8 +3,9 @@
 struct block {
   size_t size;
   struct block *next;
-  int free;
-};
+  u8 free;
+} __attribute__((aligned(8)));
+typedef struct block block_t;
 
 int init_heap(int page_numbers);
 

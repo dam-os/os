@@ -12,9 +12,6 @@
 #include "memory/paging.h"
 #include "memory/virt_memory.h"
 
-struct proc *proc_a;
-struct proc *proc_b;
-struct proc *proc_c;
 extern char stack_top[];
 
 void kmain(void) {
@@ -36,18 +33,16 @@ void kmain(void) {
   // ===== Don't touch anything above this line unless u smort =====
 
   init_virtio_vga();
-  proc_c = create_process((void *)0x1000000, 0);
-
   // === FDT ===
-  // fdt_node_t *node = find_fdt("cpus");
-  // cprintf("Found node: %s\n", node->name);
-  // print_node(node, 2);
-  //
+  fdt_node_t *node = find_fdt("cpus");
+  cprintf("Found node: %s\n", node->name);
+  print_node(node, 2);
+
   // print("Before free:");
   //
   // print_heap_contents();
-  //
-  // free_node(node);
+
+  free_node(node);
   // print("After free:");
   //
   // print_heap_contents();
