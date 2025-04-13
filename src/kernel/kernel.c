@@ -1,6 +1,7 @@
 #include "drivers/device_tree.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
+#include "drivers/vga.h"
 #include "lib/exception.h"
 #include "lib/print.h"
 #include "lib/process.h"
@@ -34,6 +35,9 @@ void kmain(void) {
   init_heap(100);
   // ===== Don't touch anything above this line unless u smort =====
 
+  init_virtio_vga();
+  proc_c = create_process((void *)0x1000000, 0);
+
   // === FDT ===
   // print_fdt();
   // poweroff();
@@ -57,8 +61,6 @@ void kmain(void) {
   sleep(1000);
   cprintf("1 seconds passed\n");
 
-  // proc_c = create_process((void *)0x1000000, 0);
-  //
   // // Manually set registers since kernel cant do syscall
   // __asm__ __volatile__("csrw mscratch, sp\n");
   // __asm__ __volatile__("auipc t0, 0\n");
