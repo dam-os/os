@@ -35,6 +35,9 @@ typedef uintptr uptr;
 
 #define NULL 0
 
+#define TRUE 1
+#define FALSE 0
+
 // Functions
 
 u32 swap_endian_32(u32 val);
