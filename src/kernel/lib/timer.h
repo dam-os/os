@@ -6,7 +6,7 @@
 #define RISCV_CLINT_ADDR 0x2000000UL
 #define RISCV_MTIME_ADDR (RISCV_CLINT_ADDR + 0xBFF8UL)
 
-#define QEMU_TIMEBASE_FREQUENCY 0x00989680
+void init_timer(void);
 
 u64 mtime_get_raw_time(void);
 u64 mtime_get_time(void);

@@ -10,11 +10,6 @@ uptr fdt_addr = NULL;
 
 void init_fdt(const uptr addr) { fdt_addr = addr; }
 
-uint32_t swap_endianess(uint32_t val) {
-  return ((val >> 24) & 0xff) | ((val >> 8) & 0xff00) |
-         ((val << 8) & 0xff0000) | ((val << 24) & 0xff000000);
-}
-
 /** Align to 4-byte boundary */
 void align_pointer(const u8 **ptr) {
   // Add distance to next 4-byte boundary if not already aligned
@@ -22,7 +17,7 @@ void align_pointer(const u8 **ptr) {
   *ptr += (dist != 0) * (4 - dist);
 }
 
-u32 token(const u8 *ptr) { return swap_endianess(*(u32 *)ptr); }
+u32 token(const u8 *ptr) { return swap_endian_32(*(u32 *)ptr); }
 
 /**
  * Advances ptr until the next byte that matches an FDT token.
@@ -49,10 +44,10 @@ void get_property(const u8 **ptr, const u8 *strings_block,
   kassert(tok == FDT_PROP);
   *ptr += 4;
 
-  out->len = swap_endianess(*(u32 *)*ptr);
+  out->len = swap_endian_32(*(u32 *)*ptr);
   *ptr += 4;
 
-  u32 prop_name_off = swap_endianess(*(u32 *)*ptr);
+  u32 prop_name_off = swap_endian_32(*(u32 *)*ptr);
   out->name = (const char *)(strings_block + prop_name_off);
   *ptr += 4;
 
@@ -144,16 +139,16 @@ fdt_node_t *find_fdt(char *target) {
 
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endianess(hdr->magic);
+  uint32_t magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return NULL;
   }
-  uint32_t totalsize = swap_endianess(hdr->totalsize);
-  uint32_t struct_offset = swap_endianess(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endianess(hdr->off_dt_strings);
-  uint32_t version = swap_endianess(hdr->version);
+  uint32_t totalsize = swap_endian_32(hdr->totalsize);
+  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
+  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
+  uint32_t version = swap_endian_32(hdr->version);
 
   const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
   const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
@@ -161,7 +156,7 @@ fdt_node_t *find_fdt(char *target) {
   const uint8_t *ptr = struct_block;
   const uint8_t *end = (const uint8_t *)(fdt_addr) + totalsize;
 
-  cprintf("Looking for target node: %s\n", target);
+  // cprintf("Looking for target node: %s\n", target);
 
   u32 tok;
   while (1) {
@@ -273,10 +268,10 @@ void free_node(fdt_node_t *node_ptr) {
 void print_fdt() {
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endianess(hdr->magic);
-  uint32_t totalsize = swap_endianess(hdr->totalsize);
-  uint32_t struct_offset = swap_endianess(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endianess(hdr->off_dt_strings);
+  uint32_t magic = swap_endian_32(hdr->magic);
+  uint32_t totalsize = swap_endian_32(hdr->totalsize);
+  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
+  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
@@ -293,7 +288,7 @@ void print_fdt() {
   const uint8_t *ptr = struct_block;
   const uint8_t *end = (const uint8_t *)(fdt_addr) + totalsize;
   while (ptr < end) {
-    uint32_t token = swap_endianess(*(uint32_t *)ptr);
+    uint32_t token = swap_endian_32(*(uint32_t *)ptr);
     ptr += 4;
 
     switch (token) {
@@ -311,8 +306,8 @@ void print_fdt() {
       break;
     }
     case FDT_PROP: {
-      uint32_t prop_len = swap_endianess(*(uint32_t *)ptr);
-      uint32_t prop_name_off = swap_endianess(*(uint32_t *)(ptr + 4));
+      uint32_t prop_len = swap_endian_32(*(uint32_t *)ptr);
+      uint32_t prop_name_off = swap_endian_32(*(uint32_t *)(ptr + 4));
       ptr += 8;
 
       // Get Property Name from Strings Block using offset

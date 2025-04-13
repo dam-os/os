@@ -38,7 +38,6 @@ void print_heap_contents() {
   }
 }
 int init_heap(int page_numbers) {
-  cprintf("BLOCK SIZE %d", sizeof(struct block));
   void *pages = (void *)alloc_pages(page_numbers);
   blocks = (struct block *)pages;
   max_size = page_numbers * PAGE_SIZE;

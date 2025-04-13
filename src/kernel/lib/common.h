@@ -35,4 +35,8 @@ typedef uintptr uptr;
 
 #define NULL 0
 
+// Functions
+
+u32 swap_endian_32(u32 val);
+
 #endif // !COMMON_H
