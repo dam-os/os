@@ -42,6 +42,7 @@ typedef struct fdt_node fdt_node_t;
 
 void init_fdt(const uptr addr);
 fdt_node_t *find_fdt(char *target);
+void free_node(fdt_node_t *node_ptr);
 
 void print_node(fdt_node_t *node, u8 indent);
 void print_fdt();

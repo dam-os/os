@@ -249,6 +249,25 @@ void print_node(fdt_node_t *node, u8 indent) {
   print("\n");
 }
 
+void free_node(fdt_node_t *node_ptr) {
+  // Free properties list
+  if (node_ptr->property_count > 0) {
+    kfree(node_ptr->properties);
+  }
+
+  // Free each child
+  if (node_ptr->child_count > 0) {
+    for (size_t i = 0; i < node_ptr->child_count; i++) {
+      free_node(&node_ptr->children[i]);
+    }
+    // Free child list
+    kfree(node_ptr->children);
+  }
+
+  // Free top node
+  kfree(node_ptr);
+}
+
 // LEGACY - kinda used for discovery of new nodes? all the new code relies on
 // you already knowing the target node name
 void print_fdt() {

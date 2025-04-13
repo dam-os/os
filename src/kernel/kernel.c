@@ -41,6 +41,15 @@ void kmain(void) {
   cprintf("Found node: %s\n", node->name);
   print_node(node, 2);
 
+  // print("Before free:");
+  //
+  // print_heap_contents();
+  //
+  // free_node(node);
+  // print("After free:");
+  //
+  // print_heap_contents();
+
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds
