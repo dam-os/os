@@ -1,5 +1,5 @@
 #include "../lib/common.h"
-#include <stddef.h>
+
 struct block {
   size_t size;
   struct block *next;

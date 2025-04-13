@@ -1,5 +1,4 @@
 #include "drivers/device_tree.h"
-#include "drivers/disk.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
 #include "drivers/vga.h"
@@ -13,50 +12,55 @@
 #include "memory/paging.h"
 #include "memory/virt_memory.h"
 
-#define PRINT_SYS_INFO 0
+#define PRINT_SYS_INFO 1
 
 struct proc *proc_a;
 struct proc *proc_b;
 struct proc *proc_c;
 extern char stack_top[];
 
-void delay(void) {
-  for (int i = 0; i < 300000000; i++)
-    __asm__ __volatile__("nop"); // do nothing
-}
-
 void kmain(void) {
   uintptr_t dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
-  if (PRINT_SYS_INFO)
-    read_fdt(dtb_address);
+  init_fdt(dtb_address);
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
 
-  cprintf("Stack top at: %p\n", stack_top);
+  // ===== Init important stuff =====
   // ! Must be called before using processes !
   init_proc();
   // optional to call but still cool
   init_mem_table();
   init_heap(100);
+  // ===== Don't touch anything above this line unless u smort =====
 
   init_virtio_vga();
   proc_c = create_process((void *)0x1000000, 0);
+
+  // === FDT ===
+  // print_fdt();
+  // poweroff();
+  fdt_node_t *node = find_fdt("cpus");
+  cprintf("Found node: %s\n", node->name);
+  print_node(node, 2);
+
+  // print("Before free:");
+  //
+  // print_heap_contents();
+  //
+  // free_node(node);
+  // print("After free:");
+  //
+  // print_heap_contents();
+
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds
-  cprintf("Sleeping for 10 seconds...");
-  sleep(10000);
-  cprintf("10 seconds passed\n");
+  cprintf("Sleeping for 1 second...");
+  sleep(1000);
+  cprintf("1 seconds passed\n");
 
-  // // ! Must be called before using processes !
-  // init_proc();
-  // // optional to call but still cool
-  // init_mem_table();
-  // init_heap(100);
-  // proc_c = create_process((void *)0x1000000, 0);
-  //
   // // Manually set registers since kernel cant do syscall
   // __asm__ __volatile__("csrw mscratch, sp\n");
   // __asm__ __volatile__("auipc t0, 0\n");

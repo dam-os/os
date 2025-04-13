@@ -1,6 +1,6 @@
 #ifndef ASSERT_H
 #define ASSERT_H
 
-void assert(short condition, char *msg);
+void kassert(short condition);
 
 #endif /* !ASSERT_H */
