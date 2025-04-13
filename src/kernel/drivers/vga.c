@@ -19,7 +19,7 @@ void write_to_ports(uint8_t *port0300, const PortWrites *mode) {
     uint8_t data = mode[i].data;
     uint8_t *port = port0300 + vport;
 
-    int _;
+    __attribute__((unused)) int _;
 
     switch (vport) {
     case 0xC0:
@@ -108,7 +108,7 @@ void set_cursor(uint8_t *port0300, uint8_t x, uint8_t y) {
   uint16_t offset = 80 * y + x;
   uint8_t lower = offset & 0xff;
   uint8_t upper = offset >> 8;
-  uint8_t *port = port0300 + 0xD4;
+  __attribute__((unused)) uint8_t *port = port0300 + 0xD4;
 
   PortWrites writes[2] = {{0xD4, 0x0f, lower}, {0xD4, 0x0e, upper}};
   write_to_ports(port0300, writes);
@@ -198,7 +198,8 @@ void text_mode_demo(uint8_t *port0300) {
 
   write_to_ports(port0300, TEXT_PALETTE_SELECT);
 
-  int _ = *(port0300 + 0xDA); // Set C0 port back to index
+  __attribute__((unused)) int _ =
+      *(port0300 + 0xDA); // Set C0 port back to index
   *(port0300 + 0xc0) = 0x30;
 
   set_colors(port0300, PALETTE_TEXT);

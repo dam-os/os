@@ -53,7 +53,7 @@ int init_heap(int page_numbers) {
   return 1;
 }
 
-void *kmalloc(int size) {
+void *kmalloc(unsigned int size) {
   if (DEBUG) {
     print_heap_contents();
     cprintf("Trying to allocate %d bytes\n", size);
@@ -141,14 +141,14 @@ int kfree(void *ptr) {
   return 1;
 }
 
-void *krealloc(void *ptr, int size) {
+void *krealloc(void *ptr, unsigned int size) {
   if (DEBUG)
     cprintf("Trying to realloc ptr %p to size %d\n", ptr, size);
 
   block_t *block = (block_t *)(ptr - sizeof(block_t));
 
   if (size < block->size - sizeof(block_t)) {
-    int remaining_size = block->size - size - sizeof(block_t);
+    size_t remaining_size = block->size - size - sizeof(block_t);
     if (DEBUG)
       cprintf("REMAINING SIZE %d\n", remaining_size);
 
@@ -165,7 +165,7 @@ void *krealloc(void *ptr, int size) {
     return ptr;
   }
 
-  int possible_size = block->size;
+  size_t possible_size = block->size;
   block_t *current = block->next;
   block_t *prev = block;
   // check if we can expand current block

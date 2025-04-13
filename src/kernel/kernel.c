@@ -48,8 +48,7 @@ void kmain(void) {
   // print_heap_contents();
 
   // === Timer test ===
-  u64 start = mtime_get_time();
-  // Wait 10 seconds
+  // Wait 1 seconds
   cprintf("Sleeping for 1 second...");
   sleep(1000);
   cprintf("1 seconds passed\n");

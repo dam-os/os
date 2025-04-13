@@ -145,16 +145,16 @@ fdt_node_t *find_fdt(char *target) {
     print("Invalid FDT magic number!\n");
     return NULL;
   }
-  uint32_t totalsize = swap_endian_32(hdr->totalsize);
   uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
   uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
   uint32_t version = swap_endian_32(hdr->version);
+
+  kassert(version == 17);
 
   const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
   const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
 
   const uint8_t *ptr = struct_block;
-  const uint8_t *end = (const uint8_t *)(fdt_addr) + totalsize;
 
   // cprintf("Looking for target node: %s\n", target);
 
@@ -224,7 +224,7 @@ void print_node(fdt_node_t *node, u8 indent) {
   print_indent(indent);
   cprintf("Node: %s\n", node->name);
 
-  int i;
+  unsigned int i;
   if (node->property_count > 0) {
 
     print_indent(indent);
