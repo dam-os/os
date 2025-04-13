@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "paging.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 struct block {
   size_t size;
@@ -38,6 +38,7 @@ void print_heap_contents() {
   }
 }
 int init_heap(int page_numbers) {
+  cprintf("BLOCK SIZE %d", sizeof(struct block));
   void *pages = (void *)alloc_pages(page_numbers);
   blocks = (struct block *)pages;
   max_size = page_numbers * PAGE_SIZE;
@@ -62,20 +63,32 @@ void *kmalloc(int size) {
 
   while (current) {
     // if the block is free and big enough
-    if (current->free && current->size >= size) {
+    if (current->free && current->size - sizeof(struct block) >= size) {
       // if we need to split the block
-      if (current->size > size + sizeof(struct block)) {
-        // puts the new block in the available space in ram
-        struct block *new_block =
-            (struct block *)((char *)current + TOTAL_BLOCK_SIZE(size));
-        // new block is made smaller and we fix the linked list such that it
-        // points correctly
-        new_block->size = current->size - size - BLOCK_SIZE;
-        new_block->next = current->next;
-        new_block->free = 1;
-        // we set the size of the block we will use
-        current->size = size + BLOCK_SIZE;
-        current->next = new_block;
+      // A split requires that the current block has enough space to support
+      // 1. The new allocated size for left split
+      // 2. The block header for left split
+      // 3. At least 1 allocated byte for right split
+      // 4. The block header for right split
+      if (current->size > size + 1 + sizeof(struct block) * 2) {
+        struct block *old = current;
+        struct block *left_split = old;
+        struct block *right_split = old + TOTAL_BLOCK_SIZE(size);
+
+        // Set new block sizes
+        uptr old_end = (uptr)old + old->size;
+        left_split->size = TOTAL_BLOCK_SIZE(size);
+
+        uptr left_end = (uptr)left_split + left_split->size;
+        right_split->size = old_end - left_end;
+
+        // Update linked list references
+        right_split->next = old->next;
+        left_split->next = right_split;
+
+        // Allocate left, free right
+        left_split->free = 0;
+        right_split->free = 1;
       }
       // if the block is perfect size we just use that one
       current->free = 0;
@@ -97,19 +110,23 @@ void *kmalloc(int size) {
 int kfree(void *ptr) {
   struct block *block = (struct block *)(ptr - sizeof(struct block));
   block->free = 1;
+  // @TODO: Wanna implement this again eventually
   // merge free blocks
-  struct block *current = block->next;
-  while (current) {
-    if (current && current && current->next) {
-      current->size += sizeof(struct block) + current->size;
-      current = current->next;
-    }
-    current = current->next;
-  }
+  // struct block *current = block->next;
+  // while (current) {
+  //   if (current && current && current->next) {
+  //     current->size += sizeof(struct block) + current->size;
+  //     current = current->next;
+  //   }
+  //   current = current->next;
+  // }
   return 1;
 }
 
 void *krealloc(void *ptr, int size) {
+  if (DEBUG)
+    cprintf("Trying to realloc ptr %p to size %d\n", ptr, size);
+
   struct block *block = (struct block *)(ptr - sizeof(struct block));
 
   if (size < block->size - sizeof(struct block)) {
