@@ -84,9 +84,12 @@ $(TESTBUILDDIR)/%.o: $(TESTDIR)/%.c | build_dirs
 run: damos
 	$(QEMU) $(QFLAGS)
 
-debug: damos
+tmux: damos
 	@tmux split-window -h
 	@tmux send-keys "gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'" C-m
+	$(QEMU) $(QFLAGS) -s -S -nographic
+
+debug: damos
 	$(QEMU) $(QFLAGS) -s -S -nographic
 
 # Run test kernel in QEMU

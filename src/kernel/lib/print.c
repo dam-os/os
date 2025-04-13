@@ -1,7 +1,7 @@
 #include "print.h"
 #include "../drivers/uart.h"
 #include "../lib/common.h"
-#include "assert.h"
+
 // @TODO: Don't depend on stdarg.h!
 #include <stdarg.h>
 
@@ -11,7 +11,7 @@ static const char DIGITS[DIGIT_COUNT] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 void print(const char *str) {
   while (*str != '\0') {
-    putchar(*str);
+    kputchar(*str);
     str++;
   }
 }
@@ -25,27 +25,27 @@ void cvprintf_int(int v, int base, int digits) {
     v /= base;
   } while (v);
   while (p != buf) {
-    putchar(*--p);
+    kputchar(*--p);
   }
 }
-void cvprintf_uint64_t(uint64_t v, int base, int digits) {
+void cvprintf_u64_t(u64 v, int base, int digits) {
   char buf[digits], *p = buf;
   do {
     *p++ = DIGITS[v % base];
     v /= base;
   } while (v);
   while (p != buf) {
-    putchar(*--p);
+    kputchar(*--p);
   }
 }
 
 void cvprintf(const char **str, va_list *ap) {
   switch (*(*str)) {
   case '%':
-    putchar('%');
+    kputchar('%');
     break;
   case 'c':
-    putchar(va_arg(*ap, int));
+    kputchar(va_arg(*ap, int));
     break;
   case 's':
     cvprintf_str(va_arg(*ap, char *));
@@ -57,7 +57,7 @@ void cvprintf(const char **str, va_list *ap) {
     cvprintf_int(va_arg(*ap, int), 16, 8);
     break;
   case 'p':
-    cvprintf_uint64_t(va_arg(*ap, uint64_t), 16, 16);
+    cvprintf_u64_t(va_arg(*ap, u64), 16, 16);
     break;
   case 'b':
     cvprintf_int(va_arg(*ap, int), 2, 32);
@@ -65,7 +65,7 @@ void cvprintf(const char **str, va_list *ap) {
   case 'l': {
     switch (*++(*str)) {
     case 'd':
-      cvprintf_uint64_t(va_arg(*ap, uint64_t), 10, 19);
+      cvprintf_u64_t(va_arg(*ap, u64), 10, 19);
       break;
     };
   } break;
@@ -83,10 +83,15 @@ void cprintf(const char *str, ...) {
       cvprintf(&str, &ap);
       break;
     default:
-      putchar(*str);
+      kputchar(*str);
     }
     str++;
   }
 
   va_end(ap);
+}
+
+void print_char_hex(char c) {
+  kputchar(DIGITS[(c >> 4) & 0xF]); // Print upper 4 bits
+  kputchar(DIGITS[c & 0xF]);        // Print lower 4 bits
 }
