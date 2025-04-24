@@ -41,11 +41,12 @@ struct fdt_node {
 typedef struct fdt_node fdt_node_t;
 
 void init_fdt(const uptr addr);
-fdt_node_t *find_fdt(char *target);
+fdt_node_t *find_node_by_phandle(u32 phandle);
+fdt_node_t *find_node_by_name(char *target);
 void free_node(fdt_node_t *node_ptr);
 
 void print_node(fdt_node_t *node, u8 indent);
-void print_fdt();
+void print_fdt(void);
 uptr get_node_addr(const char *name);
 
 #endif

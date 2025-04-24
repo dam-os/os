@@ -10,6 +10,7 @@
     }                                                                          \
   } while (0)
 
+void init_system(void);
 void poweroff(void);
 void poweroffmsg(char *msg);
 

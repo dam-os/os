@@ -5,7 +5,7 @@
 uptr PCI_CONFIG_BASE = NULL;
 
 void init_pci(void) {
-  fdt_node_t *node = find_fdt("pci@");
+  fdt_node_t *node = find_node_by_name("pci@");
   PCI_CONFIG_BASE = get_node_addr(node->name);
 
   free_node(node);
