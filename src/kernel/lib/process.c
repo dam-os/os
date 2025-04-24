@@ -53,8 +53,10 @@ proc_t *current_proc = NULL;
  * current_process, loading registers from next_processing, and jumping back to
  * user mode to the addr in mepc.
  */
-__attribute__((naked)) void switch_process(__attribute__((unused)) proc_t *_current_process,
-                                           __attribute__((unused)) proc_t *_next_process) {
+__attribute__((naked)) void switch_process(__attribute__((unused))
+                                           proc_t *_current_process,
+                                           __attribute__((unused))
+                                           proc_t *_next_process) {
   SAVE_AND_LOAD_REGISTERS();
 
   __asm__ __volatile__("mret");
@@ -101,7 +103,7 @@ proc_t *create_process(void *target_function, int isKernel) {
 
   process->reg.ra = (uint64_t)exit_proc_syscall;
 
-  print("[process] Mapping pages!\n");
+  // print("[process] Mapping pages!\n");
   uint64_t *page_table = (uint64_t *)alloc_pages(1);
 
 #define USER_BASE 0x1000000
