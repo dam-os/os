@@ -46,5 +46,6 @@ void free_node(fdt_node_t *node_ptr);
 
 void print_node(fdt_node_t *node, u8 indent);
 void print_fdt();
+uptr get_node_addr(const char *name);
 
 #endif

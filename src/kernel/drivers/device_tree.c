@@ -56,6 +56,17 @@ void get_property(const u8 **ptr, const u8 *strings_block,
   align_pointer(ptr);
 }
 
+void skip_property(const u8 **ptr) {
+  u32 tok = token(*ptr);
+  kassert(tok == FDT_PROP);
+  *ptr += 4; // Skip token
+  u32 len = swap_endian_32(*(u32 *)*ptr);
+  *ptr += 4;   // Skip len
+  *ptr += 4;   // Skip name offset
+  *ptr += len; // Skip value length
+  align_pointer(ptr);
+}
+
 /**
  * Given an array and its current size, either sets its size to 1 if the size is
  * 0, or doubles the size. Returns new size.
@@ -135,6 +146,31 @@ void get_node(const u8 **ptr, const u8 *strings_block, fdt_node_t *out) {
   }
 };
 
+/**
+ * Skips a node and all its properties, but does not skip nested nodes.
+ */
+void skip_node_not_nested(const u8 **ptr) {
+  u32 tok = token(*ptr);
+  kassert(tok == FDT_BEGIN_NODE);
+  *ptr += 4;
+  *ptr += cstrlen((char *)*ptr);
+  align_pointer(ptr);
+  while (1) {
+    tok = go_to_next_token(ptr);
+    switch (tok) {
+    case FDT_END_NODE:
+      return;
+    case FDT_PROP:
+      skip_property(ptr);
+      break;
+    case FDT_BEGIN_NODE:
+      // Might be our target, let's return
+      *ptr -= 4;
+      return;
+    }
+  }
+}
+
 fdt_node_t *find_fdt(char *target) {
 
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
@@ -168,8 +204,9 @@ fdt_node_t *find_fdt(char *target) {
     case FDT_BEGIN_NODE: {
       // Get node name and check if it matches
       const char *name = (const char *)(ptr + 4);
-      if (cstrcmp(target, (char *)name) != 0) {
+      if (startswith(target, (char *)name) != 0) {
         // Skip node
+        skip_node_not_nested(&ptr);
         break;
       }
 
@@ -177,8 +214,10 @@ fdt_node_t *find_fdt(char *target) {
       get_node(&ptr, strings_block, node);
       return node;
     }
-    case FDT_END_NODE:
     case FDT_PROP:
+      skip_property(&ptr);
+      break;
+    case FDT_END_NODE:
     default:
     case FDT_NOP:
       break;
@@ -262,6 +301,41 @@ void free_node_metadata(fdt_node_t *node_ptr) {
     // Free child list
     kfree(node_ptr->children);
   }
+}
+
+/**
+ * Convert a node name to a memory location, assuming it has one
+ */
+uptr get_node_addr(const char *name) {
+  const char *curr = name;
+
+  // Move to @
+  while (1) {
+    if (*curr == '\0') {
+      return -1;
+    }
+    if (*curr == '@') {
+      curr++;
+      break;
+    }
+    curr++;
+  }
+
+  // Read hex digits
+  int result = 0;
+  while (*curr != '\0') {
+    if (*curr >= '0' && *curr <= '9') {
+      result = (result << 4) | (*curr - '0');
+    } else if (*curr >= 'a' && *curr <= 'f') {
+      result = (result << 4) | (*curr - 'a' + 10);
+    } else if (*curr >= 'A' && *curr <= 'F') {
+      result = (result << 4) | (*curr - 'A' + 10);
+    } else {
+      return -1;
+    }
+    curr++;
+  }
+  return result;
 }
 
 /**
