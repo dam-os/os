@@ -13,6 +13,7 @@
 #include "memory/virt_memory.h"
 
 extern char stack_top[];
+struct proc *proc_c;
 
 void kmain(void) {
   uintptr_t dtb_address;
@@ -28,7 +29,6 @@ void kmain(void) {
   // optional to call but still cool
   init_mem_table();
   init_heap(100);
-
   init_timer();
   // ===== Don't touch anything above this line unless u smort =====
 
@@ -47,23 +47,30 @@ void kmain(void) {
   //
   // print_heap_contents();
 
+  init_virtio_vga();
   // === Timer test ===
-  // Wait 1 seconds
-  cprintf("Sleeping for 1 second...");
-  sleep(1000);
-  cprintf("1 seconds passed\n");
+  u64 start = mtime_get_time();
+  // Wait 10 seconds
+  cprintf("Sleeping for 10 seconds...");
+  //sleep(10000);
+  cprintf("10 seconds passed\n");
 
-  // // Manually set registers since kernel cant do syscall
-  // __asm__ __volatile__("csrw mscratch, sp\n");
-  // __asm__ __volatile__("auipc t0, 0\n");
-  // __asm__ __volatile__(
-  //     "addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after
-  //     yield
-  // __asm__ __volatile__("csrw mepc, t0\n");
-  // yield(); // WARNING: Kernel returns here in usermode!
+  // // ! Must be called before using processes !
+  //init_proc();
+  // // optional to call but still cool
+  proc_c = create_process((void *)0x1000000, 0);
+  //
+  // Manually set registers since kernel cant do syscall
+  __asm__ __volatile__("csrw mscratch, sp\n");
+  __asm__ __volatile__("auipc t0, 0\n");
+  __asm__ __volatile__("addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after
+  __asm__ __volatile__("csrw mepc, t0\n");
+  yield(); // WARNING: Kernel returns here in usermode!
+  print(""); // Clears uart after user process
 
-  // PANIC("uh oh spaghettios %d", 5);
+
   print("we will never print this\n");
   print("death\n");
-  poweroff();
+  PANIC("uh oh spaghettios %d", 5);
+  //poweroff();
 }
