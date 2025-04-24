@@ -51,23 +51,25 @@ void kmain(void) {
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds
-  cprintf("Sleeping for 10 seconds...");
-  //sleep(10000);
-  cprintf("10 seconds passed\n");
+  // cprintf("Sleeping for 10 seconds...");
+  // sleep(10000);
+  // cprintf("10 seconds passed\n");
 
   // // ! Must be called before using processes !
-  //init_proc();
-  // // optional to call but still cool
+  init_proc();
+  // optional to call but still cool
+  init_mem_table();
+  init_heap(100);
   proc_c = create_process((void *)0x1000000, 0);
-  //
+
   // Manually set registers since kernel cant do syscall
   __asm__ __volatile__("csrw mscratch, sp\n");
   __asm__ __volatile__("auipc t0, 0\n");
-  __asm__ __volatile__("addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after
+  __asm__ __volatile__(
+      "addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after
+  yield;
   __asm__ __volatile__("csrw mepc, t0\n");
   yield(); // WARNING: Kernel returns here in usermode!
-  print(""); // Clears uart after user process
-
 
   print("we will never print this\n");
   print("death\n");

@@ -3,11 +3,12 @@
 extern char _binary_shell_bin_start[];
 extern char _binary_shell_bin_size[];
 
-
 int main(void) {
-    char msg[] = "Hello from the shell!\n";
-    syscall(1, msg, (void *)0x21, (void *)0x22);
-    syscall(1, msg, (void *)0x21, (void *)0x22);
-    syscall(1, msg, 0, 0);
-    syscall(1, msg, 0, 0);
+  char str[] = "what is poppin logang";
+  while (1) {
+    char x = syscall(3, 0, 0, 0);
+    str[4] = x;
+    syscall(1, str, 0, 0);
+    // syscall(4, (void *)x, 0, 0);
+  }
 }
