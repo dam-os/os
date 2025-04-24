@@ -43,3 +43,11 @@ When these were fixed, device tree still had its own issues:
     device tree space. It is the consumers job to decode the values, as we
     cannot do it beforehand without dynamically allocating value space, which I
     guess we could do, but it would waste memory.
+
+Device tree is now used by all code parts that require memory mapped data. They
+find their required memory addresses using device tree. There is a current issue
+with the implementation however. It requires loading the device tree nodes into
+memory, thus allocating space for them. Since printing relies on device tree to
+know which address to interact with, we are essentially unable to print anything
+during memory paging and allocation stages, so a method should be added to get a
+device tree address without requiring malloc
