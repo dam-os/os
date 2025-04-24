@@ -171,8 +171,7 @@ void skip_node_not_nested(const u8 **ptr) {
   }
 }
 
-fdt_node_t *find_fdt(char *target) {
-
+fdt_node_t *find_node_by_name(char *target) {
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
   uint32_t magic = swap_endian_32(hdr->magic);
@@ -228,6 +227,69 @@ fdt_node_t *find_fdt(char *target) {
   return NULL;
 }
 
+u32 get_phandle(fdt_node_t *node) {
+  for (size_t i = 0; i < node->property_count; i++) {
+    if (cstrcmp((char *)node->properties[i].name, "phandle") == 0) {
+      return *(u32 *)node->properties[i].value;
+    }
+  }
+  return -1;
+}
+
+fdt_node_t *find_node_by_phandle(u32 phandle) {
+  struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
+
+  uint32_t magic = swap_endian_32(hdr->magic);
+
+  if (magic != FDT_MAGIC) {
+    print("Invalid FDT magic number!\n");
+    return NULL;
+  }
+  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
+  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
+  uint32_t version = swap_endian_32(hdr->version);
+
+  kassert(version == 17);
+
+  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
+  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+
+  const uint8_t *ptr = struct_block;
+
+  // cprintf("Looking for target node: %s\n", target);
+
+  u32 tok;
+  while (1) {
+    tok = go_to_next_token(&ptr);
+
+    switch (tok) {
+    case FDT_END:
+      return NULL;
+    case FDT_BEGIN_NODE: {
+      fdt_node_t *node = kmalloc(sizeof(fdt_node_t));
+      const u8 *ptr_copy = ptr;
+      get_node(&ptr_copy, strings_block, node);
+      if (get_phandle(node) == phandle)
+        return node;
+      else {
+        skip_node_not_nested(&ptr);
+        break;
+      }
+    }
+    case FDT_PROP:
+      skip_property(&ptr);
+      break;
+    case FDT_END_NODE:
+    default:
+    case FDT_NOP:
+      break;
+    }
+
+    ptr += 4;
+  }
+  return NULL;
+}
+
 void print_indent(u8 indent) {
   for (u8 i = 0; i < indent; i++) {
     print(" ");
@@ -242,45 +304,44 @@ void print_property(fdt_property_t *property, u8 indent) {
   print(property->name);
 
   if (len == 0) {
-    print("\n");
+    print(";\n");
     return;
   }
-  print(": ");
+  print(" = ");
 
   if (((char *)val)[0] != '\0' && ((char *)val)[len - 1] == '\0') {
     // Print as string
-    print((const char *)property->value);
+    cprintf("\"%s\";", (const char *)property->value);
   } else {
     // Print as hex
+    print("<0x");
     for (u32 i = 0; i < len; i++) {
       print_char_hex(((char *)val)[i]);
     }
+    print(">;");
   }
   print("\n");
 }
 
 void print_node(fdt_node_t *node, u8 indent) {
   print_indent(indent);
-  cprintf("Node: %s\n", node->name);
+  cprintf("%s {\n", node->name);
 
   unsigned int i;
   if (node->property_count > 0) {
-
-    print_indent(indent);
-    cprintf("Properties:\n");
-
     for (i = 0; i < node->property_count; i++) {
-      print_property(&node->properties[i], indent + 2);
+      print_property(&node->properties[i], indent + 4);
     }
   }
   if (node->child_count > 0) {
     print_indent(indent);
-    cprintf("Children:\n");
     for (i = 0; i < node->child_count; i++) {
-      print_node(&node->children[i], indent + 2);
+      print_node(&node->children[i], indent + 4);
     }
   }
-  print("\n");
+
+  print_indent(indent);
+  cprintf("};\n\n");
 }
 
 /**
@@ -349,86 +410,31 @@ void free_node(fdt_node_t *node_ptr) {
   kfree(node_ptr);
 }
 
-// LEGACY - kinda used for discovery of new nodes? all the new code relies on
-// you already knowing the target node name
-void print_fdt() {
+void print_fdt(void) {
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
   uint32_t magic = swap_endian_32(hdr->magic);
-  uint32_t totalsize = swap_endian_32(hdr->totalsize);
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
 
-  if (magic != (uint32_t)FDT_MAGIC) {
+  if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return;
   }
-  print("Valid Device tree found!\n");
-  cprintf("Total Size: %d", totalsize);
-  cprintf("\nStructure Block Offset: %d", struct_offset);
-  cprintf("\nStrings Block Offset: %d", strings_offset);
+  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
+  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
+  uint32_t version = swap_endian_32(hdr->version);
+
+  kassert(version == 17);
 
   const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
   const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
 
   const uint8_t *ptr = struct_block;
-  const uint8_t *end = (const uint8_t *)(fdt_addr) + totalsize;
-  while (ptr < end) {
-    uint32_t token = swap_endian_32(*(uint32_t *)ptr);
-    ptr += 4;
 
-    switch (token) {
-    case FDT_BEGIN_NODE: {
-      // Node Name (from Structure Block)
-      const char *name = (const char *)ptr;
-      print("\n -------------- Node: ");
-      print(name);
-      print(" -------------- \n");
-      ptr += cstrlen((char *)name) + 1;
-      ++ptr;
-      // Align to 4-byte boundary
-      while ((uintptr_t)ptr % 4 != 0)
-        ptr++;
-      break;
-    }
-    case FDT_PROP: {
-      uint32_t prop_len = swap_endian_32(*(uint32_t *)ptr);
-      uint32_t prop_name_off = swap_endian_32(*(uint32_t *)(ptr + 4));
-      ptr += 8;
+  u32 tok = go_to_next_token(&ptr);
+  kassert(tok == FDT_BEGIN_NODE);
 
-      // Get Property Name from Strings Block using offset
-      const char *prop_name = (const char *)(strings_block + prop_name_off);
-
-      // Print Property Value
-      print("\n - Property:");
-      print(prop_name);
-      cprintf("\nLen: %d", prop_len);
-      print(" = ");
-
-      if (prop_len > 0 && ptr[0] != '\0' && ptr[prop_len - 1] == '\0') {
-        // Print property as string
-        print("str: ");
-        print((const char *)(ptr));
-      } else {
-        // Print property as hex (binary data)
-        print("hex: ");
-        for (uint32_t i = 0; i < prop_len; i++) {
-          print_char_hex((char)ptr[i]);
-        }
-      }
-      print("\n");
-
-      ptr += prop_len;
-      while ((uintptr_t)ptr % 4 != 0)
-        ptr++;
-      break;
-    }
-    case FDT_END_NODE:
-      break;
-    case FDT_END:
-      return;
-    default:
-      break;
-    }
-  }
+  fdt_node_t *node = kmalloc(sizeof(fdt_node_t));
+  get_node(&ptr, strings_block, node);
+  print_node(node, 0);
+  free_node(node);
 }

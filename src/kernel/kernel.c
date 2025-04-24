@@ -31,13 +31,15 @@ void kmain(void) {
   init_heap(100);
 
   // Stuff that requires reading from device tree
+  init_system();
   init_timer();
   init_pci();
   // ===== Don't touch anything above this line unless u smort =====
 
   init_virtio_vga();
   // === FDT ===
-  fdt_node_t *node = find_fdt("cpus");
+  print_fdt();
+  fdt_node_t *node = find_node_by_name("cpus");
   cprintf("Found node: %s\n", node->name);
   print_node(node, 2);
 
@@ -50,13 +52,14 @@ void kmain(void) {
   //
   // print_heap_contents();
 
+  poweroff();
   init_virtio_vga();
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds
-  cprintf("Sleeping for 10 seconds...");
-  // sleep(10000);
-  cprintf("10 seconds passed\n");
+  cprintf("Sleeping for 1 second...");
+  sleep(1000);
+  cprintf("1 second passed\n");
 
   // // ! Must be called before using processes !
   // init_proc();
@@ -75,5 +78,4 @@ void kmain(void) {
   print("we will never print this\n");
   print("death\n");
   PANIC("uh oh spaghettios %d", 5);
-  // poweroff();
 }
