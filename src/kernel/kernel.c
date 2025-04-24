@@ -1,6 +1,7 @@
 #include "drivers/device_tree.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
+#include "drivers/uart.h"
 #include "drivers/vga.h"
 #include "lib/exception.h"
 #include "lib/print.h"
@@ -19,22 +20,25 @@ void kmain(void) {
   uintptr_t dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
+  // ===== Init important stuff =====
   init_fdt(dtb_address);
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
 
-  // ===== Init important stuff =====
-  // ! Must be called before using processes !
+  // === Set up processes === //
   init_proc();
-  // optional to call but still cool
+
+  // === Init memory === //
   init_mem_table();
   init_heap(100);
 
-  // Stuff that requires reading from device tree
+  // === Get addresses from device tree === //
+  init_uart();
   init_system();
   init_timer();
   init_pci();
-  // ===== Don't touch anything above this line unless u smort =====
+
+  // ====== Normal code ====== //
 
   init_virtio_vga();
   // === FDT ===
