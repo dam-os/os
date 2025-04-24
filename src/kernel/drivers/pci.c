@@ -53,3 +53,5 @@ void enumerate_pci() {
     }
   }
 }
+
+uptr get_pci_config_base(void) { return PCI_CONFIG_BASE; }

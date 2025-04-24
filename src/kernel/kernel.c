@@ -52,14 +52,13 @@ void kmain(void) {
   //
   // print_heap_contents();
 
-  poweroff();
   init_virtio_vga();
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds
-  cprintf("Sleeping for 1 second...");
-  sleep(1000);
-  cprintf("1 second passed\n");
+  cprintf("Sleeping for 5 second...");
+  sleep(5000);
+  cprintf("5 second passed\n");
 
   // // ! Must be called before using processes !
   // init_proc();
