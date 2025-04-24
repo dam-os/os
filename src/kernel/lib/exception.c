@@ -159,8 +159,7 @@ void handle_syscall(struct trap_frame *f) {
   case 3: {
     char x = kgetchar();
     f->a5 = x;
-    text_putchar(5, 0, x, 1);
-    cprintf("CHAR YES VERY %c", x);
+    cprintf("%c", x);
     break;
   }
   case 4:

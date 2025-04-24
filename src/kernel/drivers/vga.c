@@ -5,7 +5,7 @@
 #include "vga_const.h"
 
 #define fb_base 0x50000000
-
+#define DEFAULT_VALUES ((0 << 4) | (1 & 0x0F)) << 8
 // Mode 13 is inspired by
 // https://github.com/neri/riscv-vga-sample
 
@@ -53,6 +53,13 @@ void clear_screen() {
   }
 }
 
+void text_putfast(uint8_t x, uint8_t y, char ch) {
+  volatile uint16_t *p = (volatile uint16_t *)fb_base;
+  if (ch == NULL)
+    ch = ' ';
+  p[(80 * y + x) * 2] = (uint16_t)ch | DEFAULT_VALUES;
+}
+
 void text_putchar(uint8_t x, uint8_t y, char ch, uint8_t fg_color) {
   volatile uint16_t *p = (volatile uint16_t *)fb_base;
   uint8_t bg_color = 0;
@@ -65,6 +72,17 @@ void text_clear_screen() {
   for (int x = 0; x < 80; x++) {
     for (int y = 0; y < 25; y++) {
       text_putchar(x, y, 0x20, 0);
+    }
+  }
+}
+
+void print_screen_buf(char **buf) {
+  text_clear_screen();
+  for (int y = 0; y < 25; y++) {
+    cprintf(buf[y]);
+    for (int x = 0; x < 80; x++) {
+      // text_putfast(x, y, buf[y][x]);
+      // text_putchar(x, y, buf[y][x], 1);
     }
   }
 }
@@ -186,14 +204,14 @@ uint8_t *setup_pci_bars(uint32_t *devbase) {
   return io_base;
 }
 
-void mode13_demo(uint8_t *port0300) {
+void init_mode13(uint8_t *port0300) {
   write_to_ports(port0300, MODE_13_REGS);
   // 0x3C9 since 0x3C0 is at 0x400
   set_colors(port0300, PALETTE_MODE13);
-  draw_compressed_image();
+  // draw_compressed_image();
 }
 
-void text_mode_demo(uint8_t *port0300) {
+void init_text_mode(uint8_t *port0300) {
   write_to_ports(port0300, TEXT_MODE_REGS);
 
   write_to_ports(port0300, TEXT_PALETTE_SELECT);
@@ -204,14 +222,14 @@ void text_mode_demo(uint8_t *port0300) {
 
   set_colors(port0300, PALETTE_TEXT);
   load_font();
-  for (int x = 0; x < 80; x++) {
-    for (int y = 0; y < 25; y++) {
-      text_putchar(x, y, 65, 1);
-    }
-  }
-  text_putchar(1, 0, 0, 1);
-
-  set_cursor(port0300, 50, 15);
+  // for (int x = 0; x < 80; x++) {
+  //   for (int y = 0; y < 25; y++) {
+  //     text_putchar(x, y, 65, 1);
+  //   }
+  // }
+  // text_putchar(1, 0, 0, 1);
+  //
+  // set_cursor(port0300, 50, 15);
 }
 
 void init_virtio_vga() {
@@ -227,8 +245,8 @@ void init_virtio_vga() {
   // aka we can add 0xC0 to write there.
   uint8_t *port0300 = (io_base + (0x400 - 0xC0));
 
-  // mode13_demo(port0300);
-  text_mode_demo(port0300);
+  // init_mode13(port0300);
+  init_text_mode(port0300);
 }
 
 void debug_print_virtio() {

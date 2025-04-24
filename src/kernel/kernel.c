@@ -5,6 +5,7 @@
 #include "lib/exception.h"
 #include "lib/print.h"
 #include "lib/process.h"
+#include "lib/screen.h"
 #include "lib/string.h"
 #include "lib/timer.h"
 #include "memory/kheap.h"
@@ -33,6 +34,7 @@ void kmain(void) {
   // ===== Don't touch anything above this line unless u smort =====
 
   init_virtio_vga();
+
   // === FDT ===
   fdt_node_t *node = find_fdt("cpus");
   cprintf("Found node: %s\n", node->name);
@@ -49,12 +51,39 @@ void kmain(void) {
 
   init_virtio_vga();
   // === Timer test ===
+  init_print(1);
   u64 start = mtime_get_time();
   // Wait 10 seconds
-  // cprintf("Sleeping for 10 seconds...");
-  // sleep(10000);
-  // cprintf("10 seconds passed\n");
-
+  cprintf("Sleeping for 10 seconds...");
+  sleep(1000);
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
+  cprintf("10 seconds passed\n");
   // // ! Must be called before using processes !
   init_proc();
   // optional to call but still cool
@@ -74,5 +103,5 @@ void kmain(void) {
   print("we will never print this\n");
   print("death\n");
   PANIC("uh oh spaghettios %d", 5);
-  //poweroff();
+  poweroff();
 }
