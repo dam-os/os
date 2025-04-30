@@ -2,9 +2,6 @@
 #include "../drivers/uart.h"
 #include "../lib/common.h"
 
-// @TODO: Don't depend on stdarg.h!
-#include <stdarg.h>
-
 #define DIGIT_COUNT 36
 
 static const char DIGITS[DIGIT_COUNT] = "0123456789abcdefghijklmnopqrstuvwxyz";
