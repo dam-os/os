@@ -22,6 +22,7 @@ void kmain(void) {
 
   // ===== Init important stuff =====
   init_fdt(dtb_address);
+  init_uart();
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
 
@@ -33,7 +34,6 @@ void kmain(void) {
   init_heap(100);
 
   // === Get addresses from device tree === //
-  init_uart();
   init_system();
   init_timer();
   init_pci();
@@ -41,22 +41,10 @@ void kmain(void) {
   // ====== Normal code ====== //
 
   init_virtio_vga();
+
   // === FDT ===
   print_fdt();
-  fdt_node_t *node = find_node_by_name("cpus");
-  cprintf("Found node: %s\n", node->name);
-  print_node(node, 2);
 
-  // print("Before free:");
-  //
-  // print_heap_contents();
-
-  free_node(node);
-  // print("After free:");
-  //
-  // print_heap_contents();
-
-  init_virtio_vga();
   // === Timer test ===
   u64 start = mtime_get_time();
   // Wait 10 seconds

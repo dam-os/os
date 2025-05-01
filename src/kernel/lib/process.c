@@ -145,6 +145,8 @@ void init_proc(void) {
   current_proc = create_process(NULL, 1);
   current_proc->pid = 0;
   current_proc->state = PROCESS_RUNNABLE;
+
+  print("[process] Kernel process initialised.\n");
 }
 
 /**

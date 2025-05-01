@@ -229,6 +229,9 @@ void init_virtio_vga() {
 
   // mode13_demo(port0300);
   text_mode_demo(port0300);
+
+  print("[vga] VGA initialised\n");
+  print("[vga] Text mode enabled\n");
 }
 
 void debug_print_virtio() {

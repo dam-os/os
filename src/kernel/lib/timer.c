@@ -13,23 +13,15 @@ u32 TIMEBASE_FREQUENCY = NULL;
  */
 void init_timer(void) {
   // Get RISCV_CLINT_ADDR
-  fdt_node_t *clint = find_node_by_name("clint@");
-  RISCV_CLINT_ADDR = get_node_addr(clint->name);
-  free_node(clint);
+  char *clint = match_node("clint@");
+  RISCV_CLINT_ADDR = get_node_addr(clint);
 
   // Get TIMEBASE_FREQUENCY
-  fdt_node_t *cpus = find_node_by_name("cpus");
-  for (size_t i = 0; i < cpus->property_count; i++) {
-    if (cstrcmp((char *)cpus->properties[i].name, "timebase-frequency") == 0) {
-      TIMEBASE_FREQUENCY = swap_endian_32(*(u32 *)cpus->properties[i].value);
-      cprintf("[timer] Set timebase frequency: %d\n", TIMEBASE_FREQUENCY);
-      break;
-    }
-  }
-
-  free_node(cpus);
-
+  u32 *freq = match_node("cpus>timebase-frequency");
+  TIMEBASE_FREQUENCY = swap_endian_32(*freq);
   RISCV_MTIME_ADDR = (u64 *)(RISCV_CLINT_ADDR + 0xBFF8UL);
+
+  cprintf("[timer] Timer initialised with frequency %d\n", TIMEBASE_FREQUENCY);
 }
 
 u64 mtime_get_raw_time(void) {

@@ -171,62 +171,6 @@ void skip_node_not_nested(const u8 **ptr) {
   }
 }
 
-fdt_node_t *find_node_by_name(char *target) {
-  struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
-
-  uint32_t magic = swap_endian_32(hdr->magic);
-
-  if (magic != FDT_MAGIC) {
-    print("Invalid FDT magic number!\n");
-    return NULL;
-  }
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
-  uint32_t version = swap_endian_32(hdr->version);
-
-  kassert(version == 17);
-
-  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
-  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
-
-  const uint8_t *ptr = struct_block;
-
-  // cprintf("Looking for target node: %s\n", target);
-
-  u32 tok;
-  while (1) {
-    tok = go_to_next_token(&ptr);
-
-    switch (tok) {
-    case FDT_END:
-      return NULL;
-    case FDT_BEGIN_NODE: {
-      // Get node name and check if it matches
-      const char *name = (const char *)(ptr + 4);
-      if (startswith(target, (char *)name) != 0) {
-        // Skip node
-        skip_node_not_nested(&ptr);
-        break;
-      }
-
-      fdt_node_t *node = kmalloc(sizeof(fdt_node_t));
-      get_node(&ptr, strings_block, node);
-      return node;
-    }
-    case FDT_PROP:
-      skip_property(&ptr);
-      break;
-    case FDT_END_NODE:
-    default:
-    case FDT_NOP:
-      break;
-    }
-
-    ptr += 4;
-  }
-  return NULL;
-}
-
 u32 get_phandle(fdt_node_t *node) {
   for (size_t i = 0; i < node->property_count; i++) {
     if (cstrcmp((char *)node->properties[i].name, "phandle") == 0) {
@@ -437,4 +381,130 @@ void print_fdt(void) {
   get_node(&ptr, strings_block, node);
   print_node(node, 0);
   free_node(node);
+}
+
+void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
+  // Path is in the form node_name.prop_name. prop_name is optional.
+  char *node_name = path;
+  char *prop_name = path;
+  const char *current_node_name;
+
+  // Split the path into two separate variables, node_name and prop_name
+  while (1) {
+    prop_name++;
+    if (*prop_name == '>') {
+      // We have reached the separator, set separator to null so node_name
+      // terminates, and set prop_name to after the separator.
+      *prop_name = '\0';
+      prop_name++;
+      break;
+    }
+    if (*prop_name == '\0') {
+      // Node prop name has been provided.
+      prop_name = NULL;
+      break;
+    }
+  }
+
+  u32 tok;
+  while (1) {
+    tok = go_to_next_token(ptr);
+
+    switch (tok) {
+    case FDT_END:
+      return NULL;
+    case FDT_BEGIN_NODE:
+      current_node_name = (const char *)(*ptr + 4);
+      if (startswith(node_name, (char *)current_node_name) != 0) {
+        // Skip node
+        skip_node_not_nested(ptr);
+        break;
+      }
+
+      // Return node name if no prop was requested
+      if (prop_name == NULL) {
+        return (void *)current_node_name;
+      }
+
+      // Node found, now we continue to search for its props
+      break;
+    case FDT_PROP:
+      if (prop_name == NULL ||
+          startswith(node_name, (char *)current_node_name) != 0) {
+        // Skip prop
+        skip_property(ptr);
+        break;
+      }
+      *ptr += 4;
+      u32 len = swap_endian_32(*(u32 *)*ptr);
+      *ptr += 4;
+      u32 prop_name_offset = swap_endian_32(*(u32 *)*ptr);
+      *ptr += 4;
+
+      // Skip prop if not the one we're looking for
+      if (startswith(prop_name, (char *)(strings_block + prop_name_offset)) !=
+          0) {
+        *ptr += len;
+        align_pointer(ptr);
+        *ptr -= 4; // cause we add 4 at the end of the loop
+        break;
+      }
+
+      // Grab prop
+      return (void *)*ptr;
+
+    case FDT_END_NODE:
+    case FDT_NOP:
+    default:
+      break;
+    }
+
+    *ptr += 4;
+  }
+
+  return NULL;
+}
+
+/**
+ * Given a node path identifier, returns the address of the path target. A path
+ * has the following format:
+ * `node_identifier`>`prop_identifier`
+ * A `node_identifier` is the start of a node name such as "cpus" or "clint@".
+ * The `node_identifier` is the start of a prop name such as
+ * "timebase-frequency". The arrow (>) and `prop_identifier` are optional. If
+ * they are not specified, the full node name is returned. If they are
+ * specified, the prop value is returned.
+ * Examples:
+ * "clint@" -> return the address of the name of the clint node, which is
+ * "clint@<address>"
+ * "cpus>timebase-frequency" -> return the address of the prop
+ * value of the timebase-frequency prop in the cpus node.
+ */
+void *match_node(const char *path) {
+  int len = cstrlen((char *)path);
+  kassert(len < 256);
+
+  char str[256]; // Max path length
+  memcpy(path, str, len + 1);
+
+  struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
+
+  uint32_t magic = swap_endian_32(hdr->magic);
+
+  if (magic != FDT_MAGIC) {
+    print("Invalid FDT magic number!\n");
+    return NULL;
+  }
+  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
+  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
+  uint32_t version = swap_endian_32(hdr->version);
+
+  kassert(version == 17);
+
+  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
+  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+
+  const uint8_t *ptr = struct_block;
+
+  return scan_node_path(str, &ptr, strings_block);
 }
