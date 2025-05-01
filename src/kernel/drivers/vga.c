@@ -81,8 +81,8 @@ void print_screen_buf(char **buf) {
   for (int y = 0; y < 25; y++) {
     cprintf(buf[y]);
     for (int x = 0; x < 80; x++) {
-      // text_putfast(x, y, buf[y][x]);
-      // text_putchar(x, y, buf[y][x], 1);
+      text_putfast(x, y, buf[y][x]);
+      text_putchar(x, y, buf[y][x], 1);
     }
   }
 }
@@ -222,14 +222,7 @@ void init_text_mode(uint8_t *port0300) {
 
   set_colors(port0300, PALETTE_TEXT);
   load_font();
-  // for (int x = 0; x < 80; x++) {
-  //   for (int y = 0; y < 25; y++) {
-  //     text_putchar(x, y, 65, 1);
-  //   }
-  // }
-  // text_putchar(1, 0, 0, 1);
-  //
-  // set_cursor(port0300, 50, 15);
+  clear_screen();
 }
 
 void init_virtio_vga() {

@@ -66,33 +66,6 @@ void kmain(void) {
   cprintf("Sleeping for 10 seconds...");
   sleep(1000);
   cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
-  cprintf("10 seconds passed\n");
   // // ! Must be called before using processes !
   init_proc();
   // optional to call but still cool

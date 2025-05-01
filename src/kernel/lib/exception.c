@@ -48,10 +48,10 @@ __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
       "mv a0, sp\n" // set trapframe as argument for handle trap (top of kernel
                     // stack)
       "call handle_trap\n"
-      
-      "mv t0, sp\n" // Get top of kernel sp 
+
+      "mv t0, sp\n"           // Get top of kernel sp
       "addi t0, t0, 8 * 31\n" // remote trap args from kernel sp
-      "csrw mscratch, t0\n" // set mscratch back to kernel stack
+      "csrw mscratch, t0\n"   // set mscratch back to kernel stack
 
       "ld ra,  8 * 0(sp)\n"
       "ld gp,  8 * 1(sp)\n"
@@ -161,7 +161,6 @@ void handle_syscall(struct trap_frame *f) {
   case 3: {
     char x = kgetchar();
     f->a5 = x;
-    cprintf("%c", x);
     break;
   }
   case 4:
