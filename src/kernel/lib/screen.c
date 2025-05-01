@@ -17,15 +17,6 @@ void shift_up() {
   }
 }
 
-// void fill_test_data() {
-//   for (int i = 0; i < HEIGHT; i++) {
-//     for (int j = 0; j < WIDTH - 1; j++) {
-//       arr[i][j] = 'A' + (i % 26);
-//     }
-//     arr[i][WIDTH - 1] = '\0';
-//   }
-// }
-
 char sputchar(char c) {
   switch (c) {
   case '\n':

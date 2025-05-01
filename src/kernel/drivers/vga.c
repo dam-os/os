@@ -44,7 +44,7 @@ void write_to_ports(uint8_t *port0300, const PortWrites *mode) {
 void draw_pixel(int x, int y, uint8_t color) {
   volatile uint8_t *fb = (volatile uint8_t *)fb_base;
   int offset = (y * 320) + x;
-  fb[offset] = color; // Write color value
+  fb[offset] = color;
 }
 
 void clear_screen() {
