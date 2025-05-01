@@ -1,6 +1,7 @@
 #include "drivers/device_tree.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
+#include "drivers/uart.h"
 #include "drivers/vga.h"
 #include "lib/exception.h"
 #include "lib/print.h"
@@ -20,23 +21,31 @@ void kmain(void) {
   uintptr_t dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
+  // ===== Init important stuff =====
   init_fdt(dtb_address);
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
 
-  // ===== Init important stuff =====
-  // ! Must be called before using processes !
+  // === Set up processes === //
   init_proc();
-  // optional to call but still cool
+
+  // === Init memory === //
   init_mem_table();
   init_heap(100);
+
+  // === Get addresses from device tree === //
+  init_uart();
+  init_system();
   init_timer();
-  // ===== Don't touch anything above this line unless u smort =====
+  init_pci();
+
+  // ====== Normal code ====== //
 
   init_virtio_vga();
 
   // === FDT ===
-  fdt_node_t *node = find_fdt("cpus");
+  print_fdt();
+  fdt_node_t *node = find_node_by_name("cpus");
   cprintf("Found node: %s\n", node->name);
   print_node(node, 2);
 
@@ -96,9 +105,9 @@ void kmain(void) {
   __asm__ __volatile__("auipc t0, 0\n");
   __asm__ __volatile__(
       "addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after
-  yield;
   __asm__ __volatile__("csrw mepc, t0\n");
-  yield(); // WARNING: Kernel returns here in usermode!
+  yield();   // WARNING: Kernel returns here in usermode!
+  print(""); // Clears uart after user process
 
   print("we will never print this\n");
   print("death\n");

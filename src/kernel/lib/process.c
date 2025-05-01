@@ -1,4 +1,5 @@
 #include "process.h"
+#include "../drivers/pci.h"
 #include "../drivers/system.h"
 #include "../memory/memory.h"
 #include "../memory/paging.h"
@@ -53,8 +54,10 @@ proc_t *current_proc = NULL;
  * current_process, loading registers from next_processing, and jumping back to
  * user mode to the addr in mepc.
  */
-__attribute__((naked)) void switch_process(__attribute__((unused)) proc_t *_current_process,
-                                           __attribute__((unused)) proc_t *_next_process) {
+__attribute__((naked)) void switch_process(__attribute__((unused))
+                                           proc_t *_current_process,
+                                           __attribute__((unused))
+                                           proc_t *_next_process) {
   SAVE_AND_LOAD_REGISTERS();
 
   __asm__ __volatile__("mret");
@@ -101,7 +104,7 @@ proc_t *create_process(void *target_function, int isKernel) {
 
   process->reg.ra = (uint64_t)exit_proc_syscall;
 
-  print("[process] Mapping pages!\n");
+  // print("[process] Mapping pages!\n");
   uint64_t *page_table = (uint64_t *)alloc_pages(1);
 
 #define USER_BASE 0x1000000
@@ -112,8 +115,10 @@ proc_t *create_process(void *target_function, int isKernel) {
       map_virt_mem(page_table, paddr, paddr);
       paddr += PAGE_SIZE;
     }
+    uptr pci_base = get_pci_config_base();
+
     map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
-    for (int i = 0x30000000; i < 0x40000000; i += 0x1000)
+    for (int i = pci_base; i < pci_base + 0x10000000; i += PAGE_SIZE)
       map_virt_mem(page_table, i, i); // PCI
   } else {
 
