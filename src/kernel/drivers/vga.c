@@ -222,7 +222,7 @@ void init_text_mode(uint8_t *port0300) {
 
   set_colors(port0300, PALETTE_TEXT);
   load_font();
-  clear_screen();
+  // clear_screen();
 }
 
 void init_virtio_vga() {

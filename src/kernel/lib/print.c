@@ -22,6 +22,8 @@ void init_print(int mode) {
   }
 }
 
+void cputchar(char x) { putchar_func(x); }
+
 void print(const char *str) {
   while (*str != '\0') {
     putchar_func(*str);

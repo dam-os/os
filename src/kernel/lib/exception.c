@@ -160,11 +160,11 @@ void handle_syscall(struct trap_frame *f) {
     break;
   case 3: {
     char x = kgetchar();
+    cputchar(x);
     f->a5 = x;
     break;
   }
   case 4:
-    text_putchar(5, 0, (char)f->a1, 1);
     kputchar((char)f->a1);
     break;
   default:
