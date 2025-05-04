@@ -1,98 +1,72 @@
 #include "drivers/device_tree.h"
-#include "drivers/disk.h"
 #include "drivers/pci.h"
 #include "drivers/system.h"
+#include "drivers/uart.h"
+#include "drivers/vga.h"
 #include "lib/exception.h"
 #include "lib/print.h"
 #include "lib/process.h"
 #include "lib/string.h"
+#include "lib/timer.h"
 #include "memory/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging.h"
 #include "memory/virt_memory.h"
 
-#define PRINT_SYS_INFO 0
-
-struct proc *proc_a;
-struct proc *proc_b;
-struct proc *proc_c;
 extern char stack_top[];
-
-void proc_a_entry(void) {
-  cprintf("Starting process A\n");
-  for (int i = 0; i < 5; i++) {
-    cprintf("A running for the %d. time...\n", i + 1);
-    syscall(8, 0, 0, 0);
-  }
-  cprintf("Process A is done!\n");
-}
-
-void proc_b_entry(void) {
-  cprintf("Starting process B\n");
-  for (int i = 0; i < 8; i++) {
-    cprintf("B running for the %d. time...\n", i + 1);
-    syscall(8, 0, 0, 0);
-  }
-  cprintf("Process B is done!\n");
-}
+struct proc *proc_c;
 
 void kmain(void) {
   uintptr_t dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
-  if (PRINT_SYS_INFO)
-    read_fdt(dtb_address);
-
-  verify_disk();
+  // ===== Init important stuff =====
+  init_fdt(dtb_address);
+  init_uart();
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
 
-  cprintf("Stack top at: %p\n", stack_top);
-  // ! Must be called before using processes !
+  // === Set up processes === //
   init_proc();
-  // optional to call but still cool
+
+  // === Init memory === //
   init_mem_table();
   init_heap(100);
-  proc_a = create_process(proc_a_entry, 1);
-  proc_b = create_process(proc_b_entry, 1);
-  proc_c = create_process((void *)0x1000000, 0);
 
-  // Manually set registers since kenel cant do syscall
+  // === Get addresses from device tree === //
+  init_system();
+  init_timer();
+  init_pci();
+
+  // ====== Normal code ====== //
+
+  init_virtio_vga();
+
+  // === FDT ===
+  print_fdt();
+
+  // === Timer test ===
+  u64 start = mtime_get_time();
+  // Wait 10 seconds
+  cprintf("Sleeping for 5 second...");
+  sleep(5000);
+  cprintf("5 second passed\n");
+
+  // // ! Must be called before using processes !
+  // init_proc();
+  // // optional to call but still cool
+  proc_c = create_process((void *)0x1000000, 0);
+  //
+  // Manually set registers since kernel cant do syscall
   __asm__ __volatile__("csrw mscratch, sp\n");
   __asm__ __volatile__("auipc t0, 0\n");
   __asm__ __volatile__(
-      "addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after yield
+      "addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after
   __asm__ __volatile__("csrw mepc, t0\n");
-  yield(); // WARNING: Kernel returns here in usermode!
+  yield();   // WARNING: Kernel returns here in usermode!
+  print(""); // Clears uart after user process
 
-  print("\nAll processes finished execution!\n");
-
-  uint64_t page = alloc_pages(5);
-  alloc_pages(3);
-  free_pages(page, 5);
-  alloc_pages(3);
-
-  /* print format */
-  cprintf("hello %d\n", 1234567);
-  cprintf("hello %d\n", 12345678901);
-  cprintf("binary??? %b\n", 586);
-  cprintf("hex... %x, %x\n", 16, 500);
-  cprintf("bin... %b, %b\n", 16, 500);
-
-  int buf[64];
-  int *ptr = buf;
-
-  cprintf("ponter: %p\n%ld\n", ptr, ptr);
-  cprintf("%d\n", 98);
-  cprintf("%d\n", 99);
-  cprintf("%d\n", 100);
-  cprintf("%d\n", 101);
-
-  enumerate_pci();
-
-  PANIC("uh oh spaghettios %d", 5);
-  print("we will never print this");
-  print("\n");
+  print("we will never print this\n");
   print("death\n");
-  poweroff();
+  PANIC("uh oh spaghettios %d", 5);
 }

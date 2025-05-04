@@ -1,76 +1,108 @@
+#include "kheap.h"
 #include "../drivers/system.h"
+#include "../lib/assert.h"
 #include "../lib/common.h"
 #include "../lib/print.h"
 #include "memory.h"
 #include "paging.h"
 
-struct block {
-  size_t size;
-  struct block *next;
-  int free;
-} __attribute__((aligned(8)));
+#define DEBUG 0
 
-struct block *blocks = NULL;
+block_t *blocks = NULL;
 
-#define BLOCK_SIZE sizeof(struct block)
+#define BLOCK_SIZE sizeof(block_t)
 
 #define BLOCK_TO_PTR(b) ((void *)((char *)(b) + BLOCK_SIZE))
 
-#define PTR_TO_BLOCK(p) ((struct block *)((char *)(p) - BLOCK_SIZE))
+#define PTR_TO_BLOCK(p) ((block_t *)((char *)(p) - BLOCK_SIZE))
 
 #define TOTAL_BLOCK_SIZE(s) ((s) + BLOCK_SIZE)
 
 int max_size = 0;
 
 void print_heap_contents() {
-  struct block *current = blocks;
+  block_t *current = blocks;
   cprintf("Heap blocks:\n");
+  cprintf("  -------------------------\n");
   while (current != NULL) {
-    cprintf("  Block at %p:\n", (void *)current);
-    cprintf("  Size: %ld bytes\n", current->size - sizeof(struct block));
-    cprintf("  Status: %s\n", current->free ? "Free" : "Allocated");
-    cprintf("  Next Block: %p\n", (void *)current->next);
+    cprintf("  Address: 0x%p\n", (void *)current);
+    cprintf("  Size:    %ld bytes\n", current->size);
+    cprintf("  Alloced: %ld bytes\n", current->size - BLOCK_SIZE);
+    cprintf("  Status:  %s\n", current->free ? "Free" : "Allocated");
+    cprintf("  Next:    0x%p\n", (void *)current->next);
     cprintf("  -------------------------\n");
     current = current->next;
   }
 }
 int init_heap(int page_numbers) {
+  if (DEBUG) {
+    cprintf("BLOCK SIZE: %d\n", BLOCK_SIZE);
+  }
+
   void *pages = (void *)alloc_pages(page_numbers);
-  blocks = (struct block *)pages;
+  blocks = (block_t *)pages;
   max_size = page_numbers * PAGE_SIZE;
 
-  struct block init_block = {
-      max_size - sizeof(struct block),
+  block_t init_block = {
+      max_size - sizeof(block_t),
       NULL,
       1,
   };
 
   *blocks = init_block;
+
+  cprintf(
+      "[heap] Heap initialised with %d pages and a block size of %d bytes.\n",
+      page_numbers, BLOCK_SIZE);
   return 1;
 }
 
-void *kmalloc(int size) {
-  struct block *current = blocks;
+void *kmalloc(unsigned int size) {
+  if (DEBUG) {
+    print_heap_contents();
+    cprintf("Trying to allocate %d bytes\n", size);
+  }
+
+  block_t *current = blocks;
 
   while (current) {
     // if the block is free and big enough
-    if (current->free && current->size >= size) {
+    if (current->free && current->size - sizeof(block_t) >= size) {
       // if we need to split the block
-      if (current->size > size + sizeof(struct block)) {
-        // puts the new block in the available space in ram
-        struct block *new_block =
-            (struct block *)((char *)current + TOTAL_BLOCK_SIZE(size));
-        // new block is made smaller and we fix the linked list such that it
-        // points correctly
-        new_block->size = current->size - size - BLOCK_SIZE;
-        new_block->next = current->next;
-        new_block->free = 1;
-        // we set the size of the block we will use
-        current->size = size + BLOCK_SIZE;
-        current->next = new_block;
+      // A split requires that the current block has enough space to support
+      // 1. The new allocated size for left split
+      // 2. The block header for left split
+      // 3. At least 1 allocated byte for right split
+      // 4. The block header for right split
+      if (current->size > size + 1 + sizeof(block_t) * 2) {
+        block_t *old = current;
+        void *old_ptr = current;
+        block_t *left_split = (block_t *)old_ptr;
+        block_t *right_split = (block_t *)(old_ptr + TOTAL_BLOCK_SIZE(size));
+
+        // Set new block sizes
+        uptr old_end = (uptr)old_ptr + old->size;
+        left_split->size = TOTAL_BLOCK_SIZE(size);
+
+        uptr left_end = (uptr)left_split + left_split->size;
+        right_split->size = old_end - left_end;
+
+        // Update linked list references
+        right_split->next = old->next;
+        left_split->next = right_split;
+
+        // Allocate left, free right
+        left_split->free = 0;
+        right_split->free = 1;
       }
       // if the block is perfect size we just use that one
       current->free = 0;
+
+      if (DEBUG) {
+        cprintf("Allocated %d bytes at %p\n", size,
+                (void *)BLOCK_TO_PTR(current));
+        print_heap_contents();
+      }
 
       return BLOCK_TO_PTR(current);
     }
@@ -81,43 +113,65 @@ void *kmalloc(int size) {
 }
 
 int kfree(void *ptr) {
-  struct block *block = (struct block *)(ptr - sizeof(struct block));
-  block->free = 1;
-  // merge free blocks
-  struct block *current = block->next;
-  while (current) {
-    if (current && current && current->next) {
-      current->size += sizeof(struct block) + current->size;
-      current = current->next;
-    }
-    current = current->next;
+  if (DEBUG) {
+    print("Before free:");
+    print_heap_contents();
   }
+
+  block_t *block = (block_t *)(ptr - BLOCK_SIZE);
+  kassert(block->free == FALSE);
+  block->free = TRUE;
+
+  // Merge adjacent free blocks
+  block_t *current = block->next;
+
+  while (1) {
+    if (current && current->free) {
+      block->size += current->size;
+      block->next = current->next;
+
+      if (DEBUG) {
+        cprintf("Merged block at %p with next block at %p\n", (void *)block,
+                (void *)current);
+        print_heap_contents();
+      }
+
+      current = current->next;
+    } else {
+      break;
+    }
+  }
+
   return 1;
 }
 
-void *krealloc(void *ptr, int size) {
-  struct block *block = (struct block *)(ptr - sizeof(struct block));
+void *krealloc(void *ptr, unsigned int size) {
+  if (DEBUG)
+    cprintf("Trying to realloc ptr %p to size %d\n", ptr, size);
 
-  if (size < block->size - sizeof(struct block)) {
-    int remaining_size = block->size - size - sizeof(struct block);
-    cprintf("REMAINING SIZE %d\n", remaining_size);
-    if (remaining_size > sizeof(struct block)) {
-      struct block *new_block =
-          (struct block *)((char *)block + sizeof(struct block) + size);
+  block_t *block = (block_t *)(ptr - sizeof(block_t));
+
+  if (size < block->size - sizeof(block_t)) {
+    size_t remaining_size = block->size - size - sizeof(block_t);
+    if (DEBUG)
+      cprintf("REMAINING SIZE %d\n", remaining_size);
+
+    if (remaining_size > sizeof(block_t)) {
+      block_t *new_block = (block_t *)((char *)block + sizeof(block_t) + size);
       new_block->size = remaining_size;
       new_block->free = 1;
       new_block->next = block->next;
 
-      block->size = size + sizeof(struct block);
+      block->size = size + sizeof(block_t);
       block->next = new_block;
     }
 
     return ptr;
   }
 
-  int possible_size = block->size;
-  struct block *current = block->next;
-  struct block *prev = block;
+  size_t possible_size = block->size;
+  block_t *current = block->next;
+  block_t *prev = block;
   // check if we can expand current block
   while (possible_size < size && current) {
     if (current->free) {
@@ -129,17 +183,15 @@ void *krealloc(void *ptr, int size) {
     break;
   }
   if (possible_size >= size) {
-    struct block *new_block =
-        (struct block *)((char *)block + sizeof(struct block) + size);
+    block_t *new_block = (block_t *)((char *)block + sizeof(block_t) + size);
     block->next = new_block;
 
     new_block->next = current;
     new_block->free = 1;
-    new_block->size =
-        prev->size - (block->size - (size + sizeof(struct block)));
-    block->size = size + sizeof(struct block);
+    new_block->size = prev->size - (block->size - (size + sizeof(block_t)));
+    block->size = size + sizeof(block_t);
     block->next = new_block;
-    return ((void *)block + sizeof(struct block));
+    return ((void *)block + sizeof(block_t));
     // expand current block
   } else {
     // alloc new block and free the old

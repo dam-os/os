@@ -1,12 +1,11 @@
 #include "process.h"
+#include "../drivers/pci.h"
 #include "../drivers/system.h"
+#include "../memory/memory.h"
 #include "../memory/paging.h"
 #include "../memory/virt_memory.h"
 #include "exception.h"
 #include "print.h"
-#include "../memory/paging.h"
-#include "../memory/memory.h"
-
 
 // Assuming 2 proc_t struct arguments, saves current registers into arg 0 (a0),
 // and loads registers from arg 1 (a1)
@@ -55,8 +54,10 @@ proc_t *current_proc = NULL;
  * current_process, loading registers from next_processing, and jumping back to
  * user mode to the addr in mepc.
  */
-__attribute__((naked)) void switch_process(proc_t *current_process,
-                                           proc_t *next_process) {
+__attribute__((naked)) void switch_process(__attribute__((unused))
+                                           proc_t *_current_process,
+                                           __attribute__((unused))
+                                           proc_t *_next_process) {
   SAVE_AND_LOAD_REGISTERS();
 
   __asm__ __volatile__("mret");
@@ -67,7 +68,6 @@ extern char __kernel_base[], __free_ram_end[];
 extern char _binary_build_shell_bin_start[];
 extern char _binary_build_shell_bin_size[];
 extern char _binary_build_shell_bin_end[];
-
 
 proc_t *create_process(void *target_function, int isKernel) {
   proc_t *process = NULL;
@@ -104,19 +104,22 @@ proc_t *create_process(void *target_function, int isKernel) {
 
   process->reg.ra = (uint64_t)exit_proc_syscall;
 
-  print("Mapping pages!\r\n");
+  // print("[process] Mapping pages!\n");
   uint64_t *page_table = (uint64_t *)alloc_pages(1);
 
-  #define USER_BASE 0x1000000
+#define USER_BASE 0x1000000
 
   if (isKernel) {
-      uint64_t paddr = (uint64_t)__kernel_base;
-      while (paddr < (uint64_t)__free_ram_end) {
-        map_virt_mem(page_table, paddr, paddr);
-        paddr += PAGE_SIZE;
-      }
-      map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
-      for (int i = 0x30000000; i < 0x40000000; i += 0x1000) map_virt_mem(page_table, i, i); // PCI
+    uint64_t paddr = (uint64_t)__kernel_base;
+    while (paddr < (uint64_t)__free_ram_end) {
+      map_virt_mem(page_table, paddr, paddr);
+      paddr += PAGE_SIZE;
+    }
+    uptr pci_base = get_pci_config_base();
+
+    map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
+    for (int i = pci_base; i < pci_base + 0x10000000; i += PAGE_SIZE)
+      map_virt_mem(page_table, i, i); // PCI
   } else {
     print("User\n");
     // Map user pages
@@ -128,7 +131,7 @@ proc_t *create_process(void *target_function, int isKernel) {
       uint64_t remaining = image_size - off;
       uint64_t copy_size = PAGE_SIZE <= remaining ? PAGE_SIZE : remaining;
 
-      memcpy((char *)image + off, (char *) page, copy_size);
+      memcpy((char *)image + off, (char *)page, copy_size);
       map_virt_mem(page_table, USER_BASE + off, page);
     }
   }
@@ -144,6 +147,8 @@ void init_proc(void) {
   current_proc = create_process(NULL, 1);
   current_proc->pid = 0;
   current_proc->state = PROCESS_RUNNABLE;
+
+  print("[process] Kernel process initialised.\n");
 }
 
 /**
@@ -187,11 +192,11 @@ void yield(void) {
     next->state = PROCESS_RUNNABLE;
   }
   __asm__ __volatile__( // kinda hacky, save the entry sp to t6
-    "csrr t6, mscratch\n"            \
-    "csrw mscratch, %[mscratch]\n"
-    :
-    : [mscratch] "r" ((uint64_t) &next->exception_stack[sizeof(next->exception_stack)])
-  );
+      "csrr t6, mscratch\n"
+      "csrw mscratch, %[mscratch]\n"
+      :
+      : [mscratch] "r"(
+          (uint64_t)&next->exception_stack[sizeof(next->exception_stack)]));
 
   switch_process(curr, next); // ra becomes end of this
 }
@@ -206,6 +211,4 @@ void exit_proc(void) {
   yield();
 }
 
-void exit_proc_syscall(void) {
-  syscall(2, 0, 0, 0);
-}
+void exit_proc_syscall(void) { syscall(2, 0, 0, 0); }

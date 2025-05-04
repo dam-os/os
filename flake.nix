@@ -20,8 +20,6 @@
     devShells.x86_64-linux = {
       default = self.outputs.devShells.x86_64-linux.os;
       os = pkgs.mkShellNoCC {
-        ENVIRONMENT_VARIABLE = "value";
-
         packages = with pkgs;
           [
             coreboot-toolchain.riscv
@@ -30,8 +28,15 @@
           ]
           ++ [
             pwndbg.packages.x86_64-linux.default
-          ];
-        shellHook = "echo 'Happy hacking'";
+          ]
+          ++ (let
+            alias = name: text: pkgs.writeShellApplication {inherit name text;};
+          in [
+            # Dev commands
+            (alias "run" "make run")
+            (alias "debug" "make debug")
+            (alias "pwn" "pwndbg ./build/kernel.elf -ex 'target remote localhost:1234' -ex 'b *kmain' -ex 'c'")
+          ]);
       };
 
       uboot = let

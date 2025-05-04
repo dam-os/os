@@ -4,7 +4,6 @@
 #include "process.h"
 #include "../memory/virt_memory.h"
 
-
 __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
   __asm__ __volatile__("csrrw sp, mscratch, sp\n" // Set sp to kernel stack (mscratch written in process.c)
                        "addi sp, sp, -8 * 31\n"

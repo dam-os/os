@@ -1,7 +1,14 @@
+#include "../lib/common.h"
 #include "../lib/print.h"
-#include <stdint.h>
+#include "device_tree.h"
 
-#define PCI_CONFIG_BASE 0x30000000
+uptr PCI_CONFIG_BASE = NULL;
+
+void init_pci(void) {
+  PCI_CONFIG_BASE = get_node_addr(match_node("pci@"));
+
+  print("[pci] PCI config base initialised.\n");
+}
 
 // https://wiki.osdev.org/PCI#Enumerating_PCI_Buses
 // Read a 32-bit value from PCI configuration space
@@ -21,13 +28,21 @@ void pci_write_word(uint8_t bus, uint8_t device, uint8_t function,
   *addr = value;
 }
 
+uint32_t *pci_get_addr(uint8_t bus, uint8_t device, uint8_t function,
+                       uint8_t offset) {
+  uint32_t *addr = (uint32_t *)(PCI_CONFIG_BASE + (bus << 16) + (device << 11) +
+                                (function << 8) + offset);
+  return addr;
+}
+
 // Enumerate PCI buses, devices, and functions
 void enumerate_pci() {
   for (uint8_t bus = 0; bus < 255; bus++) { // Scan all PCI buses (0-255)
     for (uint8_t device = 0; device < 32;
          device++) { // Each bus has 32 possible devices
       uint32_t vendor_device_id = pci_read_word(bus, device, 0x00, 0x00);
-      if (vendor_device_id != 0xFFFFFFFF) { // 0xFFFFFFFF means "no device"
+      if (vendor_device_id !=
+          (uint32_t)0xFFFFFFFF) { // 0xFFFFFFFF means "no device"
         uint16_t vendor_id = vendor_device_id & 0xFFFF;
         uint16_t device_id = (vendor_device_id >> 16) & 0xFFFF;
         cprintf("PCI Device Found: Bus %d, Device %d, Function 0x00, Vendor: "
@@ -37,3 +52,5 @@ void enumerate_pci() {
     }
   }
 }
+
+uptr get_pci_config_base(void) { return PCI_CONFIG_BASE; }

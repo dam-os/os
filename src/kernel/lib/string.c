@@ -20,6 +20,21 @@ int cstrcmp(char *src, char *dest) {
   return 0;
 }
 
+int startswith(char *search, char *target) {
+  int l = cstrlen(search);
+  // can't have a search longer than the target now
+  if (l > cstrlen(target))
+    return -2;
+
+  for (int i = 0; i < l; i++) {
+    if (search[i] ^ target[i]) {
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
 void cstrcpy(char *src, char *dest) {
   for (int i = 0; i < cstrlen(src); i++) {
     dest[i] = src[i];

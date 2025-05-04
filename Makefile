@@ -39,6 +39,7 @@ define QFLAGS
 		-bios none \
 		-drive id=drive0,file=file.txt,format=raw,if=none \
         -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+		-device virtio-vga \
 		-kernel $(BUILDDIR)/kernel.elf \
 		-cpu rv64,pmp=false \
 		-serial mon:stdio
@@ -96,9 +97,12 @@ $(TESTBUILDDIR)/%.o: $(TESTDIR)/%.c | build_dirs
 run: damos
 	$(QEMU) $(QFLAGS)
 
-debug: damos
+tmux: damos
 	@tmux split-window -h
 	@tmux send-keys "gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'" C-m
+	$(QEMU) $(QFLAGS) -s -S -nographic
+
+debug: damos
 	$(QEMU) $(QFLAGS) -s -S -nographic
 
 # Run test kernel in QEMU
