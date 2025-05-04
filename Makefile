@@ -44,6 +44,17 @@ define QFLAGS
 		-cpu rv64,pmp=false \
 		-serial mon:stdio
 endef
+define QFLAGS-SPL
+		-machine virt \
+		-bios ../u-boot/spl/u-boot-spl.bin \
+		-drive id=drive0,file=file.txt,format=raw,if=none \
+        -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
+		-cpu rv64,pmp=false \
+		-serial mon:stdio \
+		-drive id=mysdcard,if=none,file=sdcard.img,format=raw,id=mydisk \
+		-device sdhci-pci \
+		-device sd-card,drive=mysdcard
+endef
 
 # Main kernel build (uses kernel.c)
 damos: clean build_dirs $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS)
@@ -52,6 +63,8 @@ damos: clean build_dirs $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS)
 	$(OBJCOPY) -Ibinary -Oelf64-littleriscv $(BUILDDIR)/shell.bin $(BUILDDIR)/shell.bin.o
 
 	$(CC) $(LDFLAGS) $(BUILDDIR)/shell.bin.o $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
+	
+	riscv64-elf-objcopy -O binary $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.bin
 
 # Test kernel build (uses test_kernel.c)
 test_kernel: clean build_dirs $(TEST_KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) $(TEST_OBJECTS)
@@ -99,3 +112,6 @@ run_test: test_kernel
 # Cleanup
 clean:
 	rm -rf $(BUILDDIR)/*
+
+sdcard:
+	$(QEMU) $(QFLAGS-SPL)

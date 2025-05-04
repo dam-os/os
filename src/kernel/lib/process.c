@@ -121,13 +121,13 @@ proc_t *create_process(void *target_function, int isKernel) {
     for (int i = pci_base; i < pci_base + 0x10000000; i += PAGE_SIZE)
       map_virt_mem(page_table, i, i); // PCI
   } else {
-
+    print("User\n");
     // Map user pages
     uint64_t image_size = (uint64_t)_binary_build_shell_bin_size;
     uint64_t image = (uint64_t)_binary_build_shell_bin_start;
     for (uint64_t off = 0; off < image_size; off += PAGE_SIZE) {
-      uint64_t page = alloc_pages(1);
-
+      uint64_t page =  alloc_pages(1);
+      
       uint64_t remaining = image_size - off;
       uint64_t copy_size = PAGE_SIZE <= remaining ? PAGE_SIZE : remaining;
 
@@ -135,6 +135,8 @@ proc_t *create_process(void *target_function, int isKernel) {
       map_virt_mem(page_table, USER_BASE + off, page);
     }
   }
+  print("DONE\n");
+
 
   process->page_table = page_table;
   return process;
