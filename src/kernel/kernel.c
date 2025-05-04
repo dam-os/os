@@ -23,6 +23,7 @@ void kmain(void) {
 
   // ===== Init important stuff =====
   init_fdt(dtb_address);
+  init_uart();
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
 
@@ -34,7 +35,6 @@ void kmain(void) {
   init_heap(100);
 
   // === Get addresses from device tree === //
-  init_uart();
   init_system();
   init_timer();
   init_pci();
@@ -45,18 +45,6 @@ void kmain(void) {
 
   // === FDT ===
   print_fdt();
-  fdt_node_t *node = find_node_by_name("cpus");
-  cprintf("Found node: %s\n", node->name);
-  print_node(node, 2);
-
-  // print("Before free:");
-  //
-  // print_heap_contents();
-
-  free_node(node);
-  // print("After free:");
-  //
-  // print_heap_contents();
 
   // === Timer test ===
   init_print(1);

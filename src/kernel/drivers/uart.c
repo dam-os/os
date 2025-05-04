@@ -1,4 +1,5 @@
 #include "../lib/common.h"
+#include "../lib/print.h"
 #include "device_tree.h"
 
 uptr UART_BASE = NULL;
@@ -9,11 +10,12 @@ volatile u8 *UART_LSR = NULL;
 
 void init_uart(void) {
   // Get serial node
-  fdt_node_t *serial = find_node_by_name("serial@");
-  UART_BASE = get_node_addr(serial->name);
+  char *serial = match_node("serial@");
+  UART_BASE = get_node_addr(serial);
   UART_DATA = (volatile u8 *)(UART_BASE + 0x00);
   UART_LSR = (volatile u8 *)(UART_BASE + 0x05);
-  free_node(serial);
+
+  print("[uart] UART initialised. Printing ready.\n");
 }
 
 char kgetchar(void) {

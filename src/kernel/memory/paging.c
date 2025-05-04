@@ -52,8 +52,9 @@ void init_mem_table() {
   }
   basec = base;
 
-  // cprintf("[paging] Free RAM starts at: %p\n", __free_ram);
-  // cprintf("[paging] base memory for paging starts at: %p\n", __free_ram);
+  print("[paging] Memory table initialised.\n");
+  cprintf("[paging] Free RAM starts at: %p\n", __free_ram);
+  cprintf("[paging] Base memory for paging starts at: %p\n", __free_ram);
 }
 
 void printBits(unsigned char byte) {

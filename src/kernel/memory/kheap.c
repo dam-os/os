@@ -50,6 +50,10 @@ int init_heap(int page_numbers) {
   };
 
   *blocks = init_block;
+
+  cprintf(
+      "[heap] Heap initialised with %d pages and a block size of %d bytes.\n",
+      page_numbers, BLOCK_SIZE);
   return 1;
 }
 
