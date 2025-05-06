@@ -8,6 +8,8 @@ u32 RISCV_CLINT_ADDR = NULL;
 u64 *RISCV_MTIME_ADDR = NULL;
 u32 TIMEBASE_FREQUENCY = NULL;
 
+u64 stopwatch_last_timestamp = 0;
+
 /**
  * Finds the timebase frequency from the device tree to calibrate the timer.
  */
@@ -21,6 +23,7 @@ void init_timer(void) {
   TIMEBASE_FREQUENCY = swap_endian_32(*freq);
   RISCV_MTIME_ADDR = (u64 *)(RISCV_CLINT_ADDR + 0xBFF8UL);
 
+  stopwatch_last_timestamp = mtime_get_microseconds();
   cprintf("[timer] Timer initialised with frequency %d\n", TIMEBASE_FREQUENCY);
 }
 
@@ -30,16 +33,30 @@ u64 mtime_get_raw_time(void) {
   return *mtime;
 }
 
-u64 mtime_get_time(void) {
+u64 mtime_get_scaled_time(u32 scale) {
   u64 time = mtime_get_raw_time();
-
-  u64 ms = time / (TIMEBASE_FREQUENCY / 1000);
-  return ms;
+  // Convert to microseconds
+  u64 us = time / (TIMEBASE_FREQUENCY / scale);
+  return us;
 }
 
+u64 mtime_get_microseconds(void) { return mtime_get_scaled_time(1000000); }
+
+u64 mtime_get_milliseconds(void) { return mtime_get_scaled_time(1000); }
+
 void sleep(u64 ms) {
-  u64 start = mtime_get_time();
-  while (mtime_get_time() - start < ms) {
+  u64 start = mtime_get_milliseconds();
+  while (mtime_get_milliseconds() - start < ms) {
     __asm__ __volatile__("nop");
   }
+}
+
+void stopwatch(const char *message) {
+  u64 difference = mtime_get_microseconds() - stopwatch_last_timestamp;
+  if (difference > 10000) {
+    cprintf("[stopwatch] %s: %d ms\n", message, difference / 1000);
+  } else {
+    cprintf("[stopwatch] %s: %d μs\n", message, difference);
+  }
+  stopwatch_last_timestamp = mtime_get_microseconds();
 }

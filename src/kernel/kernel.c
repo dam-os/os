@@ -23,34 +23,43 @@ void kmain(void) {
   // ===== Init important stuff =====
   init_fdt(dtb_address);
   init_uart();
+  init_timer();
+  stopwatch("FDT, UART and Timer initialisation");
 
   WRITE_CSR(mtvec, (uint64_t)kernel_entry);
+  stopwatch("Wrote DSR");
 
   // === Set up processes === //
   init_proc();
+  stopwatch("Process initialisation");
 
   // === Init memory === //
   init_mem_table();
+  stopwatch("Memory table initialisation");
   init_heap(100);
+  stopwatch("Heap initialisation");
 
   // === Get addresses from device tree === //
   init_system();
-  init_timer();
+  stopwatch("System initialisation");
   init_pci();
+  stopwatch("PCI initialisation");
 
   // ====== Normal code ====== //
 
   init_virtio_vga();
+  stopwatch("VGA initialisation");
 
   // === FDT ===
-  print_fdt();
+  // print_fdt();
 
   // === Timer test ===
-  u64 start = mtime_get_time();
+  u64 start = mtime_get_milliseconds();
   // Wait 10 seconds
   cprintf("Sleeping for 5 second...");
   sleep(5000);
   cprintf("5 second passed\n");
+  stopwatch("5 second sleep");
 
   // // ! Must be called before using processes !
   // init_proc();
