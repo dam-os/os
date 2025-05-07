@@ -1,14 +1,32 @@
 #include "print.h"
 #include "../drivers/uart.h"
 #include "../lib/common.h"
+#include "../lib/screen.h"
+
+char (*putchar_func)(char) = &kputchar;
+// @TODO: Don't depend on stdarg.h!
+#include <stdarg.h>
 
 #define DIGIT_COUNT 36
 
 static const char DIGITS[DIGIT_COUNT] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
+void init_print(int mode) {
+  switch (mode) {
+  case 0:
+    putchar_func = &kputchar;
+    break;
+  case 1:
+    putchar_func = &sputchar;
+    break;
+  }
+}
+
+void cputchar(char x) { putchar_func(x); }
+
 void print(const char *str) {
   while (*str != '\0') {
-    kputchar(*str);
+    putchar_func(*str);
     str++;
   }
 }
@@ -22,7 +40,7 @@ void cvprintf_int(int v, int base, int digits) {
     v /= base;
   } while (v);
   while (p != buf) {
-    kputchar(*--p);
+    putchar_func(*--p);
   }
 }
 void cvprintf_u64_t(u64 v, int base, int digits) {
@@ -32,17 +50,17 @@ void cvprintf_u64_t(u64 v, int base, int digits) {
     v /= base;
   } while (v);
   while (p != buf) {
-    kputchar(*--p);
+    putchar_func(*--p);
   }
 }
 
 void cvprintf(const char **str, va_list *ap) {
   switch (*(*str)) {
   case '%':
-    kputchar('%');
+    putchar_func('%');
     break;
   case 'c':
-    kputchar(va_arg(*ap, int));
+    putchar_func(va_arg(*ap, int));
     break;
   case 's':
     cvprintf_str(va_arg(*ap, char *));
@@ -80,7 +98,7 @@ void cprintf(const char *str, ...) {
       cvprintf(&str, &ap);
       break;
     default:
-      kputchar(*str);
+      putchar_func(*str);
     }
     str++;
   }
@@ -89,6 +107,6 @@ void cprintf(const char *str, ...) {
 }
 
 void print_char_hex(char c) {
-  kputchar(DIGITS[(c >> 4) & 0xF]); // Print upper 4 bits
-  kputchar(DIGITS[c & 0xF]);        // Print lower 4 bits
+  putchar_func(DIGITS[(c >> 4) & 0xF]); // Print upper 4 bits
+  putchar_func(DIGITS[c & 0xF]);        // Print lower 4 bits
 }

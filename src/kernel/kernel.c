@@ -6,6 +6,7 @@
 #include "lib/exception.h"
 #include "lib/print.h"
 #include "lib/process.h"
+#include "lib/screen.h"
 #include "lib/string.h"
 #include "lib/timer.h"
 #include "memory/kheap.h"
@@ -54,18 +55,19 @@ void kmain(void) {
   // print_fdt();
 
   // === Timer test ===
-  u64 start = mtime_get_milliseconds();
+  init_print(1);
   // Wait 10 seconds
   cprintf("Sleeping for 5 second...");
   sleep(5000);
   cprintf("5 second passed\n");
   stopwatch("5 second sleep");
-
   // // ! Must be called before using processes !
-  // init_proc();
-  // // optional to call but still cool
+  init_proc();
+  // optional to call but still cool
+  init_mem_table();
+  init_heap(100);
   proc_c = create_process((void *)0x1000000, 0);
-  //
+
   // Manually set registers since kernel cant do syscall
   __asm__ __volatile__("csrw mscratch, sp\n");
   __asm__ __volatile__("auipc t0, 0\n");
@@ -78,4 +80,5 @@ void kmain(void) {
   print("we will never print this\n");
   print("death\n");
   PANIC("uh oh spaghettios %d", 5);
+  poweroff();
 }
