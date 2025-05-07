@@ -5,6 +5,7 @@
 #include "../lib/string.h"
 #include "../memory/kheap.h"
 #include "../memory/memory.h"
+#include "system.h"
 
 uptr fdt_addr = NULL;
 
@@ -371,25 +372,216 @@ void print_fdt(void) {
   free_node(node);
 }
 
+/*
+ * Iterates through all the props of the node at ptr, until it finds one whose
+ * name matches prop_name. If no such prop is found, returns NULL. If prop_value
+ * is not NULL, the value is also checked. If the value does not match, NULL is
+ * returned. If everything matches, the value is returned.
+ * value_type has the following values determines the data type of the
+ * prop_value parameter. It is typed in the function header as a char * for
+ * compatibility.
+ */
+void *check_node_props(const u8 *ptr, const u8 *strings_block, char *prop_name,
+                       char *prop_value, u8 value_type, u8 *state) {
+  u32 tok = token(ptr), prop_name_off, found_len;
+  char *found_name;
+  void *found_value;
+  kassert(tok == FDT_BEGIN_NODE);
+  ptr += 4;
+
+  while (1) {
+    tok = go_to_next_token(&ptr);
+
+    switch (tok) {
+    case FDT_PROP:
+      found_len = swap_endian_32(*(u32 *)(ptr + 4));
+      prop_name_off = swap_endian_32(*(u32 *)(ptr + 8));
+      found_name = (char *)(strings_block + prop_name_off);
+      if (cstrcmp(prop_name, found_name) != 0) {
+        // Not the prop we are looking for, skip it
+        skip_property(&ptr);
+        break;
+      }
+      found_value = (void *)(ptr + 12);
+
+      u8 negate = (value_type & PROP_CMP_NEG);
+      u8 match_result;
+      if (value_type & PROP_CMP_NIL) {
+        // No value provided to check, so we just return this one
+        *state = PROP_STATE_GOOD_MATCH;
+        return found_value;
+      } else if (value_type & PROP_CMP_STR) {
+        // Compare string value
+        match_result = cstrcmp(prop_value, found_value) == 0;
+        if (negate ? !match_result : match_result) {
+          *state = PROP_STATE_GOOD_MATCH;
+          return found_value;
+        }
+      } else if (value_type & PROP_CMP_U64) {
+        // Compare u64 value
+        match_result = swap_endian_64(*(u64 *)found_value) == (u64)prop_value;
+        if (negate ? !match_result : match_result) {
+          *state = PROP_STATE_GOOD_MATCH;
+          return found_value;
+        }
+      } else if (value_type & PROP_CMP_U32) {
+        // Compare u32 value
+        // TODO: value_type might be incorrectly set to u32 here if it's a u64
+        // that only uses the lower 32 bits. This means we only compare the
+        // lower 32 bits of the found value, the higher bits may be important!
+        match_result =
+            swap_endian_32(*(u32 *)found_value) == (u32)(u64)prop_value;
+        if (negate ? !match_result : match_result) {
+          *state = PROP_STATE_GOOD_MATCH;
+          return found_value;
+        }
+      } else {
+        PANIC("Unexpected prop value comparison type");
+      }
+      // No matched conditions returned, skip the prop and try the next one
+      *state = PROP_STATE_BAD_MATCH;
+      skip_property(&ptr);
+      break;
+    case FDT_NOP:
+      break;
+    case FDT_BEGIN_NODE:
+    case FDT_END_NODE:
+    case FDT_END:
+      *state = PROP_STATE_NOT_FOUND;
+      return NULL;
+    default:
+      PANIC("Unexpected token");
+    }
+  }
+}
+
 void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
   // Path is in the form node_name.prop_name. prop_name is optional.
   char *node_name = path;
+  char *search_prop_name = NULL;
+  char *search_prop_value = NULL;
+  u8 search_prop_type = PROP_CMP_NIL;
   char *prop_name = path;
   const char *current_node_name;
+  u8 loop = TRUE;
 
   // Split the path into two separate variables, node_name and prop_name
-  while (1) {
+  prop_name--; // don't skip first char
+  while (loop) {
     prop_name++;
-    if (*prop_name == '*') {
-      // We have reached the separator, set separator to null so node_name
-      // terminates, and set prop_name to after the separator.
+    switch (*prop_name) {
+    case '[':
+      // We have reached the start of a prop name lookup, set bracket to null
+      // so node_name terminates, and set search_prop_name to after the
+      // bracket.
       *prop_name = '\0';
       prop_name++;
+      search_prop_name = prop_name;
+      search_prop_type = search_prop_type & ~PROP_CMP_NIL;
       break;
-    }
-    if (*prop_name == '\0') {
-      // Node prop name has been provided.
+
+    case '?':
+      // We have reached start of a prop value lookup, but optional
+      *prop_name = '\0';
+      search_prop_type |= PROP_CMP_OPT;
+      break;
+
+    case '!':
+      // We have reached the start of a prop value lookup, but negative
+      *prop_name = '\0';
+      search_prop_type |= PROP_CMP_NEG;
+      break;
+
+    case '=':
+      // We have reached the start of a prop value lookup, set equals to null
+      // so search_prop_name terminates, and set search_prop_value to after
+      // the equals.
+      *prop_name = '\0';
+      search_prop_value = prop_name + 1;
+      break;
+
+    case '\'':
+      // The quote means that the prop value lookup is a string. We need to
+      // determine whether this is the start of the string, or the end of it
+      if (*search_prop_value == '\'') {
+        // The first character of the search value is ', so it is the start of
+        // the string. Increment search_prop_value as it should not include the
+        // quotes.
+        search_prop_value++;
+        search_prop_type |= PROP_CMP_STR;
+      } else {
+        // It is not the start of the string, set it to null so that
+        // search_prop_value does not include the quote
+        *prop_name = '\0';
+        prop_name++; // Next char is expected to be ]
+        kassert(*prop_name == ']');
+      }
+      break;
+    case '<':
+      // The open angle bracket means that the prop value lookup is a hex
+      // string. To indicate this, we set prop_value_type to the smallest
+      // integer value, u32.
+      search_prop_value = 0;
+      search_prop_type |= PROP_CMP_U32;
+      break;
+    case '>':
+      // The open angle bracket means the hex string is now finished. The next
+      // char is expected to be ]
+      kassert(*(prop_name + 1) == ']');
+      break;
+    case '0' ... '9':
+    case 'a' ... 'f':
+    case 'A' ... 'F':
+      // Only match hexadecimal digits if prop_value_type is of an integer type.
+      // Else, we skip.
+      if (!(search_prop_type & PROP_CMP_MASK_INT)) {
+        // We're not supposed to match these chars
+        break;
+      }
+      // Note that this part will never run if we were currently located in
+      // node_name, search_prop_name or property_name, as prop_value_type does
+      // not get set until after node_name/search_prop_name, and the loop ends
+      // as soon as property_name is reached.
+
+      // Change prop_value_type if it would become too big, convert to integer,
+      // add to search_prop_value.
+      // Need to do some casting shenanigans because search_prop_value is typed
+      // as a char *, but we're using it as an u64/u32. In cases where it's used
+      // as a u32, it first needs to be cast to a u64.
+      if ((search_prop_type & PROP_CMP_U32) &&
+          ((u32)(u64)search_prop_value) > U32_MAX / 16) {
+        // Multiplying by 16 would put us above the u32 max, so update type to
+        // u64. Need to remove the U32 bit and add the U64 bit
+        search_prop_type = (search_prop_type & ~PROP_CMP_U32) | PROP_CMP_U64;
+      }
+
+      s8 val = hex_char_to_int(*prop_name);
+      if (search_prop_type & PROP_CMP_U32) {
+        u32 new_val = (((u32)(u64)search_prop_value) << 4) | val;
+        search_prop_value = (void *)(u64)new_val;
+      } else if (search_prop_type & PROP_CMP_U64) {
+        u64 new_val = ((u64)search_prop_value) << 4 | val;
+        search_prop_value = (void *)new_val;
+      } else {
+        PANIC("Invalid prop_value_type %b", search_prop_type);
+      }
+      break;
+
+    case '*':
+      // We have reached the separator, set separator to null so node_name
+      // terminates, and set prop_name to after the separator. No need to
+      // continue at this point, as prop_name is the final element in the
+      // search string
+      *prop_name = '\0';
+      prop_name++;
+      loop = FALSE;
+      break;
+
+    case '\0':
+      // Null terminator encountered before seeing '*', so no prop_name was
+      // specified
       prop_name = NULL;
+      loop = FALSE;
       break;
     }
   }
@@ -409,38 +601,53 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
         break;
       }
 
-      // Return node name if no prop was requested
-      if (prop_name == NULL) {
+      // Return node name if (1) no prop was requested and (2) no search prop
+      // was specified
+      if (prop_name == NULL && (search_prop_type == PROP_CMP_NIL)) {
         return (void *)current_node_name;
       }
 
-      // Node found, now we continue to search for its props
-      break;
+      void *value;
+      u8 state;
+      // Node name matched, check if any props match
+      // If a search prop is specified, need to verify that this node contains
+      // the required prop first
+      if (!(search_prop_type & PROP_CMP_NIL)) {
+        // Note that we're passing a copy of ptr, as we don't want
+        // check_node_props to modify it. Once it finds a match, we need to go
+        // back to the start of the node to look through all its props again to
+        // find the actual target prop, which we would have to do manually if
+        // ptr was moved here.
+        value = check_node_props(*ptr, strings_block, search_prop_name,
+                                 search_prop_value, search_prop_type, &state);
+        if ((state == PROP_STATE_NOT_FOUND &&
+             !(search_prop_type & PROP_CMP_OPT)) ||
+            (state == PROP_STATE_BAD_MATCH)) {
+          // Either (1) no matching prop name was found, and optional flag was
+          // not set or (2) a matching prop was found, but the value did not
+          // match
+          skip_node_not_nested(ptr);
+          break;
+        }
+      }
+      // Valid match was found. If no prop_name is specified, return node name.
+      if (prop_name == NULL) {
+        return (void *)current_node_name;
+      }
+      // Else, we look through the props for the actual target prop
+      value = check_node_props(*ptr, strings_block, prop_name, NULL,
+                               search_prop_type, &state);
+      if (state == PROP_STATE_NOT_FOUND) {
+        // No prop was found that matches the name, so continue to next node
+        skip_node_not_nested(ptr);
+        break;
+      }
+      return value;
     case FDT_PROP:
-      if (prop_name == NULL ||
-          startswith(node_name, (char *)current_node_name) != 0) {
-        // Skip prop
-        skip_property(ptr);
-        break;
-      }
-      *ptr += 4;
-      u32 len = swap_endian_32(*(u32 *)*ptr);
-      *ptr += 4;
-      u32 prop_name_offset = swap_endian_32(*(u32 *)*ptr);
-      *ptr += 4;
-
-      // Skip prop if not the one we're looking for
-      if (startswith(prop_name, (char *)(strings_block + prop_name_offset)) !=
-          0) {
-        *ptr += len;
-        align_pointer(ptr);
-        *ptr -= 4; // cause we add 4 at the end of the loop
-        break;
-      }
-
-      // Grab prop
-      return (void *)*ptr;
-
+      // We should in theory never end up here, as all prop parsing should
+      // happen in the FDT_BEGIN_NODE section
+      skip_property(ptr);
+      break;
     case FDT_END_NODE:
     case FDT_NOP:
     default:
@@ -454,8 +661,8 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
 }
 
 /**
- * Given a node path identifier, returns the address of the path target. A path
- * has the following format:
+ * Given a node path identifier, returns the address of the path target. A
+ * path has the following format:
  * `node_identifier`*`prop_identifier`
  * A `node_identifier` is the start of a node name such as "cpus" or "clint@".
  * The `node_identifier` is the start of a prop name such as

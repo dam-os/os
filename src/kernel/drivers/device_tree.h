@@ -11,6 +11,22 @@
 
 #define FDT_MAGIC 0xD00DFEED
 
+#define PROP_CMP_NIL (0b00000001) /* No value provided */
+#define PROP_CMP_STR (0b00000010) /* Value is a string */
+#define PROP_CMP_U64 (0b00000100) /* Value is a u64 */
+#define PROP_CMP_U32 (0b00001000) /* Value is a u32 */
+
+/* Key is optional, match if it doesn't exist */
+#define PROP_CMP_OPT (0b01000000)
+#define PROP_CMP_NEG (0b10000000) /* Negate the match on the value */
+
+#define PROP_CMP_MASK_INT (0b00001100) /* Mask for integer types */
+
+#define PROP_STATE_NOT_FOUND (0x01) /* No prop name was found */
+/* Prop name was found, but value did not match */
+#define PROP_STATE_BAD_MATCH (0x02)
+#define PROP_STATE_GOOD_MATCH (0x03) /* Prop name and value matched */
+
 struct fdt_header {
   u32 magic;
   u32 totalsize;
