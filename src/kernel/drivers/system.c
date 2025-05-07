@@ -2,6 +2,7 @@
 #include "../lib/common.h"
 #include "../lib/io.h"
 #include "../lib/string.h"
+#include "../memory/kheap.h"
 #include "device_tree.h"
 
 uptr SYSCON_ADDR = NULL;
@@ -16,9 +17,10 @@ void init_system(void) {
   POWEROFF_REGMAP = *(u32 *)match_node("poweroff*regmap");
 
   // Get node with phandle = POWEROFF_REGMAP
-  fdt_node_t *syscon = find_node_by_phandle(POWEROFF_REGMAP);
-  SYSCON_ADDR = get_node_addr(syscon->name);
-  free_node(syscon);
+  char *search = kmalloc(32);
+  csprintf(search, "[phandle=<%x>]", swap_endian_32(POWEROFF_REGMAP));
+  char *syscon = match_node(search);
+  SYSCON_ADDR = get_node_addr(syscon);
 
   print("[system] System functions initialised, ready to call poweroff\n");
 }

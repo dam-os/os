@@ -58,7 +58,7 @@ void kmain(void) {
   stopwatch("VGA initialisation");
 
   // === FDT ===
-  print_fdt();
+  // print_fdt();
 
   // Change stdout to print to screen instead of uart
   stdout = &stdout_screen;
