@@ -51,7 +51,7 @@ void kmain(void) {
   stopwatch("VGA initialisation");
 
   // === FDT ===
-  // print_fdt();
+  print_fdt();
 
   // === Timer test ===
   u64 start = mtime_get_milliseconds();
