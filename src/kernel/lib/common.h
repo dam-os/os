@@ -4,11 +4,12 @@
 // === Types ===
 
 typedef unsigned char u8;
-typedef unsigned short u16;
+typedef unsigned short int u16;
 typedef unsigned int u32;
-typedef unsigned long long u64;
-typedef u64 uptr;
-typedef u64 size_t;
+typedef unsigned long int u64;
+typedef unsigned long int uptr;
+
+typedef __SIZE_TYPE__ size_t;
 
 // === Constants ===
 
