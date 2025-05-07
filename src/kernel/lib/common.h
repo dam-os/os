@@ -22,6 +22,11 @@ typedef __SIZE_TYPE__ size_t;
 #define TRUE 1
 #define FALSE 0
 
+#define U8_MAX (0xff)
+#define U16_MAX (0xffff)
+#define U32_MAX (0xffffffffU)
+#define U64_MAX (0xffffffffffffffffUL)
+
 // === Aliases ===
 /**
  * Variable Argument (VA) aliases are taken from the LLVM Project source code,
