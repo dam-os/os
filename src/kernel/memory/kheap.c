@@ -195,19 +195,16 @@ void *krealloc(void *ptr, unsigned int new_size) {
 
   if (new_size <= block_size_minus_struct) {
     if (block_can_shrink(block, new_size)) {
-      cprintf("SHRINK %p %d\n", block, new_size);
       return shrink_block(block, new_size);
     }
     return ptr;
   }
 
   if (block_can_grow(block, new_size)) {
-    cprintf("GROW %p %d\n", block, new_size);
     return grow_block(block, new_size);
   }
 
   void *new_ptr = kmalloc(new_size);
-  cprintf("MALLOC NEW %p %d\n", new_ptr, new_size);
   if (!new_ptr)
     return NULL;
 
