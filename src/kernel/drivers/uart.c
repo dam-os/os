@@ -10,7 +10,7 @@ volatile u8 *UART_LSR = NULL;
 
 void init_uart(void) {
   // Get serial node
-  char *serial = match_node("serial@");
+  char *serial = match_node("serial@[status?='okay']");
   UART_BASE = get_node_addr(serial);
   UART_DATA = (volatile u8 *)(UART_BASE + 0x00);
   UART_LSR = (volatile u8 *)(UART_BASE + 0x05);
