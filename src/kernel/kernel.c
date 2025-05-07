@@ -18,7 +18,7 @@ extern char stack_top[];
 struct proc *proc_c;
 
 void kmain(void) {
-  uintptr_t dtb_address;
+  uptr dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
   // ===== Init important stuff =====
@@ -27,7 +27,7 @@ void kmain(void) {
   init_timer();
   stopwatch("FDT, UART and Timer initialisation");
 
-  WRITE_CSR(mtvec, (uint64_t)kernel_entry);
+  WRITE_CSR(mtvec, (u64)kernel_entry);
   stopwatch("Wrote DSR");
 
   // === Set up processes === //

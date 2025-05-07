@@ -175,22 +175,22 @@ u32 get_phandle(fdt_node_t *node) {
 fdt_node_t *find_node_by_phandle(u32 phandle) {
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endian_32(hdr->magic);
+  u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return NULL;
   }
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
-  uint32_t version = swap_endian_32(hdr->version);
+  u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
+  u32 strings_offset = swap_endian_32(hdr->off_dt_strings);
+  u32 version = swap_endian_32(hdr->version);
 
   kassert(version == 17);
 
-  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
-  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+  const u8 *struct_block = (u8 *)fdt_addr + struct_offset;
+  const u8 *strings_block = (u8 *)fdt_addr + strings_offset;
 
-  const uint8_t *ptr = struct_block;
+  const u8 *ptr = struct_block;
 
   // cprintf("Looking for target node: %s\n", target);
 
@@ -349,22 +349,22 @@ void free_node(fdt_node_t *node_ptr) {
 void print_fdt(void) {
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endian_32(hdr->magic);
+  u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return;
   }
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
-  uint32_t version = swap_endian_32(hdr->version);
+  u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
+  u32 strings_offset = swap_endian_32(hdr->off_dt_strings);
+  u32 version = swap_endian_32(hdr->version);
 
   kassert(version == 17);
 
-  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
-  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+  const u8 *struct_block = (u8 *)fdt_addr + struct_offset;
+  const u8 *strings_block = (u8 *)fdt_addr + strings_offset;
 
-  const uint8_t *ptr = struct_block;
+  const u8 *ptr = struct_block;
 
   u32 tok = go_to_next_token(&ptr);
   kassert(tok == FDT_BEGIN_NODE);
@@ -481,22 +481,22 @@ void *match_node(const char *path) {
 
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endian_32(hdr->magic);
+  u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return NULL;
   }
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
-  uint32_t version = swap_endian_32(hdr->version);
+  u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
+  u32 strings_offset = swap_endian_32(hdr->off_dt_strings);
+  u32 version = swap_endian_32(hdr->version);
 
   kassert(version == 17);
 
-  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
-  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+  const u8 *struct_block = (u8 *)fdt_addr + struct_offset;
+  const u8 *strings_block = (u8 *)fdt_addr + strings_offset;
 
-  const uint8_t *ptr = struct_block;
+  const u8 *ptr = struct_block;
 
   return scan_node_path(str, &ptr, strings_block);
 }

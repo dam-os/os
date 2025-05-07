@@ -25,7 +25,7 @@ void init_system(void) {
 
 void poweroffmsg(char *msg) {
   print(msg);
-  *(uint32_t *)(SYSCON_ADDR + POWEROFF_OFFSET) = POWEROFF_VALUE;
+  *(u32 *)(SYSCON_ADDR + POWEROFF_OFFSET) = POWEROFF_VALUE;
 }
 
 void poweroff(void) { poweroffmsg("Poweroff requested\n"); }

@@ -28,8 +28,7 @@ void init_timer(void) {
 }
 
 u64 mtime_get_raw_time(void) {
-  volatile const uint64_t *const mtime =
-      (volatile uint64_t *)(RISCV_MTIME_ADDR);
+  volatile const u64 *const mtime = (volatile u64 *)(RISCV_MTIME_ADDR);
   return *mtime;
 }
 

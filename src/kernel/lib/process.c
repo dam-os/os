@@ -86,7 +86,7 @@ proc_t *create_process(void *target_function, int isKernel) {
   process->state = PROCESS_READY;
   process->pid = i;
 
-  process->reg.sp = (uint64_t)&process->stack[sizeof(process->stack)];
+  process->reg.sp = (u64)&process->stack[sizeof(process->stack)];
 
   process->reg.s0 = 0;
   process->reg.s1 = 0;
@@ -100,18 +100,18 @@ proc_t *create_process(void *target_function, int isKernel) {
   process->reg.s9 = 0;
   process->reg.s10 = 0;
   process->reg.s11 = 0;
-  process->reg.syscall_entry = (uint64_t)target_function;
+  process->reg.syscall_entry = (u64)target_function;
 
-  process->reg.ra = (uint64_t)exit_proc_syscall;
+  process->reg.ra = (u64)exit_proc_syscall;
 
   // print("[process] Mapping pages!\n");
-  uint64_t *page_table = (uint64_t *)alloc_pages(1);
+  u64 *page_table = (u64 *)alloc_pages(1);
 
 #define USER_BASE 0x1000000
 
   if (isKernel) {
-    uint64_t paddr = (uint64_t)__kernel_base;
-    while (paddr < (uint64_t)__free_ram_end) {
+    u64 paddr = (u64)__kernel_base;
+    while (paddr < (u64)__free_ram_end) {
       map_virt_mem(page_table, paddr, paddr);
       paddr += PAGE_SIZE;
     }
@@ -123,20 +123,19 @@ proc_t *create_process(void *target_function, int isKernel) {
   } else {
     print("User\n");
     // Map user pages
-    uint64_t image_size = (uint64_t)_binary_build_shell_bin_size;
-    uint64_t image = (uint64_t)_binary_build_shell_bin_start;
-    for (uint64_t off = 0; off < image_size; off += PAGE_SIZE) {
-      uint64_t page =  alloc_pages(1);
-      
-      uint64_t remaining = image_size - off;
-      uint64_t copy_size = PAGE_SIZE <= remaining ? PAGE_SIZE : remaining;
+    u64 image_size = (u64)_binary_build_shell_bin_size;
+    u64 image = (u64)_binary_build_shell_bin_start;
+    for (u64 off = 0; off < image_size; off += PAGE_SIZE) {
+      u64 page = alloc_pages(1);
+
+      u64 remaining = image_size - off;
+      u64 copy_size = PAGE_SIZE <= remaining ? PAGE_SIZE : remaining;
 
       memcpy((char *)image + off, (char *)page, copy_size);
       map_virt_mem(page_table, USER_BASE + off, page);
     }
   }
   print("DONE\n");
-
 
   process->page_table = page_table;
   return process;
@@ -179,8 +178,8 @@ void yield(void) {
   proc_t *curr = current_proc;
   current_proc = next;
 
-  uint64_t satp_val = (uint64_t)8 << 60 | (uint64_t)0x0 << 44 |
-                      ((uint64_t)next->page_table / PAGE_SIZE);
+  u64 satp_val =
+      (u64)8 << 60 | (u64)0x0 << 44 | ((u64)next->page_table / PAGE_SIZE);
   __asm__ __volatile__("sfence.vma\n"
                        "csrw satp, %[satp]\n"
                        "sfence.vma\n"
@@ -196,7 +195,7 @@ void yield(void) {
       "csrw mscratch, %[mscratch]\n"
       :
       : [mscratch] "r"(
-          (uint64_t)&next->exception_stack[sizeof(next->exception_stack)]));
+          (u64)&next->exception_stack[sizeof(next->exception_stack)]));
 
   switch_process(curr, next); // ra becomes end of this
 }
