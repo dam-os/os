@@ -319,17 +319,13 @@ uptr get_node_addr(const char *name) {
   }
 
   // Read hex digits
-  int result = 0;
+  u32 result = 0;
+  s8 curr_int;
   while (*curr != '\0') {
-    if (*curr >= '0' && *curr <= '9') {
-      result = (result << 4) | (*curr - '0');
-    } else if (*curr >= 'a' && *curr <= 'f') {
-      result = (result << 4) | (*curr - 'a' + 10);
-    } else if (*curr >= 'A' && *curr <= 'F') {
-      result = (result << 4) | (*curr - 'A' + 10);
-    } else {
+    curr_int = hex_char_to_int(*curr);
+    if (curr_int == -1)
       return -1;
-    }
+    result = (result << 4) | curr_int;
     curr++;
   }
   return result;

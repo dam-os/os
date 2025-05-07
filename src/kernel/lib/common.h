@@ -49,5 +49,6 @@ typedef __builtin_va_list va_list;
 // === Functions ===
 
 u32 swap_endian_32(u32 val);
+s8 hex_char_to_int(char c);
 
 #endif // !COMMON_H
