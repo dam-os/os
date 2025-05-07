@@ -11,9 +11,9 @@ u32 POWEROFF_REGMAP = NULL;
 
 void init_system(void) {
   // Get poweroff node
-  POWEROFF_VALUE = swap_endian_32(*(u32 *)match_node("poweroff>value"));
-  POWEROFF_OFFSET = *(u32 *)match_node("poweroff>offset");
-  POWEROFF_REGMAP = *(u32 *)match_node("poweroff>regmap");
+  POWEROFF_VALUE = swap_endian_32(*(u32 *)match_node("poweroff*value"));
+  POWEROFF_OFFSET = *(u32 *)match_node("poweroff*offset");
+  POWEROFF_REGMAP = *(u32 *)match_node("poweroff*regmap");
 
   // Get node with phandle = POWEROFF_REGMAP
   fdt_node_t *syscon = find_node_by_phandle(POWEROFF_REGMAP);

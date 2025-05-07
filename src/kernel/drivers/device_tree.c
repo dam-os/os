@@ -384,7 +384,7 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
   // Split the path into two separate variables, node_name and prop_name
   while (1) {
     prop_name++;
-    if (*prop_name == '>') {
+    if (*prop_name == '*') {
       // We have reached the separator, set separator to null so node_name
       // terminates, and set prop_name to after the separator.
       *prop_name = '\0';
@@ -460,16 +460,16 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
 /**
  * Given a node path identifier, returns the address of the path target. A path
  * has the following format:
- * `node_identifier`>`prop_identifier`
+ * `node_identifier`*`prop_identifier`
  * A `node_identifier` is the start of a node name such as "cpus" or "clint@".
  * The `node_identifier` is the start of a prop name such as
- * "timebase-frequency". The arrow (>) and `prop_identifier` are optional. If
+ * "timebase-frequency". The star (*) and `prop_identifier` are optional. If
  * they are not specified, the full node name is returned. If they are
  * specified, the prop value is returned.
  * Examples:
  * "clint@" -> return the address of the name of the clint node, which is
  * "clint@<address>"
- * "cpus>timebase-frequency" -> return the address of the prop
+ * "cpus*timebase-frequency" -> return the address of the prop
  * value of the timebase-frequency prop in the cpus node.
  */
 void *match_node(const char *path) {
