@@ -3,8 +3,10 @@
 #include "../kernel/lib/common.h"
 extern char user_stack_top[];
 
-__attribute__((naked)) u32 syscall(u32 sysno, void *arg1, void *arg2,
-                                   void *arg3) {
+__attribute__((naked)) u32 syscall(__attribute__((unused)) u32 sysno,
+                                   __attribute__((unused)) void *arg1,
+                                   __attribute__((unused)) void *arg2,
+                                   __attribute__((unused)) void *arg3) {
   __asm__ __volatile__("ecall \n"
                        "ret");
 }
