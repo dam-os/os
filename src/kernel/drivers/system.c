@@ -20,6 +20,7 @@ void init_system(void) {
   char *search = kmalloc(32);
   csprintf(search, "[phandle=<%x>]", swap_endian_32(POWEROFF_REGMAP));
   char *syscon = match_node(search);
+  kfree(search);
   SYSCON_ADDR = get_node_addr(syscon);
 
   print("[system] System functions initialised, ready to call poweroff\n");
