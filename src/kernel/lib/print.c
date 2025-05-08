@@ -4,8 +4,6 @@
 #include "../lib/screen.h"
 
 char (*putchar_func)(char) = &kputchar;
-// @TODO: Don't depend on stdarg.h!
-#include <stdarg.h>
 
 #define DIGIT_COUNT 36
 
