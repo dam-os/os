@@ -37,7 +37,7 @@ void kmain(void) {
   // === Init memory === //
   init_mem_table();
   stopwatch("Memory table initialisation");
-  init_heap(100);
+  init_heap(10);
   stopwatch("Heap initialisation");
 
   // === Get addresses from device tree === //
@@ -52,7 +52,7 @@ void kmain(void) {
   stopwatch("VGA initialisation");
 
   // === FDT ===
-  print_fdt();
+  // print_fdt();
 
   // === Timer test ===
   init_print(1);
