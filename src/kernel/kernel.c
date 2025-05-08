@@ -52,7 +52,7 @@ void kmain(void) {
   stopwatch("VGA initialisation");
 
   // === FDT ===
-  // print_fdt();
+  print_fdt();
 
   // === Timer test ===
   init_print(1);

@@ -145,59 +145,70 @@ int kfree(void *ptr) {
   return 1;
 }
 
-void *krealloc(void *ptr, unsigned int size) {
-  if (DEBUG)
-    cprintf("Trying to realloc ptr %p to size %d\n", ptr, size);
+int block_can_shrink(block_t *block, unsigned int new_size) {
+  return block->size > new_size + sizeof(block_t) * 2 + 1;
+}
 
-  block_t *block = (block_t *)(ptr - sizeof(block_t));
+void *shrink_block(block_t *block, unsigned int new_size) {
+  void *old_ptr = (void *)block;
+  block_t *left = block;
+  block_t *right = (block_t *)(old_ptr + TOTAL_BLOCK_SIZE(new_size));
 
-  if (size < block->size - sizeof(block_t)) {
-    size_t remaining_size = block->size - size - sizeof(block_t);
-    if (DEBUG)
-      cprintf("REMAINING SIZE %d\n", remaining_size);
+  uptr old_end = (uptr)old_ptr + block->size;
+  left->size = TOTAL_BLOCK_SIZE(new_size);
+  uptr left_end = (uptr)left + left->size;
+  right->size = old_end - left_end;
 
-    if (remaining_size > sizeof(block_t)) {
-      block_t *new_block = (block_t *)((char *)block + sizeof(block_t) + size);
-      new_block->size = remaining_size;
-      new_block->free = 1;
-      new_block->next = block->next;
+  right->next = left->next;
+  left->next = right;
 
-      block->size = size + sizeof(block_t);
-      block->next = new_block;
+  left->free = 0;
+  right->free = 1;
+
+  return BLOCK_TO_PTR(left);
+}
+
+int block_can_grow(block_t *block, unsigned int new_size) {
+  block_t *next = block->next;
+  return next && next->free &&
+         block->size + next->size >= TOTAL_BLOCK_SIZE(new_size);
+}
+
+void *grow_block(block_t *block, unsigned int new_size) {
+  block_t *next = block->next;
+  block->size += next->size;
+  block->next = next->next;
+
+  if (block_can_shrink(block, new_size)) {
+    return shrink_block(block, new_size);
+  }
+
+  return BLOCK_TO_PTR(block);
+}
+
+void *krealloc(void *ptr, unsigned int new_size) {
+  if (!ptr)
+    return kmalloc(new_size);
+
+  block_t *block = PTR_TO_BLOCK(ptr);
+  unsigned int block_size_minus_struct = block->size - sizeof(block_t);
+
+  if (new_size <= block_size_minus_struct) {
+    if (block_can_shrink(block, new_size)) {
+      return shrink_block(block, new_size);
     }
-
     return ptr;
   }
 
-  size_t possible_size = block->size;
-  block_t *current = block->next;
-  block_t *prev = block;
-  // check if we can expand current block
-  while (possible_size < size && current) {
-    if (current->free) {
-      possible_size += current->size;
-      prev = current;
-      current = current->next;
-      continue;
-    }
-    break;
+  if (block_can_grow(block, new_size)) {
+    return grow_block(block, new_size);
   }
-  if (possible_size >= size) {
-    block_t *new_block = (block_t *)((char *)block + sizeof(block_t) + size);
-    block->next = new_block;
 
-    new_block->next = current;
-    new_block->free = 1;
-    new_block->size = prev->size - (block->size - (size + sizeof(block_t)));
-    block->size = size + sizeof(block_t);
-    block->next = new_block;
-    return ((void *)block + sizeof(block_t));
-    // expand current block
-  } else {
-    // alloc new block and free the old
-    void *new_ptr = kmalloc(size);
-    memcpy(ptr, new_ptr, block->size);
-    kfree(ptr);
-    return new_ptr;
-  }
+  void *new_ptr = kmalloc(new_size);
+  if (!new_ptr)
+    return NULL;
+
+  memcpy(ptr, new_ptr, block_size_minus_struct);
+  kfree(ptr);
+  return new_ptr;
 }

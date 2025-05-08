@@ -79,15 +79,7 @@ u8 double_or_init(void **array_ptr_ptr, u8 current_size, size_t struct_size) {
   }
 
   // Create new array twice the size
-  void *new_array_ptr = kmalloc(struct_size * current_size * 2);
-  // Copy data from old arr to new arr
-  memcpy(*array_ptr_ptr, new_array_ptr, struct_size * current_size);
-
-  // Overwrite old array with new one
-  kfree(*array_ptr_ptr);
-  *array_ptr_ptr = (void *)new_array_ptr;
-
-  // Return new size
+  *array_ptr_ptr = krealloc(*array_ptr_ptr, struct_size * current_size * 2);
   return current_size * 2;
 }
 
