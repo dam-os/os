@@ -28,8 +28,6 @@ QEMU = qemu-system-riscv64
 define QFLAGS
 		-machine virt \
 		-bios none \
-		-drive id=drive0,file=file.txt,format=raw,if=none \
-        -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
 		-device virtio-vga \
 		-kernel $(BUILDDIR)/kernel.elf \
 		-cpu rv64,pmp=false \
@@ -38,8 +36,6 @@ endef
 define QFLAGS-SPL
 		-machine virt \
 		-bios ../u-boot/spl/u-boot-spl.bin \
-		-drive id=drive0,file=file.txt,format=raw,if=none \
-        -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
 		-cpu rv64,pmp=false \
 		-serial mon:stdio \
 		-drive id=mysdcard,if=none,file=sdcard.img,format=raw,id=mydisk \
