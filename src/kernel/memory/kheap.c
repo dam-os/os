@@ -2,7 +2,7 @@
 #include "../drivers/system.h"
 #include "../lib/assert.h"
 #include "../lib/common.h"
-#include "../lib/print.h"
+#include "../lib/io.h"
 #include "memory.h"
 #include "paging.h"
 

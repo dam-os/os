@@ -1,7 +1,7 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include "../lib/print.h"
+#include "../lib/io.h"
 
 #define PANIC(fmt, ...)                                                        \
   do {                                                                         \

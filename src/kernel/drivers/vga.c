@@ -1,4 +1,5 @@
-#include "../lib/print.h"
+#include "vga.h"
+#include "../lib/io.h"
 #include "../lib/timer.h"
 #include "../memory/memory.h"
 #include "pci.h"

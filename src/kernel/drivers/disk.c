@@ -1,6 +1,6 @@
 #include "disk.h"
 #include "../lib/common.h"
-#include "../lib/print.h"
+#include "../lib/io.h"
 #include "system.h"
 
 u32 virtio_reg_read32(unsigned offset) {
