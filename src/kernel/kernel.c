@@ -63,7 +63,12 @@ void kmain(void) {
   // Change stdout to print to screen instead of uart
   stdout = &stdout_screen;
 
-  // === Timer test ===
+  // sprintf test
+  char *buf = kmalloc(100);
+  csprintf(buf, "sprintf got me feeling like five equals %d\n", 5);
+  print(buf);
+
+  // Timer test
   // Wait 10 seconds
   cprintf("Sleeping for 5 second...");
   sleep(5000);
