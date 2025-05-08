@@ -1,9 +1,16 @@
+#include "screen.h"
 #include "../drivers/vga.h"
+#include "file.h"
+
 #define WIDTH 80
 #define HEIGHT 25
 char arr[HEIGHT][WIDTH];
 int x = 0;
 int y = 0;
+
+file stdout_screen = {
+    .write = &screen_write,
+};
 
 void shift_up() {
   for (int i = 0; i < HEIGHT - 1; i++) {
@@ -61,4 +68,9 @@ char sputchar(char c) {
     }
   }
   return c;
+}
+
+s8 screen_write(__attribute__((unused)) void *context, const char c) {
+  sputchar(c);
+  return 0;
 }

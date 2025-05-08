@@ -1,5 +1,5 @@
 #include "../lib/common.h"
-#include "../lib/print.h"
+#include "../lib/io.h"
 #include "device_tree.h"
 
 uptr PCI_CONFIG_BASE = NULL;

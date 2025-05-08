@@ -1,7 +1,7 @@
 #include "device_tree.h"
 #include "../lib/assert.h"
 #include "../lib/common.h"
-#include "../lib/print.h"
+#include "../lib/io.h"
 #include "../lib/string.h"
 #include "../memory/kheap.h"
 #include "../memory/memory.h"

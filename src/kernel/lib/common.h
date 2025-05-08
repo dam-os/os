@@ -13,6 +13,7 @@ typedef signed long int s64;
 typedef unsigned long int u64;
 typedef unsigned long int uptr;
 
+typedef long int ssize_t;
 typedef __SIZE_TYPE__ size_t;
 
 // === Constants ===

@@ -1,6 +1,6 @@
 #include "system.h"
 #include "../lib/common.h"
-#include "../lib/print.h"
+#include "../lib/io.h"
 #include "../lib/string.h"
 #include "device_tree.h"
 

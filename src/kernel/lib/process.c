@@ -5,7 +5,7 @@
 #include "../memory/paging.h"
 #include "../memory/virt_memory.h"
 #include "exception.h"
-#include "print.h"
+#include "io.h"
 
 // Assuming 2 proc_t struct arguments, saves current registers into arg 0 (a0),
 // and loads registers from arg 1 (a1)
