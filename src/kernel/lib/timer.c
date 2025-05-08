@@ -19,7 +19,7 @@ void init_timer(void) {
   RISCV_CLINT_ADDR = get_node_addr(clint);
 
   // Get TIMEBASE_FREQUENCY
-  u32 *freq = match_node("cpus>timebase-frequency");
+  u32 *freq = match_node("cpus*timebase-frequency");
   TIMEBASE_FREQUENCY = swap_endian_32(*freq);
   RISCV_MTIME_ADDR = (u64 *)(RISCV_CLINT_ADDR + 0xBFF8UL);
 
@@ -28,8 +28,7 @@ void init_timer(void) {
 }
 
 u64 mtime_get_raw_time(void) {
-  volatile const uint64_t *const mtime =
-      (volatile uint64_t *)(RISCV_MTIME_ADDR);
+  volatile const u64 *const mtime = (volatile u64 *)(RISCV_MTIME_ADDR);
   return *mtime;
 }
 

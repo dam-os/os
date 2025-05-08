@@ -1,7 +1,12 @@
+#ifndef VIRT_MEMORY_H
+#define VIRT_MEMORY_H
+
 #include "../lib/common.h"
 
-#define sv39 (uint64_t)8 << 60
+#define sv39 (u64)8 << 60
 
-void map_virt_mem(uint64_t *table2, uint64_t vaddr, uint64_t paddr);
+void map_virt_mem(u64 *table2, u64 vaddr, u64 paddr);
 
-uint64_t translate_va_to_pa(uint64_t vaddr, uint64_t page_table);
+u64 translate_va_to_pa(u64 vaddr, u64 pageable);
+
+#endif // !VIRT_MEMORY_H

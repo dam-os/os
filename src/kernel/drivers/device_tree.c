@@ -175,22 +175,22 @@ u32 get_phandle(fdt_node_t *node) {
 fdt_node_t *find_node_by_phandle(u32 phandle) {
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endian_32(hdr->magic);
+  u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return NULL;
   }
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
-  uint32_t version = swap_endian_32(hdr->version);
+  u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
+  u32 strings_offset = swap_endian_32(hdr->off_dt_strings);
+  u32 version = swap_endian_32(hdr->version);
 
   kassert(version == 17);
 
-  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
-  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+  const u8 *struct_block = (u8 *)fdt_addr + struct_offset;
+  const u8 *strings_block = (u8 *)fdt_addr + strings_offset;
 
-  const uint8_t *ptr = struct_block;
+  const u8 *ptr = struct_block;
 
   // cprintf("Looking for target node: %s\n", target);
 
@@ -319,17 +319,13 @@ uptr get_node_addr(const char *name) {
   }
 
   // Read hex digits
-  int result = 0;
+  u32 result = 0;
+  s8 curr_int;
   while (*curr != '\0') {
-    if (*curr >= '0' && *curr <= '9') {
-      result = (result << 4) | (*curr - '0');
-    } else if (*curr >= 'a' && *curr <= 'f') {
-      result = (result << 4) | (*curr - 'a' + 10);
-    } else if (*curr >= 'A' && *curr <= 'F') {
-      result = (result << 4) | (*curr - 'A' + 10);
-    } else {
+    curr_int = hex_char_to_int(*curr);
+    if (curr_int == -1)
       return -1;
-    }
+    result = (result << 4) | curr_int;
     curr++;
   }
   return result;
@@ -349,22 +345,22 @@ void free_node(fdt_node_t *node_ptr) {
 void print_fdt(void) {
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endian_32(hdr->magic);
+  u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return;
   }
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
-  uint32_t version = swap_endian_32(hdr->version);
+  u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
+  u32 strings_offset = swap_endian_32(hdr->off_dt_strings);
+  u32 version = swap_endian_32(hdr->version);
 
   kassert(version == 17);
 
-  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
-  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+  const u8 *struct_block = (u8 *)fdt_addr + struct_offset;
+  const u8 *strings_block = (u8 *)fdt_addr + strings_offset;
 
-  const uint8_t *ptr = struct_block;
+  const u8 *ptr = struct_block;
 
   u32 tok = go_to_next_token(&ptr);
   kassert(tok == FDT_BEGIN_NODE);
@@ -384,7 +380,7 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
   // Split the path into two separate variables, node_name and prop_name
   while (1) {
     prop_name++;
-    if (*prop_name == '>') {
+    if (*prop_name == '*') {
       // We have reached the separator, set separator to null so node_name
       // terminates, and set prop_name to after the separator.
       *prop_name = '\0';
@@ -460,16 +456,16 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
 /**
  * Given a node path identifier, returns the address of the path target. A path
  * has the following format:
- * `node_identifier`>`prop_identifier`
+ * `node_identifier`*`prop_identifier`
  * A `node_identifier` is the start of a node name such as "cpus" or "clint@".
  * The `node_identifier` is the start of a prop name such as
- * "timebase-frequency". The arrow (>) and `prop_identifier` are optional. If
+ * "timebase-frequency". The star (*) and `prop_identifier` are optional. If
  * they are not specified, the full node name is returned. If they are
  * specified, the prop value is returned.
  * Examples:
  * "clint@" -> return the address of the name of the clint node, which is
  * "clint@<address>"
- * "cpus>timebase-frequency" -> return the address of the prop
+ * "cpus*timebase-frequency" -> return the address of the prop
  * value of the timebase-frequency prop in the cpus node.
  */
 void *match_node(const char *path) {
@@ -481,22 +477,22 @@ void *match_node(const char *path) {
 
   struct fdt_header *hdr = (struct fdt_header *)fdt_addr;
 
-  uint32_t magic = swap_endian_32(hdr->magic);
+  u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
     print("Invalid FDT magic number!\n");
     return NULL;
   }
-  uint32_t struct_offset = swap_endian_32(hdr->off_dt_struct);
-  uint32_t strings_offset = swap_endian_32(hdr->off_dt_strings);
-  uint32_t version = swap_endian_32(hdr->version);
+  u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
+  u32 strings_offset = swap_endian_32(hdr->off_dt_strings);
+  u32 version = swap_endian_32(hdr->version);
 
   kassert(version == 17);
 
-  const uint8_t *struct_block = (uint8_t *)fdt_addr + struct_offset;
-  const uint8_t *strings_block = (uint8_t *)fdt_addr + strings_offset;
+  const u8 *struct_block = (u8 *)fdt_addr + struct_offset;
+  const u8 *strings_block = (u8 *)fdt_addr + strings_offset;
 
-  const uint8_t *ptr = struct_block;
+  const u8 *ptr = struct_block;
 
   return scan_node_path(str, &ptr, strings_block);
 }

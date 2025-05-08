@@ -87,37 +87,37 @@ __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
       "mret\n");
 }
 struct trap_frame {
-  uint64_t ra;
-  uint64_t gp;
-  uint64_t tp;
-  uint64_t t0;
-  uint64_t t1;
-  uint64_t t2;
-  uint64_t t3;
-  uint64_t t4;
-  uint64_t t5;
-  uint64_t t6;
-  uint64_t a0;
-  uint64_t a1;
-  uint64_t a2;
-  uint64_t a3;
-  uint64_t a4;
-  uint64_t a5;
-  uint64_t a6;
-  uint64_t a7;
-  uint64_t s0;
-  uint64_t s1;
-  uint64_t s2;
-  uint64_t s3;
-  uint64_t s4;
-  uint64_t s5;
-  uint64_t s6;
-  uint64_t s7;
-  uint64_t s8;
-  uint64_t s9;
-  uint64_t s10;
-  uint64_t s11;
-  uint64_t sp;
+  u64 ra;
+  u64 gp;
+  u64 tp;
+  u64 t0;
+  u64 t1;
+  u64 t2;
+  u64 t3;
+  u64 t4;
+  u64 t5;
+  u64 t6;
+  u64 a0;
+  u64 a1;
+  u64 a2;
+  u64 a3;
+  u64 a4;
+  u64 a5;
+  u64 a6;
+  u64 a7;
+  u64 s0;
+  u64 s1;
+  u64 s2;
+  u64 s3;
+  u64 s4;
+  u64 s5;
+  u64 s6;
+  u64 s7;
+  u64 s8;
+  u64 s9;
+  u64 s10;
+  u64 s11;
+  u64 sp;
 } __attribute__((packed));
 
 #define READ_CSR(reg)                                                          \
@@ -129,7 +129,7 @@ struct trap_frame {
 
 #define WRITE_CSR(reg, value)                                                  \
   do {                                                                         \
-    uint64_t __tmp = (value);                                                  \
+    u64 __tmp = (value);                                                       \
     __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                    \
   } while (0)
 
@@ -151,8 +151,8 @@ void handle_syscall(struct trap_frame *f) {
     yield();
     break;
   case 1: {
-    uint64_t satp_val = READ_CSR(satp);
-    uint64_t real_addr = translate_va_to_pa(f->a1, satp_val);
+    u64 satp_val = READ_CSR(satp);
+    u64 real_addr = translate_va_to_pa(f->a1, satp_val);
     cprintf("Printing from shell: %s\n", (char *)(real_addr));
   } break;
   case 2:
@@ -173,9 +173,9 @@ void handle_syscall(struct trap_frame *f) {
 }
 
 void handle_trap(struct trap_frame *f) {
-  uint64_t mcause = READ_CSR(mcause);
-  uint64_t mtval = READ_CSR(mtval);
-  uint64_t user_pc = READ_CSR(mepc);
+  u64 mcause = READ_CSR(mcause);
+  u64 mtval = READ_CSR(mtval);
+  u64 user_pc = READ_CSR(mepc);
   if (mcause == MCAUSE_ECALL) {
     handle_syscall(f);
     user_pc += 4;

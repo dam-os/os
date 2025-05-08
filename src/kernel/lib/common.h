@@ -3,38 +3,17 @@
 
 // === Types ===
 
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned long long uint64_t;
-typedef long double uint128_t;
-typedef uint64_t size_t;
-typedef uint64_t uintptr_t;
-typedef uint64_t size_t;
+typedef signed char s8;
+typedef unsigned char u8;
+typedef signed short int s16;
+typedef unsigned short int u16;
+typedef signed int s32;
+typedef unsigned int u32;
+typedef signed long int s64;
+typedef unsigned long int u64;
+typedef unsigned long int uptr;
 
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-typedef uintptr_t uintptr;
-
-typedef uint8 u8;
-typedef uint16 u16;
-typedef uint32 u32;
-typedef uint64 u64;
-typedef uintptr uptr;
-
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-typedef uintptr_t uintptr;
-
-typedef uint8 u8;
-typedef uint16 u16;
-typedef uint32 u32;
-typedef uint64 u64;
-typedef uintptr uptr;
+typedef __SIZE_TYPE__ size_t;
 
 // === Constants ===
 
@@ -42,6 +21,11 @@ typedef uintptr uptr;
 
 #define TRUE 1
 #define FALSE 0
+
+#define U8_MAX (0xff)
+#define U16_MAX (0xffff)
+#define U32_MAX (0xffffffffU)
+#define U64_MAX (0xffffffffffffffffUL)
 
 // === Aliases ===
 /**
@@ -70,5 +54,6 @@ typedef __builtin_va_list va_list;
 // === Functions ===
 
 u32 swap_endian_32(u32 val);
+s8 hex_char_to_int(char c);
 
 #endif // !COMMON_H
