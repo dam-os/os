@@ -70,7 +70,7 @@ char sputchar(char c) {
   return c;
 }
 
-s8 screen_write(__attribute__((unused)) void *context, const char c) {
+s8 screen_write(__attribute__((unused)) file *context, const char c) {
   sputchar(c);
   return 0;
 }

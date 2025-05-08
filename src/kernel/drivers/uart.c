@@ -40,9 +40,9 @@ char putchar_uart(char c) {
   return c;
 }
 
-s8 uart_write(__attribute__((unused)) void *context, const char c) {
+s8 uart_write(__attribute__((unused)) file *context, const char c) {
   putchar_uart(c);
   return 0;
 }
 
-char uart_read(void *context) { return getchar_uart(); }
+char uart_read(__attribute__((unused)) file *context) { return getchar_uart(); }

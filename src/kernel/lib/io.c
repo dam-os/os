@@ -11,23 +11,56 @@ char cgetchar() { return stdin->read(stdin); }
 
 void print(const char *str) { __print(stdout, str); }
 
-void cprintf(const char *str, ...) {
+/** Print formatted string to stdout  */
+void cprintf(const char *fmt, ...) {
   va_list ap;
-  va_start(ap, str);
+  va_start(ap, fmt);
 
-  while (*str != '\0') {
-    switch (*str) {
-    case '%':
-      str++;
-      __cvprintf(stdout, &str, &ap);
-      break;
-    default:
-      stdout->write(stdout, *str);
-    }
-    str++;
-  }
+  __printf(stdout, fmt, &ap);
 
   va_end(ap);
+}
+
+/** Print formatted string to a buffer */
+void csprintf(char *buf, const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+
+  file bufr = {
+      .buf = (unsigned char *)buf,
+      .pos = 0,
+      .write = &__buffer_write,
+  };
+
+  __printf(&bufr, fmt, &ap);
+
+  va_end(ap);
+
+  bufr.write(&bufr, '\0'); // Null-terminate the string
+}
+
+void print_char_hex(char c) {
+  cputchar(DIGITS[(c >> 4) & 0xF]); // Print upper 4 bits
+  cputchar(DIGITS[c & 0xF]);        // Print lower 4 bits
+}
+
+void __printf(file *fd, const char *fmt, va_list *ap) {
+  while (*fmt != '\0') {
+    switch (*fmt) {
+    case '%':
+      fmt++;
+      __cvprintf(fd, &fmt, ap);
+      break;
+    default:
+      fd->write(fd, *fmt);
+    }
+    fmt++;
+  }
+}
+
+s8 __buffer_write(file *context, const char c) {
+  context->buf[context->pos++] = c;
+  return 0;
 }
 
 void __print(file *fd, const char *str) {
@@ -47,6 +80,7 @@ void __print_u32(file *fd, u32 v, u8 base, u8 digits) {
     fd->write(fd, *--p);
   }
 }
+
 void __print_u64(file *fd, u64 v, u8 base, u8 digits) {
   char buf[digits], *p = buf;
   do {
@@ -89,9 +123,4 @@ void __cvprintf(file *fd, const char **str, va_list *ap) {
     };
   } break;
   }
-}
-
-void print_char_hex(char c) {
-  cputchar(DIGITS[(c >> 4) & 0xF]); // Print upper 4 bits
-  cputchar(DIGITS[c & 0xF]);        // Print lower 4 bits
 }

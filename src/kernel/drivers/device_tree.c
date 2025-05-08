@@ -383,7 +383,7 @@ void print_fdt(void) {
  */
 void *check_node_props(const u8 *ptr, const u8 *strings_block, char *prop_name,
                        char *prop_value, u8 value_type, u8 *state) {
-  u32 tok = token(ptr), prop_name_off, found_len;
+  u32 tok = token(ptr), prop_name_off;
   char *found_name;
   void *found_value;
   kassert(tok == FDT_BEGIN_NODE);
@@ -394,7 +394,6 @@ void *check_node_props(const u8 *ptr, const u8 *strings_block, char *prop_name,
 
     switch (tok) {
     case FDT_PROP:
-      found_len = swap_endian_32(*(u32 *)(ptr + 4));
       prop_name_off = swap_endian_32(*(u32 *)(ptr + 8));
       found_name = (char *)(strings_block + prop_name_off);
       if (cstrcmp(prop_name, found_name) != 0) {

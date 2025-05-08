@@ -118,7 +118,7 @@ proc_t *create_process(void *target_function, int isKernel) {
     uptr pci_base = get_pci_config_base();
 
     map_virt_mem(page_table, 0x10000000, 0x10000000); // Uart
-    for (int i = pci_base; i < pci_base + 0x10000000; i += PAGE_SIZE)
+    for (u64 i = pci_base; i < pci_base + 0x10000000; i += PAGE_SIZE)
       map_virt_mem(page_table, i, i); // PCI
   } else {
     print("User\n");
