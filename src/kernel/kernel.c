@@ -84,9 +84,9 @@ void kmain(void) {
   // stdout = &stdout_screen;
 
   // sprintf test
-  char *buf = kmalloc(100);
-  csprintf(buf, "sprintf got me feeling like five equals %d\n", 5);
-  cprintf("printf got a message from sprintf: %s\n", buf);
+  //char *buf = kmalloc(100);
+  //csprintf(buf, "sprintf got me feeling like five equals %d\n", 5);
+  //cprintf("printf got a message from sprintf: %s\n", buf);
 
   // Timer test
   // Wait 10 seconds

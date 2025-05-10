@@ -55,7 +55,7 @@ u32 strincl(char *in, char *container) {
     }
     i++;
   }
-  return test == len;
+  return test != len;
 }
 
 void cstrcpy(char *src, char *dest) {

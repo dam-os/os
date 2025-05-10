@@ -5,11 +5,12 @@
 void* PCI_CONFIG_BASE = NULL;
 
 void init_pci(void) {
-  PCI_CONFIG_BASE = (void *)get_node_addr(match_node("pci@"));
-  if (PCI_CONFIG_BASE == NULL) {
+  char *pci_node = match_node("pci@");
+  if (pci_node == NULL) {
     print("[pci] PCI not found\r\n");
     return;
   }
+  PCI_CONFIG_BASE = (void *)get_node_addr(pci_node);
   print("[pci] PCI config base initialised.\r\n");
 }
 

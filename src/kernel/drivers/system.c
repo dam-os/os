@@ -28,17 +28,20 @@ void poweroff_starfive(void) {
 
 void init_system(void) {
   print("[system] START\r\n");
-
-  // Get poweroff node
-  POWEROFF_VALUE = swap_endian_32(*(u32 *)match_node("poweroff*value"));
-  POWEROFF_OFFSET = *(u32 *)match_node("poweroff*offset");
-  POWEROFF_REGMAP = *(u32 *)match_node("poweroff*regmap");
-
+  
   char* model =  match_node("*model");
-  if (cstrcmp("StarFive VisionFive 2 framework", model) == 0) {
+  cprintf("[system] model %s\r\n", model);
+  // Get poweroff node
+  if (startswith("StarFive", model) == 0) {
+    print("starfive board");
     poweroff_func = poweroff_starfive;
     return;
   }
+
+  POWEROFF_VALUE = swap_endian_32(*(u32 *)match_node("poweroff*value"));
+  POWEROFF_OFFSET = *(u32 *)match_node("poweroff*offset");
+  POWEROFF_REGMAP = *(u32 *)match_node("poweroff*regmap");
+  
 
   // Get node with phandle = POWEROFF_REGMAP
   char *search = kmalloc(32);
