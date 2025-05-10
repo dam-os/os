@@ -1,6 +1,6 @@
 ENTRY(start);
  
-. = 0x80000000;
+. = 0x84000000;
  
 SECTIONS {
 	__kernel_base = .;

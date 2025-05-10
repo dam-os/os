@@ -18,9 +18,37 @@
 extern char stack_top[];
 struct proc *proc_c;
 
-#define CLINT_BASE       0x2000000;
-                            
 
+
+
+              
+void timer_test(void) {
+      
+  u64 timer_base = 0x13050000;
+  u32 *load_ptr   = (u32 *)(timer_base + 0x8);
+  u32 *ctrl_ptr   = (u32 *)(timer_base + 0x4);
+  u32 *reload_ptr = (u32 *)(timer_base + 0x14);
+  u32 *enable_ptr = (u32 *)(timer_base + 0x10);
+  u32 *value_ptr  = (u32 *)(timer_base + 0x18);
+  u32 *interrupt_ptr  = (u32 *)(timer_base + 0x24);
+
+  *interrupt_ptr = 0x1;
+  cprintf("No Interrupts!\r\n");
+  *load_ptr = 0xFF;
+  cprintf("Load FF!\r\n");
+  *ctrl_ptr = 0x0;         // Continuous mode
+  cprintf("Continuous mode!\r\n");
+  *reload_ptr = 0x1;       // Trigger reload
+  cprintf("Reloaded!\r\n");
+  *enable_ptr = 0x1;       // Start timer
+  cprintf("Enabled timer!\r\n");
+
+  for (u32 k = 0; k < 100; k++) {
+    u32 data = *value_ptr;
+      cprintf("TIMER VALUE IS = %d\r\n", data);
+  } 
+
+}
 
 
 void shutdown(void) {
@@ -38,38 +66,44 @@ void shutdown(void) {
   cprintf("Should not happen!\r\n");
 }
 
-void kmain(void) {
-  uptr dtb_address = 0x84000000;
-  //__asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
-  // ===== Init important stuff =====
+
+unsigned long test_escape(void) {
+  unsigned long mepc_val;
+  __asm__ volatile (
+    "csrr %0, mepc"
+    : "=r"(mepc_val)
+  );
+}
+
+void kmain(void) {
+  uptr dtb_address = 0x88000000;
   init_uart();
   cprintf("Hello Framework Board!\r\n");
+  //__asm__ volatile("mv %0, a1" : "=r"(dtb_address));
+  __asm__ volatile (
+    "li a0, 65\n"                  // FID = 0
+    "li a6, 0\n"                  // FID = 0
+    "li a7, 0x1\n"         // EID = 0x0A000000
+    "ecall\n"                     // Make the ECALL
+  );
+
   
-u64 timer_base = 0x13050000;
-u32 *load_ptr   = (u32 *)(timer_base + 0x8);
-u32 *ctrl_ptr   = (u32 *)(timer_base + 0x4);
-u32 *reload_ptr = (u32 *)(timer_base + 0x14);
-u32 *enable_ptr = (u32 *)(timer_base + 0x10);
-u32 *value_ptr  = (u32 *)(timer_base + 0x18);
-u32 *interrupt_ptr  = (u32 *)(timer_base + 0x24);
+  // ===== Init important stuff =====
 
-*interrupt_ptr = 0x1;
-cprintf("No Interrupts!\r\n");
-*load_ptr = 0xFF;
-cprintf("Load FF!\r\n");
-*ctrl_ptr = 0x0;         // Continuous mode
-cprintf("Continuous mode!\r\n");
-*reload_ptr = 0x1;       // Trigger reload
-cprintf("Reloaded!\r\n");
-*enable_ptr = 0x1;       // Start timer
-cprintf("Enabled timer!\r\n");
+  
+  unsigned long mepc_val = test_escape();
+  cprintf("Is in mmode %p!\r\n", mepc_val);
 
-for (u32 k = 0; k < 100; k++) {
-  u32 data = *value_ptr;
-    cprintf("TIMER VALUE IS = %d\r\n", data);
-} 
+  WRITE_CSR(mtvec, (u64)kernel_entry);
+  /* u64 timer_base = 2000000;
+  u64 *mtime_addr = (u64 *)(timer_base + 0xBFF8);
 
+  for (u32 k = 0; k < 100; k++) {
+      u64 data = *mtime_addr;
+      cprintf("TIMER VALUE IS = %d\r\n", data);
+  }  */
+  
 
 
   cprintf("A1 is %p\r\n", dtb_address);
@@ -77,7 +111,6 @@ for (u32 k = 0; k < 100; k++) {
   init_timer();
   stopwatch("FDT, UART and Timer initialisation");
 
-  //WRITE_CSR(mtvec, (u64)kernel_entry);
   stopwatch("Wrote DSR");
   
   // === Set up processes === //

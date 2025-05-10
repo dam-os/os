@@ -46,14 +46,12 @@ define QFLAGS
 endef
 define QFLAGS-SPL
 		-machine virt \
-		-bios ../u-boot/spl/u-boot-spl.bin \
-		-drive id=drive0,file=file.txt,format=raw,if=none \
-        -device virtio-blk-device,drive=drive0,bus=virtio-mmio-bus.0 \
 		-cpu rv64,pmp=false \
 		-serial mon:stdio \
-		-drive id=mysdcard,if=none,file=sdcard.img,format=raw,id=mydisk \
-		-device sdhci-pci \
-		-device sd-card,drive=mysdcard
+		-bios fw_jump.bin \
+		-kernel u-boot.bin \
+		-device loader,file=build/kernel.bin,addr=0x84000000 \
+		-device loader,file=output.dtb,addr=0x88000000 
 endef
 
 # Main kernel build (uses kernel.c)
@@ -115,3 +113,6 @@ clean:
 
 sdcard:
 	$(QEMU) $(QFLAGS-SPL)
+
+sdcard2:
+	$(QEMU) $(QFLAGS-SPL) -s -S

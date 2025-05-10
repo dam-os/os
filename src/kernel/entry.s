@@ -26,9 +26,6 @@ bss_clear:
 	addi t5, t5, 8
 	bltu t5, t6, bss_clear
 	
-	la t0, kmain
-	csrw sepc, t0
-	
 	/* Jump to kernel! */
 	tail kmain
 	

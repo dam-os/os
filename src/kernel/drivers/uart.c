@@ -14,7 +14,7 @@ void init_uart(void) {
     UART_BASE = 0x10000000; //get_node_addr(serial);
 
     UART_DATA = (volatile u8 *)(UART_BASE + 0x00);
-    UART_LSR = (volatile u8 *)(UART_BASE + 0x14);
+    UART_LSR = (volatile u8 *)(UART_BASE + 0x05);
 }
 
 char kgetchar(void) {
