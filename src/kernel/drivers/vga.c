@@ -227,6 +227,10 @@ void init_text_mode(u8 *port0300) {
 }
 
 void init_virtio_vga() {
+  if (PCI_CONFIG_BASE == NULL) {
+    print("[vga] PCI not available, can't initialise VGA.\r\n");
+    return;
+  }
 
   u32 *devbase = pci_get_addr(0, 16, 0, 0x0);
 

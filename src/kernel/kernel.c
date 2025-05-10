@@ -20,6 +20,9 @@ struct proc *proc_c;
 file *stdout;
 file *stdin;
 
+#define MSTATUS_MPP_MASK (3UL << 11)
+
+
 void kmain(void) {
   // NOTE: Loads the device tree address from arguments. Currently unused cause
   // we hardcoded the devicetree in the kernel
@@ -31,6 +34,13 @@ void kmain(void) {
                    "li a7, 0x1\n"
                    "ecall\n"
                    "la sp, stack_top\n");
+  u64 mstatus;
+  asm volatile("csrr %0, mstatus" : "=r"(mstatus));
+  mstatus &= ~MSTATUS_MPP_MASK;  // Clear bits 12:11 (set MPP to 00)
+
+  asm volatile("csrw mstatus, %0" :: "r"(mstatus));
+  u64 new_deleg = 0x0;
+  asm volatile("csrw medeleg, %0" :: "r"(new_deleg));
 
   WRITE_CSR(mtvec, (u64)kernel_entry);
 
@@ -53,7 +63,7 @@ void kmain(void) {
   // === Init memory === //
   init_mem_table();
   stopwatch("Memory table initialisation");
-  init_heap(10);
+  init_heap(100);
   stopwatch("Heap initialisation");
 
   // === Get addresses from device tree === //
@@ -71,7 +81,7 @@ void kmain(void) {
   // print_fdt();
 
   // Change stdout to print to screen instead of uart
-  stdout = &stdout_screen;
+  // stdout = &stdout_screen;
 
   // sprintf test
   char *buf = kmalloc(100);
@@ -81,14 +91,13 @@ void kmain(void) {
   // Timer test
   // Wait 10 seconds
   cprintf("Sleeping for 5 second...");
-  sleep(5000);
+  // sleep(5000);
   cprintf("5 second passed\n");
   stopwatch("5 second sleep");
   // // ! Must be called before using processes !
   init_proc();
+
   // optional to call but still cool
-  init_mem_table();
-  init_heap(100);
   proc_c = create_process((void *)0x1000000, 0);
 
   // Manually set registers since kernel cant do syscall
@@ -97,6 +106,8 @@ void kmain(void) {
   __asm__ __volatile__(
       "addi t0, t0, 14\n"); // 14 should be the bytes from auipc, to after
   __asm__ __volatile__("csrw mepc, t0\n");
+  cprintf("Yielding to user process\r\n");
+
   yield();   // WARNING: Kernel returns here in usermode!
   print(""); // Clears uart after user process
 

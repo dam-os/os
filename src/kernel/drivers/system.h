@@ -13,5 +13,5 @@
 void init_system(void);
 void poweroff(void);
 void poweroffmsg(char *msg);
-
+void poweroff_qemu(void);
 #endif /* !SYSTEM_H */

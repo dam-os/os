@@ -2,11 +2,14 @@
 #include "../lib/io.h"
 #include "device_tree.h"
 
-uptr PCI_CONFIG_BASE = NULL;
+void* PCI_CONFIG_BASE = NULL;
 
 void init_pci(void) {
-  PCI_CONFIG_BASE = get_node_addr(match_node("pci@"));
-
+  PCI_CONFIG_BASE = (void *)get_node_addr(match_node("pci@"));
+  if (PCI_CONFIG_BASE == NULL) {
+    print("[pci] PCI not found\r\n");
+    return;
+  }
   print("[pci] PCI config base initialised.\r\n");
 }
 
@@ -49,4 +52,4 @@ void enumerate_pci() {
   }
 }
 
-uptr get_pci_config_base(void) { return PCI_CONFIG_BASE; }
+void* get_pci_config_base(void) { return PCI_CONFIG_BASE; }
