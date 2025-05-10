@@ -30,8 +30,6 @@ void kmain(void) {
   WRITE_CSR(mtvec, (u64)kernel_entry);
   stopwatch("Wrote DSR");
 
-  poweroff();
-
   // === Set up processes === //
   init_proc();
   stopwatch("Process initialisation");
