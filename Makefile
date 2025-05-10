@@ -75,7 +75,7 @@ damos: clean build_dirs $(DTB_OBJ)  $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS)
 	$(OBJCOPY) -Ibinary -Oelf64-littleriscv $(BUILDDIR)/shell.bin $(BUILDDIR)/shell.bin.o
 
 	$(CC) $(LDFLAGS) $(BUILDDIR)/shell.bin.o $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
-	$(OBJCOPY) -I binary -O elf64-littleriscv -B riscv $(DTB) $(DTB_OBJ)
+	$(OBJCOPY) -I binary -O elf64-littleriscv -B riscv --rename-section .data=.dtb_blob $(DTB) $(DTB_OBJ)
 	$(CC) $(LDFLAGS) $(DTB_OBJ) $(BUILDDIR)/shell.bin.o $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
 	riscv64-elf-objcopy -O binary $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.bin
 

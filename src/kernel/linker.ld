@@ -23,9 +23,11 @@ SECTIONS {
 	.data : ALIGN(4K) {
 		*(.data);
 	}
-    .dtb : {
+
+   .dtb : ALIGN(4K) {
         PROVIDE(__dtb_start = .);
-        KEEP(*(.rodata*))
+        KEEP(*(.dtb_blob))
+        PROVIDE(__dtb_end = .);
     }
 
     . = ALIGN(4096);
