@@ -1,3 +1,4 @@
+#include "print.h"
 int cstrlen(char *src) {
   int len = 0;
   while (*src != '\0') {
@@ -33,6 +34,27 @@ int startswith(char *search, char *target) {
   }
 
   return 0;
+}
+
+int strincl(char *in, char *container) {
+  int len = cstrlen(in);
+  int clen = cstrlen(container);
+  int test = 0;
+  int i = 0;
+  while (i < clen && test != len) {
+    if (container[i] == in[test]) {
+      test++;
+    } else {
+      test = 0;
+
+      if (container[i - 1] == in[test]) {
+        test++;
+        continue;
+      }
+    }
+    i++;
+  }
+  return test == len;
 }
 
 void cstrcpy(char *src, char *dest) {
