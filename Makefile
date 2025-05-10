@@ -1,10 +1,19 @@
+BOARD ?= virt
+
+# Set DTB based on the BOARD value
+ifeq ($(BOARD),virt)
+DTB = $(SRCDIR)/device_tree/virt.dtb
+else ifeq ($(BOARD),board)
+DTB = $(SRCDIR)/device_tree/deepcomp.dtb
+else
+$(error Unsupported BOARD value: $(BOARD))
+endif
 SRCDIR = src/kernel
 BUILDDIR = build
 LIBDIR = $(SRCDIR)/lib
 MEMDIR = $(SRCDIR)/memory
 DRIVERDIR = $(SRCDIR)/drivers
 USERDIR = src/user
-DTB = $(SRCDIR)/device_tree/device_tree.dtb
 DTB_OBJ = $(BUILDDIR)/dtb.o
 
 # Source files

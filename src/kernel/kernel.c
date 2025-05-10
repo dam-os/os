@@ -21,8 +21,8 @@ file *stdout;
 file *stdin;
 
 void kmain(void) {
-  uptr dtb_address;
-  __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
+  // uptr dtb_address;
+  // __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
   // === io ===
   stdout = &stdout_uart;
@@ -31,7 +31,6 @@ void kmain(void) {
   init_fdt(0x8005d000);
   init_uart();
   init_timer();
-  cprintf("RESULT %d\n", memcmp((void *)0x8005d000, (void *)dtb_address, 7));
   stopwatch("FDT, UART and Timer initialisation");
 
   WRITE_CSR(mtvec, (u64)kernel_entry);
