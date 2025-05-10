@@ -37,11 +37,11 @@ void kmain(void) {
   // === io ===
   stdout = &stdout_uart;
   stdin = &stdin_uart;
-
   // ===== Init important stuff =====
   init_fdt((uptr)__dtb_start);
   init_uart();
   init_timer();
+  cprintf("DTB START %p\n", __dtb_start);
   stopwatch("FDT, UART and Timer initialisation");
 
   stopwatch("Wrote DSR");
