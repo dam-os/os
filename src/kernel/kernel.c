@@ -15,22 +15,23 @@
 #include "memory/paging.h"
 
 extern char stack_top[];
+extern char __dtb_start[];
 struct proc *proc_c;
 file *stdout;
 file *stdin;
 
 void kmain(void) {
-  uptr dtb_address;
-  __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
+  // uptr dtb_address;
+  // __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
   // === io ===
   stdout = &stdout_uart;
   stdin = &stdin_uart;
-
   // ===== Init important stuff =====
-  init_fdt(dtb_address);
+  init_fdt((uptr)__dtb_start);
   init_uart();
   init_timer();
+  cprintf("DTB START %p\n", __dtb_start);
   stopwatch("FDT, UART and Timer initialisation");
 
   WRITE_CSR(mtvec, (u64)kernel_entry);

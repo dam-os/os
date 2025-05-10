@@ -23,8 +23,15 @@ SECTIONS {
 	.data : ALIGN(4K) {
 		*(.data);
 	}
+
+   .dtb : ALIGN(4K) {
+        PROVIDE(__dtb_start = .);
+        KEEP(*(.dtb_blob))
+        PROVIDE(__dtb_end = .);
+    }
+
     . = ALIGN(4096);
     __free_ram = .;
-    . += 64 * 1024 * 1024;
+    . += 64 * 1024 * 16;
     __free_ram_end = .;
-}
+   }
