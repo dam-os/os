@@ -120,13 +120,13 @@ clean:
 open-sbi:
 	$(MAKE) -C opensbi PLATFORM=generic FW_TEXT_START=0x40000000 FW_OPTIONS=0
 
-build-uboot:
+build-uboot: open-sbi
 ifeq ($(BOARD),virt)
 	$(MAKE) -C u-boot qemu-riscv64_smode_defconfig
 else
 	$(MAKE) -C u-boot starfive_visionfive2_defconfig
 endif
-	$(MAKE) -C u-boot OPENSBI=opensbi/build/platform/generic/firmware/fw_dynamic.bin
+	MAKEFLAGS= $(MAKE) -C u-boot OPENSBI=../opensbi/build/platform/generic/firmware/fw_dynamic.bin
 
 u-boot: open-sbi
 	$(QEMU) $(QFLAGS-MACHINE)
