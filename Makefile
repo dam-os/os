@@ -51,7 +51,7 @@ define QFLAGS-SPL
 		-bios fw_jump.bin \
 		-kernel u-boot.bin \
 		-device loader,file=build/kernel.bin,addr=0x84000000 \
-		-device loader,file=output.dtb,addr=0x88000000 
+		-device loader,file=output.dtb,addr=0x85000000 
 endef
 
 # Main kernel build (uses kernel.c)

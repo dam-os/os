@@ -18,119 +18,98 @@
 extern char stack_top[];
 struct proc *proc_c;
 
-
-
-
-              
 void timer_test(void) {
-      
+
   u64 timer_base = 0x13050000;
-  u32 *load_ptr   = (u32 *)(timer_base + 0x8);
-  u32 *ctrl_ptr   = (u32 *)(timer_base + 0x4);
+  u32 *load_ptr = (u32 *)(timer_base + 0x8);
+  u32 *ctrl_ptr = (u32 *)(timer_base + 0x4);
   u32 *reload_ptr = (u32 *)(timer_base + 0x14);
   u32 *enable_ptr = (u32 *)(timer_base + 0x10);
-  u32 *value_ptr  = (u32 *)(timer_base + 0x18);
-  u32 *interrupt_ptr  = (u32 *)(timer_base + 0x24);
+  u32 *value_ptr = (u32 *)(timer_base + 0x18);
+  u32 *interrupt_ptr = (u32 *)(timer_base + 0x24);
 
   *interrupt_ptr = 0x1;
   cprintf("No Interrupts!\r\n");
   *load_ptr = 0xFF;
   cprintf("Load FF!\r\n");
-  *ctrl_ptr = 0x0;         // Continuous mode
+  *ctrl_ptr = 0x0; // Continuous mode
   cprintf("Continuous mode!\r\n");
-  *reload_ptr = 0x1;       // Trigger reload
+  *reload_ptr = 0x1; // Trigger reload
   cprintf("Reloaded!\r\n");
-  *enable_ptr = 0x1;       // Start timer
+  *enable_ptr = 0x1; // Start timer
   cprintf("Enabled timer!\r\n");
 
   for (u32 k = 0; k < 100; k++) {
     u32 data = *value_ptr;
-      cprintf("TIMER VALUE IS = %d\r\n", data);
-  } 
-
+    cprintf("TIMER VALUE IS = %d\r\n", data);
+  }
 }
-
 
 void shutdown(void) {
   // Power off PMU devices, and call software encourage to apply it
   u64 pmu = 0x17030000;
-  u32 * pmu_ptr = (u32 *)(pmu + 0x10);
+  u32 *pmu_ptr = (u32 *)(pmu + 0x10);
   u32 data = *pmu_ptr;
   *pmu_ptr = data | 0b111111;
-  
-  
-  u32 * pmu_software_encourage_ptr = (u32 *)(pmu + 0x44);
+
+  u32 *pmu_software_encourage_ptr = (u32 *)(pmu + 0x44);
   *pmu_software_encourage_ptr = 0xFF;
   *pmu_software_encourage_ptr = 0x0A;
   *pmu_software_encourage_ptr = 0xA0;
   cprintf("Should not happen!\r\n");
 }
 
-
-
 unsigned long test_escape(void) {
   unsigned long mepc_val;
-  __asm__ volatile (
-    "csrr %0, mepc"
-    : "=r"(mepc_val)
-  );
+  __asm__ volatile("csrr %0, mepc" : "=r"(mepc_val));
 }
 
 void kmain(void) {
-  uptr dtb_address = 0x88000000;
-  init_uart();
-  cprintf("Hello Framework Board!\r\n");
-  //__asm__ volatile("mv %0, a1" : "=r"(dtb_address));
-  __asm__ volatile (
-    "li a0, 65\n"                  // FID = 0
-    "li a6, 0\n"                  // FID = 0
-    "li a7, 0x1\n"         // EID = 0x0A000000
-    "ecall\n"                     // Make the ECALL
-  );
+  // NOTE: Loads the device tree address from arguments. Currently unused cause
+  // we hardcoded the devicetree in the kernel
+  // __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
 
-  
+  // Call the syscall that we have patched to put us in M-mode
+  __asm__ volatile("li a0, 65\n"
+                   "li a6, 0\n"
+                   "li a7, 0x1\n"
+                   "ecall\n");
+
+  WRITE_CSR(mtvec, (u64)kernel_entry);
+
+  uptr dtb_address = 0x85000000UL; // Hardcoded device tree address - see
+                                   // Makefile for where it is defined
+  init_fdt(dtb_address);
+  init_uart();
+
   // ===== Init important stuff =====
 
-  
   unsigned long mepc_val = test_escape();
   cprintf("Is in mmode %p!\r\n", mepc_val);
 
-  WRITE_CSR(mtvec, (u64)kernel_entry);
-  /* u64 timer_base = 2000000;
-  u64 *mtime_addr = (u64 *)(timer_base + 0xBFF8);
-
-  for (u32 k = 0; k < 100; k++) {
-      u64 data = *mtime_addr;
-      cprintf("TIMER VALUE IS = %d\r\n", data);
-  }  */
-  
-
-
-  cprintf("A1 is %p\r\n", dtb_address);
-  init_fdt(dtb_address);
   init_timer();
   stopwatch("FDT, UART and Timer initialisation");
 
   stopwatch("Wrote DSR");
-  
+
   // === Set up processes === //
   stopwatch("Process initialisation");
-  
+
   // === Init memory === //
   init_mem_table();
   stopwatch("Memory table initialisation");
   init_heap(10);
   stopwatch("Heap initialisation");
-  
+
   // === Get addresses from device tree === //
-  //init_system();
+  // init_system();
   stopwatch("System initialisation");
-  //init_pci();
+  // init_pci();
   stopwatch("PCI initialisation");
-  
+
   // ====== Normal code ====== //
-  
-  //init_virtio_vga();
+
+  // init_virtio_vga();
   int i = 0;
   while (i < 10) {
     cprintf("Sleeping for 1 second...");
@@ -144,8 +123,8 @@ void kmain(void) {
     char x = kgetchar();
     kputchar(x);
   }
-  
-  //WRITE_CSR(mtvec, (u64)kernel_entry);
+
+  // WRITE_CSR(mtvec, (u64)kernel_entry);
   init_proc();
   // === FDT ===
   // print_fdt();
