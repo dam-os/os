@@ -1,4 +1,3 @@
-#include "print.h"
 int cstrlen(char *src) {
   int len = 0;
   while (*src != '\0') {
