@@ -1,4 +1,6 @@
 BOARD ?= virt
+BUILD_UBOOT ?= true
+
 SRCDIR = src/kernel
 BUILDDIR = build
 LIBDIR = $(SRCDIR)/lib
@@ -62,8 +64,9 @@ define QFLAGS-MACHINE
 		-machine virt \
 		-cpu rv64,pmp=false \
 		-serial mon:stdio \
-		-bios fw_jump.bin \
-		-kernel u-boot.bin \
+		-device virtio-vga \
+		-bios opensbi/build/platform/generic/firmware/fw_jump.bin \
+		-kernel u-boot/u-boot.bin \
 		-device loader,file=build/kernel.bin,addr=0x84000000
 endef
 
@@ -114,8 +117,17 @@ debug: damos
 clean:
 	rm -rf $(BUILDDIR)/*
 
-sdcard:
-	$(QEMU) $(QFLAGS-SPL)
+open-sbi:
+	$(MAKE) -C opensbi PLATFORM=generic FW_TEXT_START=0x40000000 FW_OPTIONS=0
 
-sdcard2:
-	$(QEMU) $(QFLAGS-SPL) -s -S
+build-uboot:
+ifeq (,$(wildcard u-boot/u-boot.bin))
+	$(MAKE) -C u-boot qemu-riscv64_smode_defconfig
+	$(MAKE) -C u-boot OPENSBI=../opensbi/build/platform/generic/firmware/fw_dynamic.bin
+endif
+
+u-boot: open-sbi build-uboot
+	$(QEMU) $(QFLAGS-MACHINE)
+
+u-boot-debug: open-sbi build-uboot
+	$(QEMU) $(QFLAGS-MACHINE) -s -S
