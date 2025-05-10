@@ -128,8 +128,8 @@ else
 endif
 	MAKEFLAGS= $(MAKE) -C u-boot OPENSBI=../opensbi/build/platform/generic/firmware/fw_dynamic.bin
 
-u-boot: open-sbi
+u-boot: damos open-sbi
 	$(QEMU) $(QFLAGS-MACHINE)
 
-u-boot-debug: open-sbi 
+u-boot-debug: damos open-sbi 
 	$(QEMU) $(QFLAGS-MACHINE) -s -S
