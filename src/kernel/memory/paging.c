@@ -1,7 +1,7 @@
 #include "paging.h"
 #include "../drivers/system.h"
 #include "../lib/common.h"
-#include "../lib/print.h"
+#include "../lib/io.h"
 #include "memory.h"
 
 extern char __free_ram[], __free_ram_end[];

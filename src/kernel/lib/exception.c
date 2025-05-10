@@ -1,9 +1,8 @@
 #include "../drivers/system.h"
-#include "../drivers/uart.h"
 #include "../drivers/vga.h"
 #include "../memory/virt_memory.h"
 #include "common.h"
-#include "print.h"
+#include "io.h"
 #include "process.h"
 
 __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
@@ -159,13 +158,13 @@ void handle_syscall(struct trap_frame *f) {
     exit_proc();
     break;
   case 3: {
-    char x = kgetchar();
+    char x = cgetchar();
     cputchar(x);
     f->a5 = x;
     break;
   }
   case 4:
-    kputchar((char)f->a1);
+    cputchar((char)f->a1);
     break;
   default:
     PANIC("unexpected syscall a0=%x\n", f->a0);

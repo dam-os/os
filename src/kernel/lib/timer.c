@@ -1,7 +1,7 @@
 #include "timer.h"
 #include "../drivers/device_tree.h"
 #include "common.h"
-#include "print.h"
+#include "io.h"
 #include "string.h"
 
 u32 RISCV_CLINT_ADDR = NULL;

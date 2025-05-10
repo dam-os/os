@@ -4,7 +4,8 @@
 #include "drivers/uart.h"
 #include "drivers/vga.h"
 #include "lib/exception.h"
-#include "lib/print.h"
+#include "lib/file.h"
+#include "lib/io.h"
 #include "lib/process.h"
 #include "lib/screen.h"
 #include "lib/string.h"
@@ -12,14 +13,19 @@
 #include "memory/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging.h"
-#include "memory/virt_memory.h"
 
 extern char stack_top[];
 struct proc *proc_c;
+file *stdout;
+file *stdin;
 
 void kmain(void) {
   uptr dtb_address;
   __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
+
+  // === io ===
+  stdout = &stdout_uart;
+  stdin = &stdin_uart;
 
   // ===== Init important stuff =====
   init_fdt(dtb_address);
@@ -52,10 +58,17 @@ void kmain(void) {
   stopwatch("VGA initialisation");
 
   // === FDT ===
-  print_fdt();
+  // print_fdt();
 
-  // === Timer test ===
-  init_print(1);
+  // Change stdout to print to screen instead of uart
+  stdout = &stdout_screen;
+
+  // sprintf test
+  char *buf = kmalloc(100);
+  csprintf(buf, "sprintf got me feeling like five equals %d\n", 5);
+  cprintf("printf got a message from sprintf: %s\n", buf);
+
+  // Timer test
   // Wait 10 seconds
   cprintf("Sleeping for 5 second...");
   sleep(5000);
