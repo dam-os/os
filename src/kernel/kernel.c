@@ -73,7 +73,8 @@ void kmain(void) {
   __asm__ volatile("li a0, 65\n"
                    "li a6, 0\n"
                    "li a7, 0x1\n"
-                   "ecall\n");
+                   "ecall\n"
+                   "la sp, stack_top\n");
 
   WRITE_CSR(mtvec, (u64)kernel_entry);
 
