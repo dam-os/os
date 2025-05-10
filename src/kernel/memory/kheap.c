@@ -22,21 +22,21 @@ int max_size = 0;
 
 void print_heap_contents() {
   block_t *current = blocks;
-  cprintf("Heap blocks:\n");
-  cprintf("  -------------------------\n");
+  cprintf("Heap blocks:\r\n");
+  cprintf("  -------------------------\r\n");
   while (current != NULL) {
-    cprintf("  Address: 0x%p\n", (void *)current);
-    cprintf("  Size:    %ld bytes\n", current->size);
-    cprintf("  Alloced: %ld bytes\n", current->size - BLOCK_SIZE);
-    cprintf("  Status:  %s\n", current->free ? "Free" : "Allocated");
-    cprintf("  Next:    0x%p\n", (void *)current->next);
-    cprintf("  -------------------------\n");
+    cprintf("  Address: 0x%p\r\n", (void *)current);
+    cprintf("  Size:    %ld bytes\r\n", current->size);
+    cprintf("  Alloced: %ld bytes\r\n", current->size - BLOCK_SIZE);
+    cprintf("  Status:  %s\r\n", current->free ? "Free" : "Allocated");
+    cprintf("  Next:    0x%p\r\n", (void *)current->next);
+    cprintf("  -------------------------\r\n");
     current = current->next;
   }
 }
 int init_heap(int page_numbers) {
   if (DEBUG) {
-    cprintf("BLOCK SIZE: %d\n", BLOCK_SIZE);
+    cprintf("BLOCK SIZE: %d\r\n", BLOCK_SIZE);
   }
 
   void *pages = (void *)alloc_pages(page_numbers);
@@ -52,7 +52,7 @@ int init_heap(int page_numbers) {
   *blocks = init_block;
 
   cprintf(
-      "[heap] Heap initialised with %d pages and a block size of %d bytes.\n",
+      "[heap] Heap initialised with %d pages and a block size of %d bytes.\r\n",
       page_numbers, BLOCK_SIZE);
   return 1;
 }
@@ -60,7 +60,7 @@ int init_heap(int page_numbers) {
 void *kmalloc(unsigned int size) {
   if (DEBUG) {
     print_heap_contents();
-    cprintf("Trying to allocate %d bytes\n", size);
+    cprintf("Trying to allocate %d bytes\r\n", size);
   }
 
   block_t *current = blocks;
@@ -99,7 +99,7 @@ void *kmalloc(unsigned int size) {
       current->free = 0;
 
       if (DEBUG) {
-        cprintf("Allocated %d bytes at %p\n", size,
+        cprintf("Allocated %d bytes at %p\r\n", size,
                 (void *)BLOCK_TO_PTR(current));
         print_heap_contents();
       }

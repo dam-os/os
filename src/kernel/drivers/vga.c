@@ -171,10 +171,10 @@ int verify_pci_device(u32 *devbase) {
   u32 pci_class = (*(devbase + 2)) >> 8;
 
   if (pci_class != 0x030000) {
-    cprintf("[vga] VGA not found\n");
+    cprintf("[vga] VGA not found\r\n");
     return 0;
   } else {
-    cprintf("[vga] VGA device found\n");
+    cprintf("[vga] VGA device found\r\n");
     return 1;
   }
 }
@@ -264,17 +264,17 @@ void debug_print_virtio() {
   u8 header_type = (reg3 >> 16) & 0xFF;
   u8 bist = (reg3 >> 24) & 0xFF;
 
-  cprintf("[vga] Device ID:        0x%x\n", device_id);
-  cprintf("[vga] Vendor ID:        0x%x\n", vendor_id);
-  cprintf("[vga] Command:          0x%x\n", command);
-  cprintf("[vga] Status:           0x%b\n", status);
-  cprintf("[vga] Class Code:       0x%x\n", class_code);
-  cprintf("[vga] Subclass:         0x%x\n", subclass);
-  cprintf("[vga] Programming IF:   0x%x\n", prog_if);
-  cprintf("[vga] Revision ID:      0x%x\n", revision_id);
-  cprintf("[vga] Cache Line Size:  0x%x (%d bytes)\n", cache_line_size,
+  cprintf("[vga] Device ID:        0x%x\r\n", device_id);
+  cprintf("[vga] Vendor ID:        0x%x\r\n", vendor_id);
+  cprintf("[vga] Command:          0x%x\r\n", command);
+  cprintf("[vga] Status:           0x%b\r\n", status);
+  cprintf("[vga] Class Code:       0x%x\r\n", class_code);
+  cprintf("[vga] Subclass:         0x%x\r\n", subclass);
+  cprintf("[vga] Programming IF:   0x%x\r\n", prog_if);
+  cprintf("[vga] Revision ID:      0x%x\r\n", revision_id);
+  cprintf("[vga] Cache Line Size:  0x%x (%d bytes)\r\n", cache_line_size,
           cache_line_size * 4);
-  cprintf("[vga] Latency Timer:    0x%x\n", latency_timer);
-  cprintf("[vga] Header Type:      0x%x\n", header_type);
-  cprintf("[vga] BIST:             0x%x\n", bist);
+  cprintf("[vga] Latency Timer:    0x%x\r\n", latency_timer);
+  cprintf("[vga] Header Type:      0x%x\r\n", header_type);
+  cprintf("[vga] BIST:             0x%x\r\n", bist);
 }

@@ -20,7 +20,7 @@ void init_system(void) {
   SYSCON_ADDR = get_node_addr(syscon->name);
   free_node(syscon);
 
-  print("[system] System functions initialised, ready to call poweroff\n");
+  print("[system] System functions initialised, ready to call poweroff\r\n");
 }
 
 void poweroffmsg(char *msg) {
@@ -28,4 +28,4 @@ void poweroffmsg(char *msg) {
   *(u32 *)(SYSCON_ADDR + POWEROFF_OFFSET) = POWEROFF_VALUE;
 }
 
-void poweroff(void) { poweroffmsg("Poweroff requested\n"); }
+void poweroff(void) { poweroffmsg("Poweroff requested\r\n"); }

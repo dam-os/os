@@ -27,7 +27,7 @@ bss_clear:
 	bltu t5, t6, bss_clear
 	
 	la t0, kmain
-	csrw mepc, t0
+	csrw sepc, t0
 	
 	/* Jump to kernel! */
 	tail kmain

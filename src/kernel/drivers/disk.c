@@ -16,27 +16,27 @@ void virtio_reg_write32(unsigned offset, u32 value) {
 }
 
 void verify_disk(void) {
-  cprintf("Checking disk specs at 0x%x\n", VIRTIO_BLK_PADDR);
+  cprintf("Checking disk specs at 0x%x\r\n", VIRTIO_BLK_PADDR);
 
   u32 magic = virtio_reg_read32(VIRTIO_REG_MAGIC);
-  cprintf("virtio magic: 0x%x\n", magic);
+  cprintf("virtio magic: 0x%x\r\n", magic);
   if (magic != 0x74726976)
     PANIC("virtio: Invalid magic (expected 0x74726976)");
 
   u32 version = virtio_reg_read32(VIRTIO_REG_VERSION);
-  cprintf("virtio version: 0x%x\n", version);
+  cprintf("virtio version: 0x%x\r\n", version);
   if (version == 0x1)
     print("WARNING: virtio: Legacy device detected (expected version 0x2, got "
-          "0x1)\n");
+          "0x1)\r\n");
   else if (version != 0x2)
-    PANIC("virtio: Invalid version (expected 0x2)\n");
+    PANIC("virtio: Invalid version (expected 0x2)\r\n");
 
   u32 device_id = virtio_reg_read32(VIRTIO_REG_DEVICE_ID);
-  cprintf("virtio device id: 0x%x\n", device_id);
-  cprintf("virtio device type: %s\n", DeviceTypeNames[device_id]);
+  cprintf("virtio device id: 0x%x\r\n", device_id);
+  cprintf("virtio device type: %s\r\n", DeviceTypeNames[device_id]);
 
   u32 vendor_id = virtio_reg_read32(VIRTIO_REG_VENDOR_ID);
-  cprintf("virtio vendor id: 0x%x\n", vendor_id);
+  cprintf("virtio vendor id: 0x%x\r\n", vendor_id);
 
   /*u32 device_features = virtio_reg_read32(VIRTIO_REG_DEVICE_FEATURES);*/
   /*cprintf("virtio device features: 0b%b\n",*/

@@ -7,7 +7,7 @@ uptr PCI_CONFIG_BASE = NULL;
 void init_pci(void) {
   PCI_CONFIG_BASE = get_node_addr(match_node("pci@"));
 
-  print("[pci] PCI config base initialised.\n");
+  print("[pci] PCI config base initialised.\r\n");
 }
 
 // https://wiki.osdev.org/PCI#Enumerating_PCI_Buses
@@ -42,7 +42,7 @@ void enumerate_pci() {
         u16 vendor_id = vendor_device_id & 0xFFFF;
         u16 device_id = (vendor_device_id >> 16) & 0xFFFF;
         cprintf("PCI Device Found: Bus %d, Device %d, Function 0x00, Vendor: "
-                "%d, Device: %d\n",
+                "%d, Device: %d\r\n",
                 bus, device, vendor_id, device_id);
       }
     }

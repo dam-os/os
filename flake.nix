@@ -79,6 +79,10 @@
             # RISC-V Toolchain
             riscv64Toolchain.gcc
             riscv64Toolchain.binutils
+            
+            coreboot-toolchain.riscv
+            qemu
+            clang-tools_19
           ];
 
           # Environment variables for U-Boot build

@@ -121,7 +121,7 @@ proc_t *create_process(void *target_function, int isKernel) {
     for (int i = pci_base; i < pci_base + 0x10000000; i += PAGE_SIZE)
       map_virt_mem(page_table, i, i); // PCI
   } else {
-    print("User\n");
+    print("User\r\n");
     // Map user pages
     u64 image_size = (u64)_binary_build_shell_bin_size;
     u64 image = (u64)_binary_build_shell_bin_start;
@@ -135,7 +135,7 @@ proc_t *create_process(void *target_function, int isKernel) {
       map_virt_mem(page_table, USER_BASE + off, page);
     }
   }
-  print("DONE\n");
+  print("DONE\r\n");
 
   process->page_table = page_table;
   return process;
@@ -147,7 +147,7 @@ void init_proc(void) {
   current_proc->pid = 0;
   current_proc->state = PROCESS_RUNNABLE;
 
-  print("[process] Kernel process initialised.\n");
+  print("[process] Kernel process initialised.\r\n");
 }
 
 /**
