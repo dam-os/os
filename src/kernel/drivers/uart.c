@@ -22,12 +22,34 @@ u32 reg(u8 register_number) { return register_number * UART_REG_WIDTH; }
 
 void init_uart(void) {
   // Get serial node
-  char *serial = match_node("serial@[status?='okay']");
-  UART_BASE = get_node_addr(serial);
+  char *stdout_path = match_node("chosen*stdout-path");
+  if (stdout_path[0] != '/') {
+    // stdout_path is not a path but a node alias, look in the aliases node
+    char alias_name[48];
+    // Only include up to the first colon - anything after is metadata
+    for (int i = 0; stdout_path[i] != ':' && stdout_path[i] != '\0'; i++) {
+      alias_name[i] = stdout_path[i];
+    }
+    // Prepend "aliases*"
+    csprintf(alias_name, "aliases*%s", alias_name);
+    // Look it up
+    stdout_path = match_node(alias_name);
+  }
+  // stdout_path is now in the form /soc/serial@1000000 or similar
+  // We want to isolate serial@100000 by advancing pointer past the last /
+  for (u8 i = 0; stdout_path[i] != '\0'; i++) {
+    if (stdout_path[i] == '/') {
+      // "cut" string and effectively reset the search through it
+      stdout_path = stdout_path + i + 1;
+      i = 0;
+    }
+  }
+
+  UART_BASE = get_node_addr(stdout_path);
 
   // Get registry width to determine LSR offset
   char width_search[48];
-  csprintf(width_search, "%s*reg-io-width", serial);
+  csprintf(width_search, "%s*reg-io-width", stdout_path);
   u32 *width_ptr = match_node(width_search);
   if (width_ptr != NULL) {
     UART_REG_WIDTH = swap_endian_32(*width_ptr);
