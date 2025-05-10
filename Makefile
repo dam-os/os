@@ -4,6 +4,8 @@ LIBDIR = $(SRCDIR)/lib
 MEMDIR = $(SRCDIR)/memory
 DRIVERDIR = $(SRCDIR)/drivers
 USERDIR = src/user
+DTB = $(SRCDIR)/device_tree/device_tree.dtb
+DTB_OBJ = $(BUILDDIR)/dtb.o
 
 # Source files
 KERNEL_SRC = $(SRCDIR)/kernel.c
@@ -50,7 +52,8 @@ damos: clean build_dirs $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS)
 	$(OBJCOPY) -Ibinary -Oelf64-littleriscv $(BUILDDIR)/shell.bin $(BUILDDIR)/shell.bin.o
 
 	$(CC) $(LDFLAGS) $(BUILDDIR)/shell.bin.o $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
-	
+	$(OBJCOPY) -I binary -O elf64-littleriscv -B riscv $(DTB) $(DTB_OBJ)
+	$(CC) $(LDFLAGS) $(DTB_OBJ) $(BUILDDIR)/shell.bin.o $(KERNEL_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) -o $(BUILDDIR)/kernel.elf
 	riscv64-elf-objcopy -O binary $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.bin
 
 # Ensure build directories exist

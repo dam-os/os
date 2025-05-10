@@ -15,6 +15,7 @@
 #include "memory/paging.h"
 
 extern char stack_top[];
+extern char __dtb_start[];
 struct proc *proc_c;
 file *stdout;
 file *stdin;
@@ -26,11 +27,11 @@ void kmain(void) {
   // === io ===
   stdout = &stdout_uart;
   stdin = &stdin_uart;
-
   // ===== Init important stuff =====
-  init_fdt(dtb_address);
+  init_fdt(0x8005d000);
   init_uart();
   init_timer();
+  cprintf("RESULT %d\n", memcmp((void *)0x8005d000, (void *)dtb_address, 7));
   stopwatch("FDT, UART and Timer initialisation");
 
   WRITE_CSR(mtvec, (u64)kernel_entry);
