@@ -23,20 +23,20 @@ size_t max_size = 0;
 void print_heap_contents() {
   block_t *current = blocks;
   cprintf("Heap blocks:\n");
-  cprintf("  -------------------------\n");
+  cprintf("  -------------------------\r\n");
   while (current != NULL) {
-    cprintf("  Address: 0x%p\n", (void *)current);
-    cprintf("  Size:    %ld bytes\n", current->size);
-    cprintf("  Alloced: %ld bytes\n", current->size - BLOCK_SIZE);
-    cprintf("  Status:  %s\n", current->free ? "Free" : "Allocated");
-    cprintf("  Next:    0x%p\n", (void *)current->next);
-    cprintf("  -------------------------\n");
+    cprintf("  Address: 0x%p\r\n", (void *)current);
+    cprintf("  Size:    %ld bytes\r\n", current->size);
+    cprintf("  Alloced: %ld bytes\r\n", current->size - BLOCK_SIZE);
+    cprintf("  Status:  %s\r\n", current->free ? "Free" : "Allocated");
+    cprintf("  Next:    0x%p\r\n", (void *)current->next);
+    cprintf("  -------------------------\r\n");
     current = current->next;
   }
 }
 u32 init_heap(u32 page_numbers) {
   if (DEBUG) {
-    cprintf("BLOCK SIZE: %d\n", BLOCK_SIZE);
+    cprintf("BLOCK SIZE: %d\r\n", BLOCK_SIZE);
   }
 
   void *pages = (void *)alloc_pages(page_numbers);
@@ -52,7 +52,7 @@ u32 init_heap(u32 page_numbers) {
   *blocks = init_block;
 
   cprintf(
-      "[heap] Heap initialised with %d pages and a block size of %d bytes.\n",
+      "[heap] Heap initialised with %d pages and a block size of %d bytes.\r\n",
       page_numbers, BLOCK_SIZE);
   return 1;
 }
@@ -60,7 +60,7 @@ u32 init_heap(u32 page_numbers) {
 void *kmalloc(size_t size) {
   if (DEBUG) {
     print_heap_contents();
-    cprintf("Trying to allocate %d bytes\n", size);
+    cprintf("Trying to allocate %d bytes\r\n", size);
   }
 
   block_t *current = blocks;
@@ -99,7 +99,7 @@ void *kmalloc(size_t size) {
       current->free = 0;
 
       if (DEBUG) {
-        cprintf("Allocated %d bytes at %p\n", size,
+        cprintf("Allocated %d bytes at %p\r\n", size,
                 (void *)BLOCK_TO_PTR(current));
         print_heap_contents();
       }
@@ -131,7 +131,7 @@ u32 kfree(void *ptr) {
       block->next = current->next;
 
       if (DEBUG) {
-        cprintf("Merged block at %p with next block at %p\n", (void *)block,
+        cprintf("Merged block at %p with next block at %p\r\n", (void *)block,
                 (void *)current);
         print_heap_contents();
       }

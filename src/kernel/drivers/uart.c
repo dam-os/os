@@ -36,7 +36,7 @@ void init_uart(void) {
   UART_DATA = (volatile u8 *)(UART_BASE + reg(0)); // 0th register
   UART_LSR = (volatile u8 *)(UART_BASE + reg(5));  // 5th register
 
-  print("[uart] UART initialised. Printing ready.\n");
+  print("[uart] UART initialised. Printing ready.\r\n");
 }
 
 char getchar_uart(void) {

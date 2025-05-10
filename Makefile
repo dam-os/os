@@ -33,14 +33,13 @@ define QFLAGS
 		-cpu rv64,pmp=false \
 		-serial mon:stdio
 endef
-define QFLAGS-SPL
+define QFLAGS-MACHINE
 		-machine virt \
-		-bios ../u-boot/spl/u-boot-spl.bin \
 		-cpu rv64,pmp=false \
 		-serial mon:stdio \
-		-drive id=mysdcard,if=none,file=sdcard.img,format=raw,id=mydisk \
-		-device sdhci-pci \
-		-device sd-card,drive=mysdcard
+		-bios fw_jump.bin \
+		-kernel u-boot.bin \
+		-device loader,file=build/kernel.bin,addr=0x84000000
 endef
 
 # Main kernel build (uses kernel.c)
@@ -91,3 +90,6 @@ clean:
 
 sdcard:
 	$(QEMU) $(QFLAGS-SPL)
+
+sdcard2:
+	$(QEMU) $(QFLAGS-SPL) -s -S

@@ -179,7 +179,7 @@ fdt_node_t *find_node_by_phandle(u32 phandle) {
   u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
-    print("Invalid FDT magic number!\n");
+    print("Invalid FDT magic number!\r\n");
     return NULL;
   }
   u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
@@ -241,7 +241,7 @@ void print_property(fdt_property_t *property, u8 indent) {
   print(property->name);
 
   if (len == 0) {
-    print(";\n");
+    print(";\r\n");
     return;
   }
   print(" = ");
@@ -257,12 +257,12 @@ void print_property(fdt_property_t *property, u8 indent) {
     }
     print(">;");
   }
-  print("\n");
+  print("\r\n");
 }
 
 void print_node(fdt_node_t *node, u8 indent) {
   print_indent(indent);
-  cprintf("%s {\n", node->name);
+  cprintf("%s {\r\n", node->name);
 
   u32 i;
   if (node->property_count > 0) {
@@ -278,7 +278,7 @@ void print_node(fdt_node_t *node, u8 indent) {
   }
 
   print_indent(indent);
-  cprintf("};\n\n");
+  cprintf("};\r\n");
 }
 
 /**
@@ -349,7 +349,7 @@ void print_fdt(void) {
   u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
-    print("Invalid FDT magic number!\n");
+    print("Invalid FDT magic number!\r\n");
     return;
   }
   u32 struct_offset = swap_endian_32(hdr->off_dt_struct);
@@ -691,7 +691,7 @@ void *match_node(const char *path) {
   u32 magic = swap_endian_32(hdr->magic);
 
   if (magic != FDT_MAGIC) {
-    print("Invalid FDT magic number!\n");
+    print("Invalid FDT magic number!\r\n");
     return NULL;
   }
   u32 struct_offset = swap_endian_32(hdr->off_dt_struct);

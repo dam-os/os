@@ -152,7 +152,7 @@ void handle_syscall(struct trap_frame *f) {
   case 1: {
     u64 satp_val = READ_CSR(satp);
     u64 real_addr = translate_va_to_pa(f->a1, satp_val);
-    cprintf("Printing from shell: %s\n", (char *)(real_addr));
+    cprintf("Printing from shell: %s\r\n", (char *)(real_addr));
   } break;
   case 2:
     exit_proc();
@@ -167,7 +167,7 @@ void handle_syscall(struct trap_frame *f) {
     cputchar((char)f->a1);
     break;
   default:
-    PANIC("unexpected syscall a0=%x\n", f->a0);
+    PANIC("unexpected syscall a0=%x\r\n", f->a0);
   }
 }
 
@@ -181,7 +181,7 @@ void handle_trap(struct trap_frame *f) {
     WRITE_CSR(mepc, user_pc);
   } else {
 
-    PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\n", mcause, mtval,
+    PANIC("unexpected trap mcause=%x, mtval=%p, mepc=%p\r\n", mcause, mtval,
           user_pc);
   }
 }

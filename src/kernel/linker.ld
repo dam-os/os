@@ -1,6 +1,6 @@
 ENTRY(start);
  
-. = 0x80000000;
+. = 0x84000000;
  
 SECTIONS {
 	__kernel_base = .;
@@ -25,6 +25,6 @@ SECTIONS {
 	}
     . = ALIGN(4096);
     __free_ram = .;
-    . += 64 * 1024 * 1024;
+    . += 1 * 1024 * 1024;
     __free_ram_end = .;
 }

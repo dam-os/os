@@ -24,7 +24,8 @@ void init_timer(void) {
   RISCV_MTIME_ADDR = (u64 *)(RISCV_CLINT_ADDR + 0xBFF8);
 
   stopwatch_last_timestamp = mtime_get_microseconds();
-  cprintf("[timer] Timer initialised with frequency %d\n", TIMEBASE_FREQUENCY);
+  cprintf("[timer] Timer initialised with frequency %d\r\n",
+          TIMEBASE_FREQUENCY);
 }
 
 u64 mtime_get_raw_time(void) {
@@ -53,9 +54,9 @@ void sleep(u64 ms) {
 void stopwatch(const char *message) {
   u64 difference = mtime_get_microseconds() - stopwatch_last_timestamp;
   if (difference > 10000) {
-    cprintf("[stopwatch] %s: %d ms\n", message, difference / 1000);
+    cprintf("[stopwatch] %s: %d ms\r\n", message, difference / 1000);
   } else {
-    cprintf("[stopwatch] %s: %d μs\n", message, difference);
+    cprintf("[stopwatch] %s: %d μs\r\n", message, difference);
   }
   stopwatch_last_timestamp = mtime_get_microseconds();
 }

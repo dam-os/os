@@ -3,37 +3,47 @@
 #include "drivers/system.h"
 #include "drivers/uart.h"
 #include "drivers/vga.h"
+#include "lib/common.h"
 #include "lib/exception.h"
 #include "lib/file.h"
 #include "lib/io.h"
 #include "lib/process.h"
 #include "lib/screen.h"
-#include "lib/string.h"
 #include "lib/timer.h"
 #include "memory/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging.h"
 
 extern char stack_top[];
+extern char __dtb_start[];
 struct proc *proc_c;
 file *stdout;
 file *stdin;
 
 void kmain(void) {
-  uptr dtb_address;
-  __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
+  // NOTE: Loads the device tree address from arguments. Currently unused cause
+  // we hardcoded the devicetree in the kernel
+  // __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
+
+  // Call the syscall that we have patched to put us in M-mode
+  __asm__ volatile("li a0, 65\n"
+                   "li a6, 0\n"
+                   "li a7, 0x1\n"
+                   "ecall\n"
+                   "la sp, stack_top\n");
+
+  WRITE_CSR(mtvec, (u64)kernel_entry);
 
   // === io ===
   stdout = &stdout_uart;
   stdin = &stdin_uart;
 
   // ===== Init important stuff =====
-  init_fdt(dtb_address);
+  init_fdt((uptr)__dtb_start);
   init_uart();
   init_timer();
   stopwatch("FDT, UART and Timer initialisation");
 
-  WRITE_CSR(mtvec, (u64)kernel_entry);
   stopwatch("Wrote DSR");
 
   // === Set up processes === //
@@ -43,7 +53,7 @@ void kmain(void) {
   // === Init memory === //
   init_mem_table();
   stopwatch("Memory table initialisation");
-  init_heap(100);
+  init_heap(10);
   stopwatch("Heap initialisation");
 
   // === Get addresses from device tree === //
