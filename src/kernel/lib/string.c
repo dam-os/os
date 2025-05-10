@@ -1,5 +1,7 @@
+#include "common.h"
+
 int cstrlen(char *src) {
-  int len = 0;
+  u32 len = 0;
   while (*src != '\0') {
     src += 1;
     len++;
@@ -7,11 +9,11 @@ int cstrlen(char *src) {
   return len;
 }
 
-int cstrcmp(char *src, char *dest) {
-  int l = cstrlen(src);
+u32 cstrcmp(char *src, char *dest) {
+  u32 l = cstrlen(src);
   if (l != cstrlen(dest))
     return -1;
-  for (int i = 0; i < l; i++) {
+  for (u32 i = 0; i < l; i++) {
     if (src[i] ^ dest[i]) {
       return -1;
     }
@@ -20,13 +22,13 @@ int cstrcmp(char *src, char *dest) {
   return 0;
 }
 
-int startswith(char *search, char *target) {
-  int l = cstrlen(search);
+u32 startswith(char *search, char *target) {
+  u32 l = cstrlen(search);
   // can't have a search longer than the target now
   if (l > cstrlen(target))
     return -2;
 
-  for (int i = 0; i < l; i++) {
+  for (u32 i = 0; i < l; i++) {
     if (search[i] ^ target[i]) {
       return -1;
     }
@@ -35,11 +37,11 @@ int startswith(char *search, char *target) {
   return 0;
 }
 
-int strincl(char *in, char *container) {
-  int len = cstrlen(in);
-  int clen = cstrlen(container);
-  int test = 0;
-  int i = 0;
+u32 strincl(char *in, char *container) {
+  u32 len = cstrlen(in);
+  u32 clen = cstrlen(container);
+  u32 test = 0;
+  u32 i = 0;
   while (i < clen && test != len) {
     if (container[i] == in[test]) {
       test++;
@@ -57,7 +59,7 @@ int strincl(char *in, char *container) {
 }
 
 void cstrcpy(char *src, char *dest) {
-  for (int i = 0; i < cstrlen(src); i++) {
+  for (u32 i = 0; i < cstrlen(src); i++) {
     dest[i] = src[i];
   }
 }

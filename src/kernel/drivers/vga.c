@@ -14,13 +14,13 @@
 // http://www.osdever.net/FreeVGA/vga/crtcreg.htm#0F
 
 void write_to_ports(u8 *port0300, const PortWrites *mode) {
-  for (int i = 0; i < 28; i++) {
+  for (u8 i = 0; i < 28; i++) {
     u8 vport = mode[i].vport;
     u8 index = mode[i].index;
     u8 data = mode[i].data;
     u8 *port = port0300 + vport;
 
-    __attribute__((unused)) int _;
+    __attribute__((unused)) u32 _;
 
     switch (vport) {
     case 0xC0:
@@ -42,14 +42,14 @@ void write_to_ports(u8 *port0300, const PortWrites *mode) {
   }
 }
 
-void draw_pixel(int x, int y, u8 color) {
+void draw_pixel(u32 x, u32 y, u8 color) {
   volatile u8 *fb = (volatile u8 *)fb_base;
-  int offset = (y * 320) + x;
+  u32 offset = (y * 320) + x;
   fb[offset] = color;
 }
 
 void clear_screen() {
-  for (int i = 0; i < (320 * 200); i++) {
+  for (u32 i = 0; i < (320 * 200); i++) {
     ((volatile u8 *)fb_base)[i] = 0;
   }
 }
@@ -65,13 +65,13 @@ void text_putchar(u8 x, u8 y, char ch, u8 fg_color) {
   volatile u16 *p = (volatile u16 *)fb_base;
   u8 bg_color = 0;
   u16 attrib = (bg_color << 4) | (fg_color & 0x0F);
-  int offset = 80 * y + x;
+  u32 offset = 80 * y + x;
   p[offset * 2] = (u16)ch | (attrib << 8);
 }
 
 void text_clear_screen() {
-  for (int x = 0; x < 80; x++) {
-    for (int y = 0; y < 25; y++) {
+  for (u32 x = 0; x < 80; x++) {
+    for (u32 y = 0; y < 25; y++) {
       text_putchar(x, y, 0x20, 0);
     }
   }
@@ -79,9 +79,9 @@ void text_clear_screen() {
 
 void print_screen_buf(char **buf) {
   text_clear_screen();
-  for (int y = 0; y < 25; y++) {
+  for (u32 y = 0; y < 25; y++) {
     cprintf(buf[y]);
-    for (int x = 0; x < 80; x++) {
+    for (u32 x = 0; x < 80; x++) {
       text_putfast(x, y, buf[y][x]);
       text_putchar(x, y, buf[y][x], 1);
     }
@@ -91,21 +91,21 @@ void print_screen_buf(char **buf) {
 void load_font() {
   volatile u16 *p = (volatile u16 *)fb_base;
 
-  for (int x = 0; x < 256; x++) {  // For each char in font
-    int offset = x * 16 * 4;       // 4 planes of 16 bytes each
-    for (int i = 0; i < 16; i++) { // For each char 16 bytes of font data
+  for (u32 x = 0; x < 256; x++) {  // For each char in font
+    u32 offset = x * 16 * 4;       // 4 planes of 16 bytes each
+    for (u32 i = 0; i < 16; i++) { // For each char 16 bytes of font data
       p[offset + (i * 2) + 1] = (real_font_data[(offset / 4) + i]);
     }
   }
 }
 
 void rainbow_animation() {
-  int frame = 0;
-  int backwards = 0;
+  u32 frame = 0;
+  u32 backwards = 0;
   while (1) {
-    for (int y = 0; y < 200; y++) {
-      for (int x = 0; x < 320; x++) {
-        int color_index = (x + frame) % 256;
+    for (u32 y = 0; y < 200; y++) {
+      for (u32 x = 0; x < 320; x++) {
+        u32 color_index = (x + frame) % 256;
         ((volatile u8 *)fb_base)[y * 320 + x] = color_index;
       }
     }
@@ -141,7 +141,7 @@ PortWrites TEXT_PALETTE_SELECT[28] = {
 
 void set_colors(u8 *port0300, const u32 palette[]) {
   u8 *p = port0300 + 0xc9;
-  for (int i = 0; i < 256; i++) {
+  for (u32 i = 0; i < 256; i++) {
     u8 b = palette[i] & 0xFF;
     u8 g = (palette[i] >> 8) & 0xFF;
     u8 r = (palette[i] >> 16) & 0xFF;
@@ -155,10 +155,10 @@ void set_colors(u8 *port0300, const u32 palette[]) {
 void draw_compressed_image() {
   u8 *p = (u8 *)fb_base;
   memset((const char *)fb_base, 0, 320 * 200);
-  int c = 0;
-  int index = 0;
-  int count = 0;
-  for (int i = 0; i < 64000; i++) {
+  u32 c = 0;
+  u32 index = 0;
+  u32 count = 0;
+  for (u32 i = 0; i < 64000; i++) {
     if (count == 0) {
       count = compressed_image[index++];
       c = !c;
@@ -217,7 +217,7 @@ void init_text_mode(u8 *port0300) {
 
   write_to_ports(port0300, TEXT_PALETTE_SELECT);
 
-  __attribute__((unused)) int _ =
+  __attribute__((unused)) u32 _ =
       *(port0300 + 0xDA); // Set C0 port back to index
   *(port0300 + 0xc0) = 0x30;
 

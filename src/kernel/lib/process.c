@@ -69,10 +69,10 @@ extern char _binary_build_shell_bin_start[];
 extern char _binary_build_shell_bin_size[];
 extern char _binary_build_shell_bin_end[];
 
-proc_t *create_process(void *target_function, int isKernel) {
+proc_t *create_process(void *target_function, u32 isKernel) {
   proc_t *process = NULL;
 
-  int i;
+  u32 i;
   for (i = 0; i < MAX_PROCCESSES; i++) {
     if (processes[i].state == PROCESS_EMPTY) {
       process = &processes[i];
@@ -160,7 +160,7 @@ void yield(void) {
   // 4. switch from old to new process
   proc_t *next = NULL;
 
-  int i;
+  u32 i;
   for (i = 0; i < MAX_PROCCESSES; i++) {
     proc_t *proc = &processes[(current_proc->pid + i + 1) % MAX_PROCCESSES];
     // Switch to process only if it is runnable, and not the kernel process

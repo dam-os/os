@@ -264,7 +264,7 @@ void print_node(fdt_node_t *node, u8 indent) {
   print_indent(indent);
   cprintf("%s {\n", node->name);
 
-  unsigned int i;
+  u32 i;
   if (node->property_count > 0) {
     for (i = 0; i < node->property_count; i++) {
       print_property(&node->properties[i], indent + 4);
@@ -680,7 +680,7 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
  * value of the timebase-frequency prop in the cpus node.
  */
 void *match_node(const char *path) {
-  int len = cstrlen((char *)path);
+  u32 len = cstrlen((char *)path);
   kassert(len < 256);
 
   char str[256]; // Max path length

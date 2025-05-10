@@ -7,10 +7,10 @@ struct block {
 } __attribute__((aligned(8)));
 typedef struct block block_t;
 
-int init_heap(int page_numbers);
+u32 init_heap(u32 page_numbers);
 
 void print_heap_contents();
-void *kmalloc(unsigned int size);
-void *krealloc(void *ptr, unsigned int size);
+void *kmalloc(size_t size);
+void *krealloc(void *ptr, size_t size);
 
-int kfree(void *ptr);
+u32 kfree(void *ptr);

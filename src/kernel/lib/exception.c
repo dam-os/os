@@ -134,8 +134,8 @@ struct trap_frame {
 
 #define MCAUSE_ECALL 8
 
-int syscall(int sysno, void *arg1, void *arg2, void *arg3) {
-  int res;
+u32 syscall(u32 sysno, void *arg1, void *arg2, void *arg3) {
+  u32 res;
 
   __asm__ __volatile__("ecall"
                        : "=r"(res)
