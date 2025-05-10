@@ -46,7 +46,7 @@ int strincl(char *in, char *container) {
     } else {
       test = 0;
 
-      if (container[i - 1] == in[test]) {
+      if (i > 0 && container[i - 1] == in[test]) {
         test++;
         continue;
       }
