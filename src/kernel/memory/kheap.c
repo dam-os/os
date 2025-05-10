@@ -18,7 +18,7 @@ block_t *blocks = NULL;
 
 #define TOTAL_BLOCK_SIZE(s) ((s) + BLOCK_SIZE)
 
-int max_size = 0;
+size_t max_size = 0;
 
 void print_heap_contents() {
   block_t *current = blocks;
@@ -34,7 +34,7 @@ void print_heap_contents() {
     current = current->next;
   }
 }
-int init_heap(int page_numbers) {
+u32 init_heap(u32 page_numbers) {
   if (DEBUG) {
     cprintf("BLOCK SIZE: %d\n", BLOCK_SIZE);
   }
@@ -57,7 +57,7 @@ int init_heap(int page_numbers) {
   return 1;
 }
 
-void *kmalloc(unsigned int size) {
+void *kmalloc(size_t size) {
   if (DEBUG) {
     print_heap_contents();
     cprintf("Trying to allocate %d bytes\n", size);
@@ -112,7 +112,7 @@ void *kmalloc(unsigned int size) {
   return 0;
 }
 
-int kfree(void *ptr) {
+u32 kfree(void *ptr) {
   if (DEBUG) {
     print("Before free:");
     print_heap_contents();
@@ -145,11 +145,11 @@ int kfree(void *ptr) {
   return 1;
 }
 
-int block_can_shrink(block_t *block, unsigned int new_size) {
+u32 block_can_shrink(block_t *block, size_t new_size) {
   return block->size > new_size + sizeof(block_t) * 2 + 1;
 }
 
-void *shrink_block(block_t *block, unsigned int new_size) {
+void *shrink_block(block_t *block, size_t new_size) {
   void *old_ptr = (void *)block;
   block_t *left = block;
   block_t *right = (block_t *)(old_ptr + TOTAL_BLOCK_SIZE(new_size));
@@ -168,13 +168,13 @@ void *shrink_block(block_t *block, unsigned int new_size) {
   return BLOCK_TO_PTR(left);
 }
 
-int block_can_grow(block_t *block, unsigned int new_size) {
+u32 block_can_grow(block_t *block, size_t new_size) {
   block_t *next = block->next;
   return next && next->free &&
          block->size + next->size >= TOTAL_BLOCK_SIZE(new_size);
 }
 
-void *grow_block(block_t *block, unsigned int new_size) {
+u32 *grow_block(block_t *block, size_t new_size) {
   block_t *next = block->next;
   block->size += next->size;
   block->next = next->next;
@@ -186,12 +186,12 @@ void *grow_block(block_t *block, unsigned int new_size) {
   return BLOCK_TO_PTR(block);
 }
 
-void *krealloc(void *ptr, unsigned int new_size) {
+void *krealloc(void *ptr, size_t new_size) {
   if (!ptr)
     return kmalloc(new_size);
 
   block_t *block = PTR_TO_BLOCK(ptr);
-  unsigned int block_size_minus_struct = block->size - sizeof(block_t);
+  u32 block_size_minus_struct = block->size - sizeof(block_t);
 
   if (new_size <= block_size_minus_struct) {
     if (block_can_shrink(block, new_size)) {

@@ -4,7 +4,7 @@
 #include "io.h"
 #include "string.h"
 
-u32 RISCV_CLINT_ADDR = NULL;
+void *RISCV_CLINT_ADDR = NULL;
 u64 *RISCV_MTIME_ADDR = NULL;
 u32 TIMEBASE_FREQUENCY = NULL;
 
@@ -15,13 +15,13 @@ u64 stopwatch_last_timestamp = 0;
  */
 void init_timer(void) {
   // Get RISCV_CLINT_ADDR
-  char *clint = match_node("clint@");
-  RISCV_CLINT_ADDR = get_node_addr(clint);
+  char *clint = match_node("[compatible='sifive,clint0']");
+  RISCV_CLINT_ADDR = (void *)get_node_addr(clint);
 
   // Get TIMEBASE_FREQUENCY
   u32 *freq = match_node("cpus*timebase-frequency");
   TIMEBASE_FREQUENCY = swap_endian_32(*freq);
-  RISCV_MTIME_ADDR = (u64 *)(RISCV_CLINT_ADDR + 0xBFF8UL);
+  RISCV_MTIME_ADDR = (u64 *)(RISCV_CLINT_ADDR + 0xBFF8);
 
   stopwatch_last_timestamp = mtime_get_microseconds();
   cprintf("[timer] Timer initialised with frequency %d\n", TIMEBASE_FREQUENCY);

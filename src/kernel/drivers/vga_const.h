@@ -96,7 +96,7 @@ const u32 PALETTE_TEXT[256] = { // 6 bit colors as rgb, 0-63   aka 0-0x3f
     0x0,      0x0,      0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
     0x0,      0x0,      0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
 
-static const int compressed_image[] = {
+static const u32 compressed_image[] = {
     24047, 24, 24,  16, 16,  8,  24,  8,  32,  16, 24,  24, 104, 24, 24,  16,
     16,    8,  24,  8,  32,  16, 24,  24, 104, 24, 24,  16, 16,  8,  24,  8,
     32,    16, 24,  24, 104, 24, 24,  16, 16,  8,  24,  8,  32,  16, 24,  24,

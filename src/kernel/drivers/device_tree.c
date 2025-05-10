@@ -264,7 +264,7 @@ void print_node(fdt_node_t *node, u8 indent) {
   print_indent(indent);
   cprintf("%s {\n", node->name);
 
-  unsigned int i;
+  u32 i;
   if (node->property_count > 0) {
     for (i = 0; i < node->property_count; i++) {
       print_property(&node->properties[i], indent + 4);
@@ -383,7 +383,7 @@ void print_fdt(void) {
  */
 void *check_node_props(const u8 *ptr, const u8 *strings_block, char *prop_name,
                        char *prop_value, u8 value_type, u8 *state) {
-  u32 tok = token(ptr), prop_name_off;
+  u32 tok = token(ptr), found_len, prop_name_off;
   char *found_name;
   void *found_value;
   kassert(tok == FDT_BEGIN_NODE);
@@ -394,6 +394,7 @@ void *check_node_props(const u8 *ptr, const u8 *strings_block, char *prop_name,
 
     switch (tok) {
     case FDT_PROP:
+      found_len = swap_endian_32(*(u32 *)(ptr + 4));
       prop_name_off = swap_endian_32(*(u32 *)(ptr + 8));
       found_name = (char *)(strings_block + prop_name_off);
       if (cstrcmp(prop_name, found_name) != 0) {
@@ -411,10 +412,16 @@ void *check_node_props(const u8 *ptr, const u8 *strings_block, char *prop_name,
         return found_value;
       } else if (value_type & PROP_CMP_STR) {
         // Compare string value
-        match_result = cstrcmp(prop_value, found_value) == 0;
-        if (negate ? !match_result : match_result) {
-          *state = PROP_STATE_GOOD_MATCH;
-          return found_value;
+        for (size_t i = 0; i < found_len;) {
+          // The string value could be an array, so iterate over the strings,
+          // using the null byte as an element separator
+          match_result = cstrcmp(prop_value, found_value + i) == 0;
+          if (negate ? !match_result : match_result) {
+            *state = PROP_STATE_GOOD_MATCH;
+            return found_value;
+          }
+          // Move to next string
+          i += cstrlen(found_value) + 1;
         }
       } else if (value_type & PROP_CMP_U64) {
         // Compare u64 value
@@ -484,13 +491,11 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
       *prop_name = '\0';
       search_prop_type |= PROP_CMP_OPT;
       break;
-
     case '!':
       // We have reached the start of a prop value lookup, but negative
       *prop_name = '\0';
       search_prop_type |= PROP_CMP_NEG;
       break;
-
     case '=':
       // We have reached the start of a prop value lookup, set equals to null
       // so search_prop_name terminates, and set search_prop_value to after
@@ -675,7 +680,7 @@ void *scan_node_path(char *path, const u8 **ptr, const u8 *strings_block) {
  * value of the timebase-frequency prop in the cpus node.
  */
 void *match_node(const char *path) {
-  int len = cstrlen((char *)path);
+  u32 len = cstrlen((char *)path);
   kassert(len < 256);
 
   char str[256]; // Max path length

@@ -5,20 +5,20 @@
 #define WIDTH 80
 #define HEIGHT 25
 char arr[HEIGHT][WIDTH];
-int x = 0;
-int y = 0;
+u32 x = 0;
+u32 y = 0;
 
 file stdout_screen = {
     .write = &screen_write,
 };
 
 void shift_up() {
-  for (int i = 0; i < HEIGHT - 1; i++) {
-    for (int j = 0; j < WIDTH; j++) {
+  for (u32 i = 0; i < HEIGHT - 1; i++) {
+    for (u32 j = 0; j < WIDTH; j++) {
       arr[i][j] = arr[i + 1][j];
     }
   }
-  for (int i = 0; i < WIDTH; i++) {
+  for (u32 i = 0; i < WIDTH; i++) {
     arr[HEIGHT - 1][i] = ' ';
   }
 }
@@ -62,8 +62,8 @@ char sputchar(char c) {
     break;
   }
   }
-  for (int y = 0; y < 25; y++) {
-    for (int x = 0; x < 80; x++) {
+  for (u32 y = 0; y < 25; y++) {
+    for (u32 x = 0; x < 80; x++) {
       text_putfast(x, y, arr[y][x]);
     }
   }

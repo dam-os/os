@@ -5,8 +5,8 @@
 
 #define PAGE_SIZE 0x1000
 
-u64 alloc_pages(int n);
+u64 alloc_pages(u32 n);
 void init_mem_table();
-int free_pages(u64 addr, int n);
+u32 free_pages(u64 addr, u32 n);
 
 #endif // !PAGING_H

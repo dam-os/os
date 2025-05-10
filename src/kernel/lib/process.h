@@ -29,8 +29,8 @@ struct proc_registers {
 typedef struct proc_registers proc_registers_t;
 
 struct proc {
-  int pid;   // 0
-  int state; // 4
+  u32 pid;   // 0
+  u32 state; // 4
 
   proc_registers_t reg; // 8
   // NOTE: Pointers are 64-bit, but the stack is 8-bit aligned!
@@ -42,7 +42,7 @@ struct proc {
 typedef struct proc proc_t;
 
 void switch_process(proc_t *current_process, proc_t *next_process);
-proc_t *create_process(void *target_fuction, int isKernel);
+proc_t *create_process(void *target_fuction, u32 isKernel);
 void init_proc(void);
 void yield(void);
 void exit_proc(void);
