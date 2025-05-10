@@ -15,7 +15,7 @@ u64 stopwatch_last_timestamp = 0;
  */
 void init_timer(void) {
   // Get RISCV_CLINT_ADDR
-  char *clint = match_node("clint@");
+  char *clint = match_node("[compatible='sifive,clint0']");
   RISCV_CLINT_ADDR = get_node_addr(clint);
 
   // Get TIMEBASE_FREQUENCY
