@@ -25,7 +25,7 @@ all: $(DTB_OBJ)
 
 # Compile DTS to DTB
 $(DTB): $(DTS)
-	dtc -I dts -O dtb -o $@ $<
+	dtc -q -I dts -O dtb -o $@ $<
 
 # Convert DTB to object file
 $(DTB_OBJ): $(DTB)
