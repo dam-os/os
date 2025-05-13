@@ -8,7 +8,6 @@
 #include "lib/file.h"
 #include "lib/io.h"
 #include "lib/process.h"
-#include "lib/screen.h"
 #include "lib/timer.h"
 #include "memory/kheap.h"
 #include "memory/memory.h"
@@ -21,7 +20,6 @@ file *stdout;
 file *stdin;
 
 #define MSTATUS_MPP_MASK (3UL << 11)
-
 
 void kmain(void) {
   // NOTE: Loads the device tree address from arguments. Currently unused cause
@@ -36,11 +34,11 @@ void kmain(void) {
                    "la sp, stack_top\n");
   u64 mstatus;
   asm volatile("csrr %0, mstatus" : "=r"(mstatus));
-  mstatus &= ~MSTATUS_MPP_MASK;  // Clear bits 12:11 (set MPP to 00)
+  mstatus &= ~MSTATUS_MPP_MASK; // Clear bits 12:11 (set MPP to 00)
 
-  asm volatile("csrw mstatus, %0" :: "r"(mstatus));
+  asm volatile("csrw mstatus, %0" ::"r"(mstatus));
   u64 new_deleg = 0x0;
-  asm volatile("csrw medeleg, %0" :: "r"(new_deleg));
+  asm volatile("csrw medeleg, %0" ::"r"(new_deleg));
 
   WRITE_CSR(mtvec, (u64)kernel_entry);
 
@@ -84,15 +82,15 @@ void kmain(void) {
   // stdout = &stdout_screen;
 
   // sprintf test
-  //char *buf = kmalloc(100);
-  //csprintf(buf, "sprintf got me feeling like five equals %d\n", 5);
-  //cprintf("printf got a message from sprintf: %s\n", buf);
+  // char *buf = kmalloc(100);
+  // csprintf(buf, "sprintf got me feeling like five equals %d\n", 5);
+  // cprintf("printf got a message from sprintf: %s\n", buf);
 
   // Timer test
   // Wait 10 seconds
   cprintf("Sleeping for 5 second...");
   // sleep(5000);
-  cprintf("5 second passed\n");
+  cprintf("5 second passed\r\n");
   stopwatch("5 second sleep");
   // // ! Must be called before using processes !
   init_proc();
@@ -111,7 +109,7 @@ void kmain(void) {
   yield();   // WARNING: Kernel returns here in usermode!
   print(""); // Clears uart after user process
 
-  print("we will never print this\n");
+  print("we will never print this\r\n");
   print("death\n");
   PANIC("uh oh spaghettios %d", 5);
   poweroff();

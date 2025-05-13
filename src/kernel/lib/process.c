@@ -105,7 +105,7 @@ proc_t *create_process(void *target_function, u32 isKernel) {
 
   process->reg.ra = (u64)exit_proc_syscall;
 
-  // print("[process] Mapping pages!\n");
+  // print("[process] Mapping pages!\r\n");
   u64 *page_table = (u64 *)alloc_pages(1);
 
 #define USER_BASE 0x1000000
