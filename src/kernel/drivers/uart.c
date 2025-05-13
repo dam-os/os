@@ -22,14 +22,11 @@ u32 reg(u8 register_number) { return register_number * UART_REG_WIDTH; }
 
 void init_uart(void) {
 
-  UART_BASE = 0x10000000;
   UART_DATA = (volatile u8 *)(UART_BASE + 0x0); // 0th register
-  UART_LSR = (volatile u8 *)(UART_BASE + 0x14);  // 5th register
-  cprintf("TEST works\r\n");
+  UART_LSR = (volatile u8 *)(UART_BASE + 0x14); // 5th register
 
   // Get serial node
   char *stdout_path = match_node("chosen*stdout-path");
-  cprintf("PATH1 %s\r\n", stdout_path);
 
   if (stdout_path[0] != '/') {
     // stdout_path is not a path but a node alias, look in the aliases node
@@ -40,16 +37,8 @@ void init_uart(void) {
     }
     // Prepend "aliases*"
     char alias_path[64];
-    cprintf("Alias name %s\r\n", alias_name);
-    csprintf(alias_path, "aliases*%s", alias_name);
     // Look it up
-    cprintf("Alias path %s\r\n", alias_path);
     stdout_path = match_node(alias_path);
-    if (stdout_path == NULL) {
-      print("stdout is null");
-    }
-    cprintf("PATH2 %s\r\n", stdout_path);
-
   }
   // stdout_path is now in the form /soc/serial@1000000 or similar
   // We want to isolate serial@100000 by advancing pointer past the last /
@@ -61,7 +50,7 @@ void init_uart(void) {
     }
   }
 
-  uptr val = get_node_addr(stdout_path);
+  UART_BASE = get_node_addr(stdout_path);
 
   // Get registry width to determine LSR offset
   char width_search[48];
@@ -71,9 +60,8 @@ void init_uart(void) {
     UART_REG_WIDTH = swap_endian_32(*width_ptr);
   }
 
-  cprintf("PATH3 %s\r\n", stdout_path);
-  cprintf("base %p\r\n", val);
-  cprintf("reg %p\r\n", reg(5));
+  UART_DATA = (volatile u8 *)(UART_BASE + reg(0)); // 0th register
+  UART_LSR = (volatile u8 *)(UART_BASE + reg(5));  // 5th register
   print("[uart] UART initialised. Printing ready.\r\n");
 }
 
