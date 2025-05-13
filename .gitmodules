@@ -1,6 +1,6 @@
-[submodule "opensbi"]
-	path = opensbi
-	url = git@github.com:dam-os/opensbi.git
 [submodule "u-boot"]
 	path = u-boot
 	url = git@github.com:dam-os/u-boot.git
+[submodule "opensbi"]
+	path = opensbi
+	url = git@github.com:dam-os/opensbi.git
