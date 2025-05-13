@@ -92,8 +92,6 @@ void kmain(void) {
   // sleep(5000);
   cprintf("5 second passed\r\n");
   stopwatch("5 second sleep");
-  // // ! Must be called before using processes !
-  init_proc();
 
   // optional to call but still cool
   proc_c = create_process((void *)0x1000000, 0);
@@ -111,6 +109,6 @@ void kmain(void) {
 
   print("we will never print this\r\n");
   print("death\n");
-  PANIC("uh oh spaghettios %d", 5);
+  PANIC("OS is done %d", 1);
   poweroff();
 }
