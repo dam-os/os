@@ -10,101 +10,113 @@
     };
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    pwndbg,
-  }: let
-    pkgs = nixpkgs.legacyPackages.x86_64-linux;
-  in {
-    devShells.x86_64-linux = {
-      default = self.outputs.devShells.x86_64-linux.os;
-      os = pkgs.mkShellNoCC {
-        packages = with pkgs;
-          [
-            coreboot-toolchain.riscv
-            qemu
-            clang-tools_19
-          ]
-          ++ [
-            pwndbg.packages.x86_64-linux.default
-          ]
-          ++ (let
-            alias = name: text: pkgs.writeShellApplication {inherit name text;};
-          in [
-            # Dev commands
-            (alias "run" "make run")
-            (alias "debug" "make debug")
-            (alias "pwn" "pwndbg ./build/kernel.elf -ex 'target remote localhost:1234' -ex 'b *kmain' -ex 'c'")
-          ]);
+  outputs =
+    {
+      self,
+      nixpkgs,
+      pwndbg,
+    }:
+    let
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+    in
+    {
+      devShells.x86_64-linux = {
+        default = self.outputs.devShells.x86_64-linux.os;
+        os = pkgs.mkShellNoCC {
+          packages =
+            with pkgs;
+            [
+              coreboot-toolchain.riscv
+              qemu
+              clang-tools_19
+            ]
+            ++ [
+              pwndbg.packages.x86_64-linux.default
+            ]
+            ++ (
+              let
+                alias = name: text: pkgs.writeShellApplication { inherit name text; };
+              in
+              [
+                # Dev commands
+                (alias "run" "make run")
+                (alias "debug" "make debug")
+                (alias "pwn" "pwndbg ./build/kernel.elf -ex 'target remote localhost:1234' -ex 'b *kmain' -ex 'c'")
+              ]
+            );
+        };
+
+        uboot =
+          let
+            riscv64Toolchain = pkgs.pkgsCross.riscv64.buildPackages;
+            ubootPython = pkgs.python3.withPackages (
+              ps: with ps; [
+                setuptools
+                pip
+                wheel
+                pyyaml
+                libfdt
+                pytest
+
+                pandoc
+                texlive.combined.scheme-medium
+                liberation_ttf
+                poppler-utils
+              ]
+            );
+          in
+          pkgs.mkShell {
+            buildInputs = with pkgs; [
+              # Build essentials
+              gnumake
+              bison
+              flex
+              bc
+              ncurses
+              openssl
+              ubootPython
+              swig
+              dtc # Device Tree Compiler
+              ubootTools
+              parted
+
+              # Additional tools
+              pkg-config
+              libuuid
+
+              # Fix for gnutls/gnutls.h
+              gnutls
+              gnutls.dev
+
+              # RISC-V Toolchain
+              riscv64Toolchain.gcc
+              riscv64Toolchain.binutils
+            ];
+
+            # Environment variables for U-Boot build
+            shellHook = ''
+              export CROSS_COMPILE=riscv64-unknown-linux-gnu-
+              export ARCH=riscv
+              export OPENSBI=./opensbi/firmware/fw_dynamic.S
+            '';
+          };
       };
 
-      uboot = let
-        riscv64Toolchain = pkgs.pkgsCross.riscv64.buildPackages;
-        ubootPython = pkgs.python3.withPackages (
-          ps:
-            with ps; [
-              setuptools
-              pip
-              wheel
-              pyyaml
-              libfdt
-              pytest
-            ]
-        );
-      in
-        pkgs.mkShell {
-          buildInputs = with pkgs; [
-            # Build essentials
-            gnumake
-            bison
-            flex
-            bc
-            ncurses
-            openssl
-            ubootPython
-            swig
-            dtc # Device Tree Compiler
-            ubootTools
-            parted
-
-            # Additional tools
-            pkg-config
-            libuuid
-
-            # Fix for gnutls/gnutls.h
-            gnutls
-            gnutls.dev
-
-            # RISC-V Toolchain
-            riscv64Toolchain.gcc
-            riscv64Toolchain.binutils
-          ];
-
-          # Environment variables for U-Boot build
-          shellHook = ''
-            export CROSS_COMPILE=riscv64-unknown-linux-gnu-
-            export ARCH=riscv
-            export OPENSBI=./opensbi/firmware/fw_dynamic.S
+      packages.x86_64-linux = {
+        damos = pkgs.callPackage ./nix/package.nix { src = ./.; };
+        default = pkgs.writeShellApplication {
+          name = "damos-vm";
+          text = ''
+            make run
           '';
         };
-    };
-
-    packages.x86_64-linux = {
-      damos = pkgs.callPackage ./nix/package.nix {src = ./.;};
-      default = pkgs.writeShellApplication {
-        name = "damos-vm";
-        text = ''
-          make run
-        '';
+        debug = pkgs.writeShellApplication {
+          name = "damos-vm";
+          text = ''
+            make debug
+          '';
+        };
+        vm = self.packages.x86_64-linux.default;
       };
-      debug = pkgs.writeShellApplication {
-        name = "damos-vm";
-        text = ''
-          make debug
-        '';
-      };
-      vm = self.packages.x86_64-linux.default;
     };
-  };
 }

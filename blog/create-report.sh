@@ -15,7 +15,6 @@ pandoc -f markdown-implicit_figures DAM-OS.md \
   --citeproc \
   -V mainfont="Liberation Serif" \
   -V fontsize=12pt \
-  --toc \
   --number-sections \
   --pdf-engine=pdflatex
 
