@@ -5,4 +5,4 @@ result
 .gdb_history
 build
 *.img
-
+blog/pandoc_build
