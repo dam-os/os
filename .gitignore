@@ -6,3 +6,4 @@ result
 build
 *.img
 u-boot/u-boot
+blog/pandoc_build
