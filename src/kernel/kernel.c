@@ -8,6 +8,7 @@
 #include "lib/file.h"
 #include "lib/io.h"
 #include "lib/process.h"
+#include "lib/screen.h"
 #include "lib/timer.h"
 #include "memory/kheap.h"
 #include "memory/memory.h"
@@ -79,7 +80,7 @@ void kmain(void) {
   // print_fdt();
 
   // Change stdout to print to screen instead of uart
-  // stdout = &stdout_screen;
+  stdout = &stdout_screen;
 
   // sprintf test
   // char *buf = kmalloc(100);
