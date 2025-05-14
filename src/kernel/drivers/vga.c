@@ -16,7 +16,7 @@ u8 * PORT_0300 = NULL;
 // VGA Registers
 // http://www.osdever.net/FreeVGA/vga/crtcreg.htm#0F
 
-void write_to_ports(const PortWrites *mode) {
+void write_to_ports(const PortWrite *mode) {
   for (u8 i = 0; i < 28; i++) {
     u8 vport = mode[i].vport;
     u8 index = mode[i].index;
@@ -132,11 +132,11 @@ void set_cursor(u8 x, u8 y) {
   u8 upper = offset >> 8;
   __attribute__((unused)) u8 *port = PORT_0300 + 0xD4;
 
-  PortWrites writes[2] = {{0xD4, 0x0f, lower}, {0xD4, 0x0e, upper}};
+  PortWrite writes[2] = {{0xD4, 0x0f, lower}, {0xD4, 0x0e, upper}};
   write_to_ports(writes);
 }
 
-PortWrites TEXT_PALETTE_SELECT[28] = {
+PortWrite TEXT_PALETTE_SELECT[28] = {
     {0xC0, 0x00, 0x0},
     {0xC0, 0x01, 0x1},
 
