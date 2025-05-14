@@ -32,9 +32,3 @@ Attach to the remote qemu
 fx break at kmain
 `break *kmain`
 
-
-## Definitions
-
-DTS - device tree source
-DTB - device tree blob
-FDT - Flattened device tree - saved to disk 
