@@ -193,8 +193,6 @@ fdt_node_t *find_node_by_phandle(u32 phandle) {
 
   const u8 *ptr = struct_block;
 
-  // cprintf("Looking for target node: %s\n", target);
-
   u32 tok;
   while (1) {
     tok = go_to_next_token(&ptr);
