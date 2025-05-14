@@ -25,6 +25,12 @@
             coreboot-toolchain.riscv
             qemu
             clang-tools_19
+
+            # pandoc deps
+            wget
+            pandoc
+            texlive.combined.scheme-full
+            (python313.withPackages (p: with p; [pandocfilters]))
           ]
           ++ [
             pwndbg.packages.x86_64-linux.default
