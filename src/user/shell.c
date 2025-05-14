@@ -11,8 +11,14 @@
 extern char _binary_shell_bin_start[];
 
 int main(void) {
+  char buf[5];
+  syscall(SYS_READ, (void *)buf, (void *)(u64)4, 0);
+  syscall(SYS_WRITE, (void *)buf, 0, 0);
   while (1) {
-    char x = syscall(SYS_GETCHAR, 0, 0, 0);
-    syscall(SYS_PUTCHAR, (void *)(u64)x, (void *)(u64)x, 0);
+    //char x = syscall(SYS_GETCHAR, 0, 0, 0);
+    //syscall(SYS_PUTCHAR, (void *)(u64)x, (void *)(u64)x, 0);
+    //syscall(SYS_SLEEP, (void *)1000, 0, 0);
+
+    
   }
 }
