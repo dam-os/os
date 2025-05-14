@@ -7,24 +7,27 @@
 
 #define fb_base 0x50000000
 #define DEFAULT_VALUES ((0 << 4) | (1 & 0x0F)) << 8
+
+u8 * PORT_0300 = NULL;
+
 // Mode 13 is inspired by
 // https://github.com/neri/riscv-vga-sample
 
 // VGA Registers
 // http://www.osdever.net/FreeVGA/vga/crtcreg.htm#0F
 
-void write_to_ports(u8 *port0300, const PortWrites *mode) {
+void write_to_ports(const PortWrites *mode) {
   for (u8 i = 0; i < 28; i++) {
     u8 vport = mode[i].vport;
     u8 index = mode[i].index;
     u8 data = mode[i].data;
-    u8 *port = port0300 + vport;
+    u8 *port = PORT_0300 + vport;
 
     __attribute__((unused)) u32 _;
 
     switch (vport) {
     case 0xC0:
-      _ = *(port0300 + 0xDA); // Set C0 port back to index
+      _ = *(PORT_0300 + 0xDA); // Set C0 port back to index
 
       *port = index;
       *port = data;
@@ -123,14 +126,14 @@ void rainbow_animation() {
 
 // sets index 0x30f and 0x30e of port 0xD4 which has the lower, and upper bytes
 // of the cursor pos
-void set_cursor(u8 *port0300, u8 x, u8 y) {
-  u16 offset = 80 * y + x;
+void set_cursor(u8 x, u8 y) {
+  u32 offset = 80 * y + x;
   u8 lower = offset & 0xff;
   u8 upper = offset >> 8;
-  __attribute__((unused)) u8 *port = port0300 + 0xD4;
+  __attribute__((unused)) u8 *port = PORT_0300 + 0xD4;
 
   PortWrites writes[2] = {{0xD4, 0x0f, lower}, {0xD4, 0x0e, upper}};
-  write_to_ports(port0300, writes);
+  write_to_ports(writes);
 }
 
 PortWrites TEXT_PALETTE_SELECT[28] = {
@@ -139,8 +142,8 @@ PortWrites TEXT_PALETTE_SELECT[28] = {
 
 };
 
-void set_colors(u8 *port0300, const u32 palette[]) {
-  u8 *p = port0300 + 0xc9;
+void set_colors(const u32 palette[]) {
+  u8 *p = PORT_0300 + 0xc9;
   for (u32 i = 0; i < 256; i++) {
     u8 b = palette[i] & 0xFF;
     u8 g = (palette[i] >> 8) & 0xFF;
@@ -205,23 +208,23 @@ u8 *setup_pci_bars(u32 *devbase) {
   return io_base;
 }
 
-void init_mode13(u8 *port0300) {
-  write_to_ports(port0300, MODE_13_REGS);
+void init_mode13() {
+  write_to_ports(MODE_13_REGS);
   // 0x3C9 since 0x3C0 is at 0x400
-  set_colors(port0300, PALETTE_MODE13);
+  set_colors(PALETTE_MODE13);
   // draw_compressed_image();
 }
 
-void init_text_mode(u8 *port0300) {
-  write_to_ports(port0300, TEXT_MODE_REGS);
+void init_text_mode() {
+  write_to_ports(TEXT_MODE_REGS);
 
-  write_to_ports(port0300, TEXT_PALETTE_SELECT);
+  write_to_ports(TEXT_PALETTE_SELECT);
 
   __attribute__((unused)) u32 _ =
-      *(port0300 + 0xDA); // Set C0 port back to index
-  *(port0300 + 0xc0) = 0x30;
+      *(PORT_0300 + 0xDA); // Set C0 port back to index
+  *(PORT_0300 + 0xc0) = 0x30;
 
-  set_colors(port0300, PALETTE_TEXT);
+  set_colors(PALETTE_TEXT);
   load_font();
   // clear_screen();
 }
@@ -241,10 +244,10 @@ void init_virtio_vga() {
 
   // 0xC0 is mapped directly to +0x400, so we subtract so the ports are visible,
   // aka we can add 0xC0 to write there.
-  u8 *port0300 = (io_base + (0x400 - 0xC0));
+  PORT_0300 = (io_base + (0x400 - 0xC0));
 
   // init_mode13(port0300);
-  init_text_mode(port0300);
+  init_text_mode();
 }
 
 void debug_print_virtio() {
