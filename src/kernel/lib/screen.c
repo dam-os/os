@@ -33,7 +33,7 @@ char sputchar(char c) {
       y++;
     }
     x = 0;
-    set_cursor(x, (y+1)%25);
+    set_cursor(x, (y + 1) % 25);
     break;
   }
   case 127: {
@@ -47,7 +47,7 @@ char sputchar(char c) {
       x--;
     }
     arr[y][x] = ' ';
-    set_cursor(x%80, (y+1)%25);
+    set_cursor(x % 80, (y + 1) % 25);
     break;
   }
   default: {
@@ -60,8 +60,8 @@ char sputchar(char c) {
       y++;
     }
     arr[y][x] = c;
-    //set_cursor(x%31, 2);
-    set_cursor((x+1)%80, (y+1)%25);
+    // set_cursor(x%31, 2);
+    set_cursor((x + 1) % 80, (y + 1) % 25);
 
     x++;
     break;

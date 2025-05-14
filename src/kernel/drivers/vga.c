@@ -8,7 +8,7 @@
 #define fb_base 0x50000000
 #define DEFAULT_VALUES ((0 << 4) | (1 & 0x0F)) << 8
 
-u8 * PORT_0300 = NULL;
+u8 *PORT_0300 = NULL;
 
 // Mode 13 is inspired by
 // https://github.com/neri/riscv-vga-sample
@@ -57,7 +57,6 @@ void set_colors(const u32 palette[]) {
     *p = b;
   }
 }
-
 
 // Mode 13h functions
 
@@ -112,12 +111,12 @@ void draw_compressed_image() {
 }
 
 void draw_loading(u32 percentage) {
-  u32 val = 50 + (((float) percentage)/100) * 220;
+  u32 val = 50 + (((float)percentage) / 100) * 220;
   for (int x = 50; x < val; x++) {
     for (int y = 180; y < 200; y++) {
-    draw_pixel(x, y, 0);
+      draw_pixel(x, y, 0);
     }
-  } 
+  }
 }
 
 void init_mode13() {
@@ -171,7 +170,6 @@ PortWrite TEXT_PALETTE_SELECT[28] = {
     {0xC0, 0x01, 0x1},
 };
 
-
 int verify_pci_device(u32 *devbase) {
   u32 pci_class = (*(devbase + 2)) >> 8;
 
@@ -209,8 +207,6 @@ u8 *setup_pci_bars(u32 *devbase) {
   return io_base;
 }
 
-
-
 void init_text_mode() {
   write_to_ports(TEXT_MODE_REGS);
 
@@ -223,7 +219,6 @@ void init_text_mode() {
   set_colors(PALETTE_TEXT);
   load_font();
 }
-
 
 void init_virtio_vga() {
   if (PCI_CONFIG_BASE == NULL) {
@@ -247,7 +242,6 @@ void init_virtio_vga() {
   for (int x = 0; x <= 100; x++) {
     draw_loading(x);
     sleep(25);
-
   }
 
   init_text_mode();

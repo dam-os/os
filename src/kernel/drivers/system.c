@@ -28,8 +28,8 @@ void poweroff_starfive(void) {
 
 void init_system(void) {
   print("[system] START\r\n");
-  
-  char* model =  match_node("*model");
+
+  char *model = match_node("*model");
   cprintf("[system] model %s\r\n", model);
   // Get poweroff node
   if (startswith("StarFive", model) == 0) {
@@ -41,7 +41,6 @@ void init_system(void) {
   POWEROFF_VALUE = swap_endian_32(*(u32 *)match_node("poweroff*value"));
   POWEROFF_OFFSET = *(u32 *)match_node("poweroff*offset");
   POWEROFF_REGMAP = *(u32 *)match_node("poweroff*regmap");
-  
 
   // Get node with phandle = POWEROFF_REGMAP
   char *search = kmalloc(32);

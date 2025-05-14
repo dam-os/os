@@ -23,10 +23,6 @@ file *stdin;
 #define MSTATUS_MPP_MASK (3UL << 11)
 
 void kmain(void) {
-  // NOTE: Loads the device tree address from arguments. Currently unused cause
-  // we hardcoded the devicetree in the kernel
-  // __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
-
   // Call the syscall that we have patched to put us in M-mode
   __asm__ volatile("li a0, 65\n"
                    "li a6, 0\n"
@@ -81,7 +77,6 @@ void kmain(void) {
 
   // Change stdout to print to screen instead of uart
   stdout = &stdout_screen;
-
 
   proc_c = create_process((void *)0x1000000, 0);
 

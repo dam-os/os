@@ -166,11 +166,12 @@ void handle_syscall(struct trap_frame *f) {
   } break;
   case SYS_READ: {
     u64 satp_val = READ_CSR(satp);
-    char* out = (char*)translate_va_to_pa(f->a1, satp_val);
+    char *out = (char *)translate_va_to_pa(f->a1, satp_val);
     u32 size = f->a2;
     for (int i = 0; i < size; i++) {
       out[i] = cgetchar();
-      if (out[i] == '\r') break;
+      if (out[i] == '\r')
+        break;
     }
   } break;
   case SYS_GETCHAR: {
