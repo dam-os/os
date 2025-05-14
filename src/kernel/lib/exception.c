@@ -162,7 +162,7 @@ void handle_syscall(struct trap_frame *f) {
   case SYS_WRITE: {
     u64 satp_val = READ_CSR(satp);
     u64 real_addr = translate_va_to_pa(f->a1, satp_val);
-    cprintf("%s\r\n", (char *)(real_addr));
+    cprintf("%s", (char *)(real_addr));
   } break;
   case SYS_READ: {
     u64 satp_val = READ_CSR(satp);
@@ -170,9 +170,8 @@ void handle_syscall(struct trap_frame *f) {
     u32 size = f->a2;
     for (int i = 0; i < size; i++) {
       out[i] = cgetchar();
+      if (out[i] == '\r') break;
     }
-    cprintf("Should get %s\r\n", (char *)(out));
-    
   } break;
   case SYS_GETCHAR: {
     char x = cgetchar();
