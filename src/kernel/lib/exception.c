@@ -4,6 +4,7 @@
 #include "common.h"
 #include "io.h"
 #include "process.h"
+#include "timer.h"
 
 __attribute__((naked)) __attribute__((aligned(8))) void kernel_entry(void) {
   __asm__ __volatile__(
@@ -144,35 +145,44 @@ u32 syscall(u32 sysno, void *arg1, void *arg2, void *arg3) {
   return res;
 }
 
-#define SYS_EXIT 2
+#define SYS_WRITE 1
+#define SYS_READ 2
 #define SYS_GETCHAR 3
 #define SYS_PUTCHAR 4
 #define SYS_SLEEP 5
 #define SYS_POWEROFF 6
-#define SYS_SCAN 7
 #define SYS_YIELD 8
+#define SYS_EXIT 9
 
 void handle_syscall(struct trap_frame *f) {
   switch (f->a0) {
-  case 8:
+  case SYS_YIELD:
     yield();
     break;
-  case 1: {
+  case SYS_WRITE: {
     u64 satp_val = READ_CSR(satp);
     u64 real_addr = translate_va_to_pa(f->a1, satp_val);
-    cprintf("Printing from shell: %s\r\n", (char *)(real_addr));
+    cprintf("%s\r\n", (char *)(real_addr));
   } break;
-  case 2:
-    exit_proc();
-    break;
-  case 3: {
+  case SYS_READ: {
+  } break;
+  case SYS_GETCHAR: {
     char x = cgetchar();
-    cputchar(x);
     f->a5 = x;
     break;
   }
-  case 4:
-    cputchar((char)f->a1);
+  case SYS_PUTCHAR:
+    cprintf("CHAR: %x", (char)(u64)f->a1);
+    cputchar((char)(u64)(void *)f->a2);
+    break;
+  case SYS_SLEEP:
+    sleep(f->a1);
+    break;
+  case SYS_POWEROFF:
+    poweroff();
+    break;
+  case SYS_EXIT:
+    exit_proc();
     break;
   default:
     PANIC("unexpected syscall a0=%x\r\n", f->a0);
