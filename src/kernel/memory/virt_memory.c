@@ -21,7 +21,6 @@ void map_virt_mem(u64 *table2, u64 vaddr, u64 paddr) {
   if ((table2[vpn2] & PAGE_VALID) == 0) {
     u64 pt_paddr = (u64)alloc_pages(
         1); // 1 page table is 4kb, We map a vpn 2 to a full page table
-    // cprintf("[virt_mem] Allocing page at %p\n", pt_paddr);
     table2[vpn2] = ((pt_paddr / PAGE_SIZE) << 10) |
                    PAGE_VALID; // Page table entry has 10 reserved bits
   }

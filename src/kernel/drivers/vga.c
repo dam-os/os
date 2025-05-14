@@ -8,7 +8,7 @@
 #define fb_base 0x50000000
 #define DEFAULT_VALUES ((0 << 4) | (1 & 0x0F)) << 8
 
-u8 * PORT_0300 = NULL;
+u8 *PORT_0300 = NULL;
 
 // Mode 13 is inspired by
 // https://github.com/neri/riscv-vga-sample
@@ -45,6 +45,21 @@ void write_to_ports(const PortWrite *mode) {
   }
 }
 
+void set_colors(const u32 palette[]) {
+  u8 *p = PORT_0300 + 0xc9;
+  for (u32 i = 0; i < 256; i++) {
+    u8 b = palette[i] & 0xFF;
+    u8 g = (palette[i] >> 8) & 0xFF;
+    u8 r = (palette[i] >> 16) & 0xFF;
+
+    *p = r;
+    *p = g;
+    *p = b;
+  }
+}
+
+// Mode 13h functions
+
 void draw_pixel(u32 x, u32 y, u8 color) {
   volatile u8 *fb = (volatile u8 *)fb_base;
   u32 offset = (y * 320) + x;
@@ -54,51 +69,6 @@ void draw_pixel(u32 x, u32 y, u8 color) {
 void clear_screen() {
   for (u32 i = 0; i < (320 * 200); i++) {
     ((volatile u8 *)fb_base)[i] = 0;
-  }
-}
-
-void text_putfast(u8 x, u8 y, char ch) {
-  volatile u16 *p = (volatile u16 *)fb_base;
-  if (ch == NULL)
-    ch = ' ';
-  p[(80 * y + x) * 2] = (u16)ch | DEFAULT_VALUES;
-}
-
-void text_putchar(u8 x, u8 y, char ch, u8 fg_color) {
-  volatile u16 *p = (volatile u16 *)fb_base;
-  u8 bg_color = 0;
-  u16 attrib = (bg_color << 4) | (fg_color & 0x0F);
-  u32 offset = 80 * y + x;
-  p[offset * 2] = (u16)ch | (attrib << 8);
-}
-
-void text_clear_screen() {
-  for (u32 x = 0; x < 80; x++) {
-    for (u32 y = 0; y < 25; y++) {
-      text_putchar(x, y, 0x20, 0);
-    }
-  }
-}
-
-void print_screen_buf(char **buf) {
-  text_clear_screen();
-  for (u32 y = 0; y < 25; y++) {
-    cprintf(buf[y]);
-    for (u32 x = 0; x < 80; x++) {
-      text_putfast(x, y, buf[y][x]);
-      text_putchar(x, y, buf[y][x], 1);
-    }
-  }
-}
-
-void load_font() {
-  volatile u16 *p = (volatile u16 *)fb_base;
-
-  for (u32 x = 0; x < 256; x++) {  // For each char in font
-    u32 offset = x * 16 * 4;       // 4 planes of 16 bytes each
-    for (u32 i = 0; i < 16; i++) { // For each char 16 bytes of font data
-      p[offset + (i * 2) + 1] = (real_font_data[(offset / 4) + i]);
-    }
   }
 }
 
@@ -124,37 +94,6 @@ void rainbow_animation() {
   }
 }
 
-// sets index 0x30f and 0x30e of port 0xD4 which has the lower, and upper bytes
-// of the cursor pos
-void set_cursor(u8 x, u8 y) {
-  u32 offset = 80 * y + x;
-  u8 lower = offset & 0xff;
-  u8 upper = offset >> 8;
-  __attribute__((unused)) u8 *port = PORT_0300 + 0xD4;
-
-  PortWrite writes[2] = {{0xD4, 0x0f, lower}, {0xD4, 0x0e, upper}};
-  write_to_ports(writes);
-}
-
-PortWrite TEXT_PALETTE_SELECT[28] = {
-    {0xC0, 0x00, 0x0},
-    {0xC0, 0x01, 0x1},
-
-};
-
-void set_colors(const u32 palette[]) {
-  u8 *p = PORT_0300 + 0xc9;
-  for (u32 i = 0; i < 256; i++) {
-    u8 b = palette[i] & 0xFF;
-    u8 g = (palette[i] >> 8) & 0xFF;
-    u8 r = (palette[i] >> 16) & 0xFF;
-
-    *p = r;
-    *p = g;
-    *p = b;
-  }
-}
-
 void draw_compressed_image() {
   u8 *p = (u8 *)fb_base;
   memset((const char *)fb_base, 0, 320 * 200);
@@ -170,6 +109,66 @@ void draw_compressed_image() {
     count--;
   }
 }
+
+void draw_loading(u32 percentage) {
+  u32 val = 50 + (((float)percentage) / 100) * 220;
+  for (int x = 50; x < val; x++) {
+    for (int y = 180; y < 200; y++) {
+      draw_pixel(x, y, 0);
+    }
+  }
+}
+
+void init_mode13() {
+  write_to_ports(MODE_13_REGS);
+  // 0x3C9 since 0x3C0 is at 0x400
+  set_colors(PALETTE_MODE13);
+}
+
+// Mode 3 / Text mode functions
+
+void text_putfast(u8 x, u8 y, char ch) {
+  volatile u16 *p = (volatile u16 *)fb_base;
+  if (ch == NULL)
+    ch = ' ';
+  p[(80 * y + x) * 2] = (u16)ch | DEFAULT_VALUES;
+}
+
+void text_putchar(u8 x, u8 y, char ch, u8 fg_color) {
+  volatile u16 *p = (volatile u16 *)fb_base;
+  u8 bg_color = 0;
+  u16 attrib = (bg_color << 4) | (fg_color & 0x0F);
+  u32 offset = 80 * y + x;
+  p[offset * 2] = (u16)ch | (attrib << 8);
+}
+
+void load_font() {
+  volatile u16 *p = (volatile u16 *)fb_base;
+
+  for (u32 x = 0; x < 256; x++) {  // For each char in font
+    u32 offset = x * 16 * 4;       // 4 planes of 16 bytes each
+    for (u32 i = 0; i < 16; i++) { // For each char 16 bytes of font data
+      p[offset + (i * 2) + 1] = (real_font_data[(offset / 4) + i]);
+    }
+  }
+}
+
+// sets index 0x30f and 0x30e of port 0xD4 which has the lower, and upper bytes
+// of the cursor pos
+void set_cursor(u8 x, u8 y) {
+  u32 offset = 80 * y + x;
+  u8 lower = offset & 0xff;
+  u8 upper = offset >> 8;
+  __attribute__((unused)) u8 *port = PORT_0300 + 0xD4;
+
+  PortWrite writes[2] = {{0xD4, 0x0f, lower}, {0xD4, 0x0e, upper}};
+  write_to_ports(writes);
+}
+
+PortWrite TEXT_PALETTE_SELECT[28] = {
+    {0xC0, 0x00, 0x0},
+    {0xC0, 0x01, 0x1},
+};
 
 int verify_pci_device(u32 *devbase) {
   u32 pci_class = (*(devbase + 2)) >> 8;
@@ -208,13 +207,6 @@ u8 *setup_pci_bars(u32 *devbase) {
   return io_base;
 }
 
-void init_mode13() {
-  write_to_ports(MODE_13_REGS);
-  // 0x3C9 since 0x3C0 is at 0x400
-  set_colors(PALETTE_MODE13);
-  // draw_compressed_image();
-}
-
 void init_text_mode() {
   write_to_ports(TEXT_MODE_REGS);
 
@@ -226,16 +218,6 @@ void init_text_mode() {
 
   set_colors(PALETTE_TEXT);
   load_font();
-  // clear_screen();
-}
-
-void draw_loading(u32 percentage) {
-  u32 val = 50 + (((float) percentage)/100) * 220;
-  for (int x = 50; x < val; x++) {
-    for (int y = 180; y < 200; y++) {
-    draw_pixel(x, y, 0);
-    }
-  } 
 }
 
 void init_virtio_vga() {
@@ -260,10 +242,8 @@ void init_virtio_vga() {
   for (int x = 0; x <= 100; x++) {
     draw_loading(x);
     sleep(25);
-
   }
 
-  // init_mode13(port0300);
   init_text_mode();
 }
 

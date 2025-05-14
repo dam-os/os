@@ -2,7 +2,7 @@
 #include "../lib/io.h"
 #include "device_tree.h"
 
-void* PCI_CONFIG_BASE = NULL;
+void *PCI_CONFIG_BASE = NULL;
 
 void init_pci(void) {
   char *pci_node = match_node("pci@");
@@ -53,4 +53,4 @@ void enumerate_pci() {
   }
 }
 
-void* get_pci_config_base(void) { return PCI_CONFIG_BASE; }
+void *get_pci_config_base(void) { return PCI_CONFIG_BASE; }

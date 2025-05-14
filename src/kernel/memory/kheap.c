@@ -6,7 +6,7 @@
 #include "memory.h"
 #include "paging.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 block_t *blocks = NULL;
 

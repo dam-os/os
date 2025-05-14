@@ -23,10 +23,6 @@ file *stdin;
 #define MSTATUS_MPP_MASK (3UL << 11)
 
 void kmain(void) {
-  // NOTE: Loads the device tree address from arguments. Currently unused cause
-  // we hardcoded the devicetree in the kernel
-  // __asm__ volatile("mv %0, a1" : "=r"(dtb_address));
-
   // Call the syscall that we have patched to put us in M-mode
   __asm__ volatile("li a0, 65\n"
                    "li a6, 0\n"
@@ -82,19 +78,6 @@ void kmain(void) {
   // Change stdout to print to screen instead of uart
   stdout = &stdout_screen;
 
-  // sprintf test
-  // char *buf = kmalloc(100);
-  // csprintf(buf, "sprintf got me feeling like five equals %d\n", 5);
-  // cprintf("printf got a message from sprintf: %s\n", buf);
-
-  // Timer test
-  // Wait 10 seconds
-  cprintf("Sleeping for 5 second...");
-  // sleep(5000);
-  cprintf("5 second passed\r\n");
-  stopwatch("5 second sleep");
-
-  // optional to call but still cool
   proc_c = create_process((void *)0x1000000, 0);
 
   // Manually set registers since kernel cant do syscall
@@ -108,8 +91,6 @@ void kmain(void) {
   yield();   // WARNING: Kernel returns here in usermode!
   print(""); // Clears uart after user process
 
-  print("we will never print this\r\n");
   print("death\n");
-  PANIC("OS is done %d", 1);
   poweroff();
 }
