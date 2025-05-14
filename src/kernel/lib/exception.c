@@ -144,6 +144,14 @@ u32 syscall(u32 sysno, void *arg1, void *arg2, void *arg3) {
   return res;
 }
 
+#define SYS_EXIT 2
+#define SYS_GETCHAR 3
+#define SYS_PUTCHAR 4
+#define SYS_SLEEP 5
+#define SYS_POWEROFF 6
+#define SYS_SCAN 7
+#define SYS_YIELD 8
+
 void handle_syscall(struct trap_frame *f) {
   switch (f->a0) {
   case 8:
