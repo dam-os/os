@@ -229,6 +229,15 @@ void init_text_mode() {
   // clear_screen();
 }
 
+void draw_loading(u32 percentage) {
+  u32 val = 50 + (((float) percentage)/100) * 220;
+  for (int x = 50; x < val; x++) {
+    for (int y = 180; y < 200; y++) {
+    draw_pixel(x, y, 0);
+    }
+  } 
+}
+
 void init_virtio_vga() {
   if (PCI_CONFIG_BASE == NULL) {
     print("[vga] PCI not available, can't initialise VGA.\r\n");
@@ -245,6 +254,14 @@ void init_virtio_vga() {
   // 0xC0 is mapped directly to +0x400, so we subtract so the ports are visible,
   // aka we can add 0xC0 to write there.
   PORT_0300 = (io_base + (0x400 - 0xC0));
+
+  init_mode13();
+  draw_compressed_image();
+  for (int x = 0; x <= 100; x++) {
+    draw_loading(x);
+    sleep(25);
+
+  }
 
   // init_mode13(port0300);
   init_text_mode();
