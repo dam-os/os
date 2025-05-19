@@ -54,14 +54,6 @@ USERLDFLAGS = -T $(USERDIR)/user.ld -O2 -g3 -Wall -Wextra -fno-stack-protector -
 QEMU = qemu-system-riscv64
 define QFLAGS
 		-machine virt \
-		-bios none \
-		-device virtio-vga \
-		-kernel $(BUILDDIR)/kernel.elf \
-		-cpu rv64,pmp=false \
-		-serial mon:stdio
-endef
-define QFLAGS-MACHINE
-		-machine virt \
 		-cpu rv64,pmp=false \
 		-serial mon:stdio \
 		-device virtio-vga \
@@ -102,16 +94,24 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.s | build_dirs
 	$(AS) -c $< -o $@
 
 # Run main kernel
-run: damos
+run: damos open-sbi
 	$(QEMU) $(QFLAGS)
 
-tmux: damos
+tmux: damos open-sbi
 	@tmux split-window -h
 	@tmux send-keys "gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'" C-m
 	$(QEMU) $(QFLAGS) -s -S -nographic
 
-debug: damos
+debug: damos open-sbi
 	$(QEMU) $(QFLAGS) -s -S -nographic
+
+present-virtual-memory: damos open-sbi 
+	$(QEMU) $(QFLAGS) -s -S -nographic &
+	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/shell.elf' -ex 'break *main' -ex 'c'
+
+present-debugger: damos open-sbi 
+	$(QEMU) $(QFLAGS) -s -S -nographic &
+	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'
 
 # Cleanup
 clean:
@@ -127,18 +127,4 @@ else
 	$(MAKE) -C u-boot starfive_visionfive2_defconfig
 endif
 	MAKEFLAGS= $(MAKE) -C u-boot OPENSBI=../opensbi/build/platform/generic/firmware/fw_dynamic.bin
-
-u-boot: damos open-sbi
-	$(QEMU) $(QFLAGS-MACHINE)
-
-u-boot-debug: damos open-sbi 
-	$(QEMU) $(QFLAGS-MACHINE) -s -S
-
-present-virtual-memory: damos open-sbi 
-	$(QEMU) $(QFLAGS-MACHINE) -s -S -nographic &
-	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/shell.elf' -ex 'break *main' -ex 'c'
-
-present-debugger: damos open-sbi 
-	$(QEMU) $(QFLAGS-MACHINE) -s -S -nographic &
-	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'
 

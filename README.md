@@ -18,7 +18,7 @@ make build-uboot BOARD=virt
 Then run the os with
 
 ```
-make u-boot BOARD=virt
+make run BOARD=virt
 ```
 
 ## Debugging
