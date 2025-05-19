@@ -6,7 +6,7 @@ The OS uses U-Boot and with OpenSBI. You will also need a gcc crosscompiler for 
 You can use the nix flake with:
 
 ```
-nix develop .#uboot
+nix develop .#
 ```
 
 With the tools installed you can build the os with:
