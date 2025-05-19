@@ -134,8 +134,11 @@ u-boot: damos open-sbi
 u-boot-debug: damos open-sbi 
 	$(QEMU) $(QFLAGS-MACHINE) -s -S
 
-u-boot-debug-no-graphics: damos open-sbi 
+present-virtual-memory: damos open-sbi 
 	$(QEMU) $(QFLAGS-MACHINE) -s -S -nographic &
 	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/shell.elf' -ex 'break *main' -ex 'c'
-	
+
+present-debugger: damos open-sbi 
+	$(QEMU) $(QFLAGS-MACHINE) -s -S -nographic &
+	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/kernel.elf' -ex 'break *kmain' -ex 'c'
 
