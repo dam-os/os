@@ -10,46 +10,21 @@
     };
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    pwndbg,
-  }: let
-    pkgs = nixpkgs.legacyPackages.x86_64-linux;
-  in {
-    devShells.x86_64-linux = {
-      default = self.outputs.devShells.x86_64-linux.os;
-      os = pkgs.mkShellNoCC {
-        packages = with pkgs;
-          [
-            coreboot-toolchain.riscv
-            qemu
-            clang-tools_19
-
-            # pandoc deps
-            wget
-            pandoc
-            texlive.combined.scheme-full
-            (python313.withPackages (p: with p; [pandocfilters]))
-          ]
-          ++ [
-            pwndbg.packages.x86_64-linux.default
-          ]
-          ++ (let
-            alias = name: text: pkgs.writeShellApplication {inherit name text;};
-          in [
-            # Dev commands
-            (alias "run" "make run")
-            (alias "debug" "make debug")
-            (alias "pwn" "pwndbg ./build/kernel.elf -ex 'target remote localhost:1234' -ex 'b *kmain' -ex 'c'")
-          ]);
-      };
-
-      uboot = let
-        riscv64Toolchain = pkgs.pkgsCross.riscv64.buildPackages;
-        ubootPython = pkgs.python3.withPackages (
-          ps:
-            with ps; [
+  outputs =
+    {
+      self,
+      nixpkgs,
+      pwndbg,
+    }:
+    let
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+    in
+    {
+      devShells.x86_64-linux.default =
+        let
+          riscv64Toolchain = pkgs.pkgsCross.riscv64.buildPackages;
+          ubootPython = pkgs.python3.withPackages (
+            ps: with ps; [
               setuptools
               pip
               wheel
@@ -57,39 +32,56 @@
               libfdt
               pytest
             ]
-        );
-      in
+          );
+        in
         pkgs.mkShell {
-          buildInputs = with pkgs; [
-            # Build essentials
-            gnumake
-            bison
-            flex
-            bc
-            ncurses
-            openssl
-            ubootPython
-            swig
-            dtc # Device Tree Compiler
-            ubootTools
-            parted
+          buildInputs =
+            with pkgs;
+            [
+              # Build essentials
+              gnumake
+              bison
+              flex
+              bc
+              ncurses
+              openssl
+              ubootPython
+              swig
+              dtc # Device Tree Compiler
+              ubootTools
+              parted
 
-            # Additional tools
-            pkg-config
-            libuuid
+              # Additional tools
+              pkg-config
+              libuuid
 
-            # Fix for gnutls/gnutls.h
-            gnutls
-            gnutls.dev
+              # Fix for gnutls/gnutls.h
+              gnutls
+              gnutls.dev
 
-            # RISC-V Toolchain
-            riscv64Toolchain.gcc
-            riscv64Toolchain.binutils
+              # RISC-V Toolchain
+              riscv64Toolchain.gcc
+              riscv64Toolchain.binutils
 
-            coreboot-toolchain.riscv
-            qemu
-            clang-tools_19
-          ];
+              coreboot-toolchain.riscv
+              qemu
+              clang-tools_19
+
+              # Extra
+              pwndbg.packages.x86_64-linux.default
+              presenterm
+            ]
+            ++ (
+              let
+                alias = name: text: pkgs.writeShellApplication { inherit name text; };
+              in
+              [
+                # Dev commands
+                (alias "run" "make run")
+                (alias "debug" "make debug")
+                (alias "pwn" "pwndbg ./build/kernel.elf -ex 'target remote localhost:1234' -ex 'b *kmain' -ex 'c'")
+              ]
+            );
 
           # Environment variables for U-Boot build
           shellHook = ''
@@ -99,22 +91,4 @@
           '';
         };
     };
-
-    packages.x86_64-linux = {
-      damos = pkgs.callPackage ./nix/package.nix {src = ./.;};
-      default = pkgs.writeShellApplication {
-        name = "damos-vm";
-        text = ''
-          make run
-        '';
-      };
-      debug = pkgs.writeShellApplication {
-        name = "damos-vm";
-        text = ''
-          make debug
-        '';
-      };
-      vm = self.packages.x86_64-linux.default;
-    };
-  };
 }
