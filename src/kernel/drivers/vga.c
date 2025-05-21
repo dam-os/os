@@ -220,16 +220,16 @@ void init_text_mode() {
   load_font();
 }
 
-void init_virtio_vga() {
+s8 init_virtio_vga() {
   if (PCI_CONFIG_BASE == NULL) {
     print("[vga] PCI not available, can't initialise VGA.\r\n");
-    return;
+    return -1;
   }
 
   u32 *devbase = pci_get_addr(0, 16, 0, 0x0);
 
   if (!verify_pci_device(devbase))
-    return;
+    return -1;
 
   u8 *io_base = setup_pci_bars(devbase);
 
@@ -245,6 +245,8 @@ void init_virtio_vga() {
   }
 
   init_text_mode();
+
+  return 0;
 }
 
 void debug_print_virtio() {

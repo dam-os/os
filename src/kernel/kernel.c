@@ -69,14 +69,16 @@ void kmain(void) {
 
   // ====== Normal code ====== //
 
-  init_virtio_vga();
+  s8 vga_state = init_virtio_vga();
   stopwatch("VGA initialisation");
 
   // === FDT ===
   // print_fdt();
 
   // Change stdout to print to screen instead of uart
-  stdout = &stdout_screen;
+  if (vga_state == 0) {
+    stdout = &stdout_screen;
+  }
 
   proc_c = create_process((void *)0x1000000, 0);
 
