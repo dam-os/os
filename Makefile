@@ -107,7 +107,7 @@ debug: damos open-sbi
 
 present-virtual-memory: damos open-sbi 
 	$(QEMU) $(QFLAGS) -s -S -nographic &
-	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/shell.elf' -ex 'break *main' -ex 'c'
+	gdb -ex 'target remote localhost:1234' -ex 'symbol-file ./build/shell.elf' -ex 'break *main' -ex 'break *0x84000fb0' -ex 'c'
 
 present-debugger: damos open-sbi 
 	$(QEMU) $(QFLAGS) -s -S -nographic &
