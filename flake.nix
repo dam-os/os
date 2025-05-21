@@ -11,9 +11,9 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     pwndbg,
+    ...
   }: let
     pkgs = nixpkgs.legacyPackages.x86_64-linux;
   in {
