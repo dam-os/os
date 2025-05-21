@@ -37,6 +37,7 @@ void init_uart(void) {
     }
     // Prepend "aliases*"
     char alias_path[64];
+    csprintf(alias_path, "aliases*%s", alias_name);
     // Look it up
     stdout_path = match_node(alias_path);
   }
