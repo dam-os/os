@@ -36,7 +36,7 @@ void map_virt_mem(u64 *table2, u64 vaddr, u64 paddr) {
 
   table0[vpn0] =
       ((paddr / PAGE_SIZE) << 10) |
-      (PAGE_VALID | PAGE_READ | PAGE_WRITE | PAGE_EXECUTE | PAGE_USER);
+      (PAGE_VALID | PAGE_READ | PAGE_WRITE | PAGE_EXECUTE | PAGE_USER | PAGE_ACCESSED | PAGE_DIRTY);
 }
 
 u64 translate_va_to_pa(u64 vaddr, u64 satp_val) {

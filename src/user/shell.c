@@ -53,21 +53,21 @@ int main(void) {
   
   char username[32];
   char password[32];
-  print("Welcome to DAM-OS' User Mode!\n");
-  print("Please start by entering your LearnIt credentials so we can set our grade:\n");
+  print("Welcome to DAM-OS' User Mode!\r\n");
+  print("Please start by entering your LearnIt credentials so we can set our grade:\r\n");
   print("Username: ");
   read(username, 32);
-  print("\nVerifying username ");
+  print("\r\nVerifying username ");
   print(username);
   sleep(1000);
-  print("\nPassword: ");
+  print("\r\nPassword: ");
   read(password, 32);
-  print("\nChecking credentials, please wait...\n");
+  print("\r\nChecking credentials, please wait...\r\n");
   sleep(3000);
   if(cstrcmp(username,"user\r") == 0 && cstrcmp(password, "password\r") == 0) {
-    print("Updating LearnIT grades! Goodbye!\n");
+    print("Updating LearnIT grades! Goodbye!\r\n");
   } else {
-    print("Invalid credentials, shutting down :(\n");
+    print("Invalid credentials, shutting down :(\r\n");
   }
   sleep(5000);
   poweroff();

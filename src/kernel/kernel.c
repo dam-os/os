@@ -76,7 +76,7 @@ void kmain(void) {
   // print_fdt();
 
   // Change stdout to print to screen instead of uart
-  stdout = &stdout_screen;
+  // stdout = &stdout_screen;
 
   proc_c = create_process((void *)0x1000000, 0);
 
