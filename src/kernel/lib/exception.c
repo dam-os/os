@@ -170,6 +170,7 @@ void handle_syscall(struct trap_frame *f) {
     u32 size = f->a2;
     for (int i = 0; i < size; i++) {
       out[i] = cgetchar();
+      cputchar(out[i]);
       if (out[i] == '\r')
         break;
     }

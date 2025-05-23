@@ -48,27 +48,163 @@ u32 cstrcmp(char *src, char *dest) {
   return 0;
 }
 
+s32 startswith(char *search, char *target) {
+  u32 l = cstrlen(search);
+  // can't have a search longer than the target now
+  if (l > cstrlen(target))
+    return -2;
 
-int main(void) {
-  
+  for (u32 i = 0; i < l; i++) {
+    if (search[i] ^ target[i]) {
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+
+void cmemset(const char *dst, char c, size_t n) {
+  char *d = (char *)dst;
+  while (n > 0) {
+    *d++ = c;
+    n--;
+  }
+}
+
+void strip_carriage_return(char *str) {
+  int len = cstrlen(str);
+  if (len > 0 && str[len-1] == '\r') {
+      str[len-1] = '\0';
+  }
+}
+
+int login() {
   char username[32];
   char password[32];
-  print("Welcome to DAM-OS' User Mode!\r\n");
-  print("Please start by entering your LearnIt credentials so we can set our grade:\r\n");
-  print("Username: ");
-  read(username, 32);
-  print("\r\nVerifying username ");
-  print(username);
-  sleep(1000);
-  print("\r\nPassword: ");
-  read(password, 32);
-  print("\r\nChecking credentials, please wait...\r\n");
-  sleep(3000);
-  if(cstrcmp(username,"user\r") == 0 && cstrcmp(password, "password\r") == 0) {
-    print("Updating LearnIT grades! Goodbye!\r\n");
-  } else {
-    print("Invalid credentials, shutting down :(\r\n");
+  
+  print("Please start by logging in:\r\n");
+  
+  while (1) {
+      cmemset(username, '\0', 32);
+      cmemset(password, '\0', 32);
+
+      print("Username: ");
+      read(username, 32);
+      print("\r\nlogging in as user: ");
+      print(username);
+      print("\r\nPassword: ");
+      read(password, 32);
+      print("\r\n");
+      print("\r\nChecking credentials, please wait...\r\n");
+      sleep(1000);
+      strip_carriage_return(username);
+      strip_carriage_return(password);
+
+      if (cstrcmp(username, "user") == 0 && cstrcmp(password, "password") == 0) {
+          print("Login successful!\r\n");
+          return 1;
+      } else {
+          print("Invalid credentials. Please try again.\r\n");
+          sleep(1000);  // Short delay between attempts
+          print("\r\n");
+      }
   }
-  sleep(5000);
+}
+
+void cmd_echo(char *input) {
+  char *message = input + 5;
+  print(message);
+  print("\r\n");
+}
+
+void cmd_help() {
+  print("Available commands:\r\n");
+  print("  help     - Show this help message\r\n");
+  print("  echo     - Echo text back to terminal\r\n");
+  print("  clear    - Clear the screen\r\n");
+  print("  shutdown - Shutdown the system\r\n");
+  print("  whoami   - Shows the username\r\n");
+}
+
+void print_welcome() {
+  sleep(10);
+  print("\r\n");
+  print(" _______    ______   __       __           ______    ______  \r\n");
+  sleep(10);
+  print("/       \\  /      \\ /  \\     /  |         /      \\  /      \\ \r\n");
+  sleep(10);
+  print("$$$$$$$  |/$$$$$$  |$$  \\   /$$ |        /$$$$$$  |/$$$$$$  |\r\n");
+  sleep(10);
+  print("$$ |  $$ |$$ |__$$ |$$$  \\ /$$$ | ______ $$ |  $$ |$$ \\__$$/ \r\n");
+  sleep(10);
+  print("$$ |  $$ |$$    $$ |$$$$  /$$$$ |/      |$$ |  $$ |$$      \\ \r\n");
+  sleep(10);
+  print("$$ |  $$ |$$$$$$$$ |$$ $$ $$/$$ |$$$$$$/ $$ |  $$ | $$$$$$  |\r\n");
+  sleep(10);
+  print("$$ |__$$ |$$ |  $$ |$$ |$$$/ $$ |        $$ \\__$$ |/  \\__$$ |\r\n");
+  sleep(10);
+  print("$$    $$/ $$ |  $$ |$$ | $/  $$ |        $$    $$/ $$    $$/ \r\n");
+  sleep(10);
+  print("$$$$$$$/  $$/   $$/ $$/      $$/          $$$$$$/   $$$$$$/  \r\n");
+  sleep(10);
+  print("\r\n");                                                  
+}
+
+void cmd_whoami() {
+  print("\r\nuser\r\n");
+}
+
+void cmd_clear() {
+  // ANSI escape sequence to clear screen
+  print("\033[2J\033[H");
+  print_welcome();
+}
+
+void shell() {
+  char input[128];
+  u64 time_start = 0;
+  
+  print("\r\nDAM-OS - Type 'help' for commands\r\n");
+  
+  while (1) {
+      print("dam-os > ");
+      cmemset(input, '\0', 128);
+      read(input, 128);
+      print("\r\n");
+      strip_carriage_return(input);
+      
+      if (cstrcmp(input, "help") == 0) {
+          cmd_help();
+      }
+      else if (cstrcmp(input, "clear") == 0) {
+          cmd_clear();
+      }
+      else if (cstrcmp(input, "whoami") == 0) {
+          cmd_whoami();
+      }
+      else if (cstrcmp(input, "shutdown") == 0 || cstrcmp(input, "exit") == 0) {
+          print("Shutting down DAM-OS...\r\n");
+          poweroff();  
+      }
+      else if (startswith("echo ", input) == 0) {
+          cmd_echo(input);
+      }
+      else if (cstrlen(input) == 0) {
+      }
+      else {
+          print("Command not found: ");
+          print(input);
+          print("\r\nType 'help' for available commands.\r\n");
+      }
+      
+      print("\r\n");
+  }
+}
+
+int main(void) {
+  print_welcome();
+  login();
+  shell();
   poweroff();
 }
